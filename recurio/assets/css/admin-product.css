@@ -1,0 +1,290 @@
+/**
+ * Recurio Admin Product Styles
+ * Styles for WooCommerce product admin interface
+ */
+
+/* Hide by default to prevent flash on General tab */
+#recurio_subscription_data {
+    display: none;
+    padding: 0 !important;
+}
+
+/* Only show when this panel is active */
+#recurio_subscription_data:not(.hidden) {
+    display: block !important;
+}
+
+#recurio_subscription_data .options_group {
+    padding: 12px !important;
+    margin: 0 !important;
+    border-bottom: 1px solid #eee !important;
+}
+
+#recurio_subscription_data .options_group:last-child {
+    border-bottom: none !important;
+}
+
+#recurio_subscription_data .options_group:first-child {
+    padding-left: 12px !important;
+    padding-right: 12px !important;
+}
+
+#recurio_subscription_data .form-field {
+    margin: 4px 0 !important;
+    padding: 0 !important;
+}
+
+#recurio_subscription_data .form-field label {
+    width: 150px !important;
+    float: left !important;
+    margin: 0 !important;
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+}
+
+#recurio_subscription_data .subscription-periods {
+    display: inline-block !important;
+    margin-left: 0 !important;
+    line-height: 36px !important;
+}
+
+#recurio_subscription_data .subscription-periods label {
+    display: inline-block !important;
+    margin-right: 15px !important;
+    width: auto !important;
+    float: none !important;
+    font-weight: normal !important;
+    line-height: 36px !important;
+    padding: 0 !important;
+}
+
+#recurio_subscription_data .subscription-periods input[type="radio"] {
+    margin-right: 5px !important;
+    margin-top: 0 !important;
+    margin-left: 0 !important;
+    vertical-align: middle !important;
+}
+
+#recurio_subscription_data input[type="checkbox"] {
+    margin: 4px 5px 0 0 !important;
+    vertical-align: middle !important;
+}
+
+#recurio_subscription_data input.short,
+#recurio_subscription_data select.short {
+    width: 50% !important;
+}
+
+#recurio_subscription_data .subscription_options {
+    padding: 0 !important;
+    margin: 0 !important;
+    border: none !important;
+    border-top: none !important;
+}
+
+#recurio_subscription_data .subscription_options .form-field {
+    padding: 5px 12px !important;
+}
+
+#recurio_subscription_data .woocommerce-help-tip {
+    vertical-align: middle !important;
+}
+
+/* Remove any left margin or padding from the panel itself */
+#recurio_subscription_data.woocommerce_options_panel {
+    margin-left: 0 !important;
+    padding-left: 0 !important;
+}
+
+/* Error message styles */
+.recurio-error-message {
+    color: #e74c3c;
+}
+
+/* Subscription column icons in product list */
+.dashicons.recurio-subscription-yes {
+    color: #46b450;
+}
+
+.dashicons.recurio-subscription-no {
+    color: #999;
+}
+
+/* Initially hide subscription options */
+.subscription_options.recurio-hidden {
+    display: none;
+}
+
+/* PRO-only period styling */
+.recurio-period-disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.recurio-period-disabled input[type="radio"] {
+    cursor: not-allowed;
+}
+
+/* PRO badge for billing periods */
+.recurio-pro-badge {
+    display: inline-block;
+    margin-left: 5px;
+    background: #6B7280;
+    color: #ffffff;
+    font-size: 9px;
+    font-weight: 600;
+    padding: 2px 7px;
+    border-radius: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    vertical-align: middle;
+    line-height: 1.2;
+}
+
+/* PRO upgrade notice for product page - Blue gradient matching Settings page */
+.recurio-product-pro-notice {
+    margin: 12px;
+    padding: 20px;
+    background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+    border: 2px solid #3b82f6;
+    border-radius: 12px;
+    font-size: 13px;
+    line-height: 1.6;
+}
+
+.recurio-product-pro-notice p {
+    margin: 0 0 12px 0;
+    color: #1e3a8a;
+    font-size: 14px;
+}
+
+.recurio-product-pro-notice p:first-child {
+    margin-bottom: 8px;
+}
+
+.recurio-product-pro-notice p:last-child {
+    margin-bottom: 16px;
+}
+
+.recurio-product-pro-notice strong {
+    color: #1e40af;
+    font-weight: 700;
+}
+
+.recurio-product-pro-notice a {
+    display: inline-block;
+    margin-top: 0;
+    padding: 10px 24px;
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+    color: #ffffff;
+    text-decoration: none;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 14px;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+}
+
+.recurio-product-pro-notice a:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(59, 130, 246, 0.4);
+}
+
+/* ===== Subscribe & Save Section Styles ===== */
+
+/* Section titles */
+.recurio-section-title {
+    margin: 0 0 15px 0 !important;
+    padding: 10px 0 8px 1em !important;
+    border-bottom: 1px solid #e0e0e0;
+    font-size: 14px !important;
+    font-weight: 600 !important;
+    color: #1e1e1e !important;
+}
+
+/* Subscribe & Save discount options (indented) */
+.recurio-subscribe-save-options {
+    margin-left: 20px !important;
+    padding-left: 15px !important;
+    border-left: 3px solid #2271b1;
+}
+
+.recurio-subscribe-save-options .form-field {
+    padding: 5px 0 !important;
+}
+
+/* Custom billing period wrapper */
+.recurio-custom-period-wrapper {
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+}
+
+.recurio-custom-period-wrapper input[type="number"] {
+    width: 70px !important;
+    text-align: center !important;
+}
+
+.recurio-custom-period-wrapper select {
+    min-width: 100px !important;
+}
+
+/* Standard period selector */
+.recurio-standard-period {
+    /* Styles already covered by subscription-periods */
+}
+
+/* Custom period selector */
+.recurio-custom-period {
+    padding: 5px 0 !important;
+}
+
+/* General hidden class for toggling visibility */
+.recurio-hidden {
+    display: none !important;
+}
+
+/* ===== Split Payments Section Styles ===== */
+
+/* Payment type radio options */
+.recurio-payment-type-options {
+    display: inline-block !important;
+}
+
+#recurio_subscription_data .recurio-payment-type-options label {
+    display: inline-block !important;
+    margin-right: 20px !important;
+    width: auto !important;
+    float: none !important;
+    font-weight: normal !important;
+    cursor: pointer !important;
+}
+
+.recurio-payment-type-options input[type="radio"] {
+    margin-right: 5px !important;
+    vertical-align: middle !important;
+}
+
+/* Split payment options (indented) */
+.recurio-split-payment-options {
+    margin-left: 20px !important;
+    margin-top: 10px !important;
+    padding: 12px 15px !important;
+    border-left: 3px solid #28a745;
+    background: #f9fff9;
+}
+
+.recurio-split-payment-options .form-field {
+    padding: 5px 0 !important;
+}
+
+/* Split payment info text */
+.recurio-split-payment-info {
+    margin-top: 10px !important;
+    padding: 8px 12px !important;
+    background: #e7f7e7 !important;
+    border-radius: 4px !important;
+    color: #155724 !important;
+    font-size: 12px !important;
+    font-style: italic !important;
+}

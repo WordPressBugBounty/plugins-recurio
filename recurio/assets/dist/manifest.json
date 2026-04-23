@@ -1,0 +1,26 @@
+{
+  "../../node_modules/element-plus/es/index.mjs": {
+    "file": "js/index-67efc97a.js",
+    "imports": [
+      "src/main.js"
+    ],
+    "isDynamicEntry": true,
+    "src": "../../node_modules/element-plus/es/index.mjs"
+  },
+  "src/main.css": {
+    "file": "css/main-2e936c0a.css",
+    "src": "src/main.css"
+  },
+  "src/main.js": {
+    "css": [
+      "css/main-2e936c0a.css"
+    ],
+    "dynamicImports": [
+      "../../node_modules/element-plus/es/index.mjs",
+      "../../node_modules/element-plus/es/index.mjs"
+    ],
+    "file": "js/main-0f638e7e.js",
+    "isEntry": true,
+    "src": "src/main.js"
+  }
+}

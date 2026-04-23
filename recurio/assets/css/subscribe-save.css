@@ -1,0 +1,179 @@
+/**
+ * Recurio Subscribe & Save Frontend Styles
+ *
+ * @package Recurio
+ * @since 1.2.0
+ */
+
+/* Purchase Options Container */
+.recurio-purchase-options {
+	display: flex;
+	flex-direction: column;
+	gap: 12px;
+	margin: 20px 0;
+	padding: 0;
+}
+
+/* Individual Option */
+.recurio-option {
+	display: flex;
+	align-items: flex-start;
+	padding: 16px;
+	border: 2px solid #e0e0e0;
+	border-radius: 8px;
+	cursor: pointer;
+	transition: all 0.2s ease;
+	background: #fff;
+}
+
+.recurio-option:hover {
+	border-color: #2271b1;
+	background: #f8fafc;
+}
+
+.recurio-option input[type="radio"] {
+	margin: 3px 12px 0 0;
+	flex-shrink: 0;
+	width: 18px;
+	height: 18px;
+	cursor: pointer;
+}
+
+.recurio-option input[type="radio"]:checked+.recurio-option-content {
+	font-weight: 500;
+}
+
+/* Selected State */
+.recurio-option:has(input[type="radio"]:checked) {
+	border-color: #2271b1;
+	background: #f0f6fc;
+	box-shadow: 0 0 0 1px #2271b1;
+}
+
+/* Option Content */
+.recurio-option-content {
+	display: flex;
+	flex-direction: column;
+	flex: 1;
+	gap: 4px;
+}
+
+.recurio-option-label {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	font-size: 15px;
+	font-weight: 500;
+	color: #1e1e1e;
+}
+
+.recurio-option-price {
+	display: flex;
+	align-items: baseline;
+	gap: 8px;
+	font-size: 16px;
+	color: #1e1e1e;
+}
+
+.recurio-option-price del {
+	color: #757575;
+	font-size: 14px;
+	text-decoration: line-through;
+}
+
+.recurio-billing-period {
+	font-size: 13px;
+	color: #616161;
+	font-weight: normal;
+}
+
+/* Save Badge */
+.recurio-save-badge {
+	display: inline-flex;
+	align-items: center;
+	padding: 2px 8px;
+	background: #22c55e;
+	color: #fff;
+	font-size: 11px;
+	font-weight: 600;
+	text-transform: uppercase;
+	border-radius: 4px;
+	letter-spacing: 0.5px;
+}
+
+/* Savings Display */
+.recurio-savings {
+	font-size: 13px;
+	color: #22c55e;
+	font-weight: 500;
+}
+
+/* Cart Display Styles */
+.recurio-purchase-type {
+	color: #616161;
+	font-style: italic;
+}
+
+.recurio-discount {
+	color: #22c55e;
+	font-weight: 600;
+}
+
+.recurio-subscription-indicator {
+	color: #2271b1;
+	font-weight: 500;
+}
+
+/* Admin Product Settings Styles */
+.recurio-section-title {
+	margin: 20px 0 10px;
+	padding: 10px 0;
+	border-bottom: 1px solid #e0e0e0;
+	font-size: 14px;
+	font-weight: 600;
+	color: #1e1e1e;
+}
+
+.recurio-custom-period-wrapper {
+	display: inline-flex;
+	align-items: center;
+	gap: 8px;
+}
+
+.recurio-custom-period-wrapper input[type="number"] {
+	width: 70px !important;
+}
+
+.recurio-custom-period-wrapper select {
+	min-width: 100px;
+}
+
+.recurio-subscribe-save-options {
+	margin-left: 20px;
+	padding-left: 20px;
+	border-left: 3px solid #2271b1;
+}
+
+/* Hidden class */
+.recurio-hidden {
+	display: none !important;
+}
+
+/* Mobile Responsive */
+@media (max-width: 600px) {
+	.recurio-option {
+		padding: 12px;
+	}
+
+	.recurio-option-label {
+		flex-wrap: wrap;
+	}
+
+	.recurio-option-price {
+		flex-wrap: wrap;
+	}
+
+	.recurio-save-badge {
+		margin-top: 4px;
+	}
+}

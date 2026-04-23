@@ -1,0 +1,321 @@
+/**
+ * Pro Badges and Upgrade Notices Styles
+ *
+ * @package Recurio
+ * @since 1.1.0
+ */
+
+/* Pro Badge Styles */
+.recurio-pro-badge {
+	display: inline-block;
+	background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+	color: #fff;
+	font-size: 10px;
+	font-weight: 700;
+	text-transform: uppercase;
+	letter-spacing: 0.5px;
+	padding: 3px 8px;
+	border-radius: 3px;
+	margin-left: 8px;
+	vertical-align: middle;
+	box-shadow: 0 2px 4px rgba(102, 126, 234, 0.3);
+}
+
+.recurio-pro-label {
+	display: inline-flex;
+	align-items: center;
+	background: #f0f0ff;
+	color: #667eea;
+	font-size: 12px;
+	font-weight: 600;
+	padding: 4px 10px;
+	border-radius: 4px;
+	margin-left: 10px;
+	border: 1px solid #e0e0ff;
+}
+
+.recurio-pro-label::before {
+	content: "⭐";
+	margin-right: 4px;
+}
+
+.recurio-pro-ribbon {
+	position: relative;
+	display: inline-block;
+	background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+	color: #fff;
+	font-size: 11px;
+	font-weight: 700;
+	text-transform: uppercase;
+	padding: 6px 12px;
+	border-radius: 4px;
+	box-shadow: 0 2px 8px rgba(102, 126, 234, 0.4);
+}
+
+/* Upgrade Notice Styles */
+.recurio-upgrade-notice {
+	display: flex;
+	align-items: flex-start;
+	gap: 16px;
+	background: #f8f9ff;
+	border: 2px solid #e0e5ff;
+	border-left: 4px solid #667eea;
+	border-radius: 8px;
+	padding: 20px;
+	margin: 20px 0;
+}
+
+.recurio-upgrade-icon {
+	flex-shrink: 0;
+	width: 48px;
+	height: 48px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+	border-radius: 8px;
+	color: #fff;
+}
+
+.recurio-upgrade-icon svg {
+	width: 24px;
+	height: 24px;
+}
+
+.recurio-upgrade-content {
+	flex: 1;
+}
+
+.recurio-upgrade-content p {
+	margin: 0 0 12px 0;
+	color: #3c4858;
+	font-size: 14px;
+	line-height: 1.6;
+}
+
+.recurio-upgrade-content .button {
+	margin-right: 8px;
+	margin-bottom: 0;
+}
+
+.recurio-upgrade-content .button-primary {
+	background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+	border-color: #667eea;
+	text-shadow: none;
+	box-shadow: 0 2px 4px rgba(102, 126, 234, 0.3);
+}
+
+.recurio-upgrade-content .button-primary:hover {
+	background: linear-gradient(135deg, #5568d3 0%, #66408d 100%);
+	border-color: #5568d3;
+}
+
+/* Disabled/Locked Feature Overlay */
+.recurio-feature-locked {
+	position: relative;
+	pointer-events: none;
+	opacity: 0.6;
+}
+
+.recurio-feature-locked::after {
+	content: "";
+	position: absolute;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	background: rgba(255, 255, 255, 0.8);
+	backdrop-filter: blur(2px);
+	z-index: 10;
+}
+
+.recurio-feature-locked-overlay {
+	position: relative;
+}
+
+.recurio-feature-locked-message {
+	position: absolute;
+	top: 50%;
+	left: 50%;
+	transform: translate(-50%, -50%);
+	z-index: 11;
+	background: #fff;
+	padding: 20px 30px;
+	border-radius: 8px;
+	box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+	text-align: center;
+	max-width: 400px;
+}
+
+.recurio-feature-locked-message h3 {
+	margin: 0 0 10px 0;
+	color: #1e293b;
+	font-size: 18px;
+}
+
+.recurio-feature-locked-message p {
+	margin: 0 0 16px 0;
+	color: #64748b;
+	font-size: 14px;
+}
+
+/* Admin Notice Styles */
+.recurio-upgrade-admin-notice h3 {
+	margin: 0 0 10px 0;
+	font-size: 16px;
+}
+
+.recurio-upgrade-admin-notice ul {
+	margin: 10px 0 15px 0;
+}
+
+.recurio-upgrade-admin-notice li {
+	margin-bottom: 5px;
+	color: #3c4858;
+	font-size: 14px;
+}
+
+/* Pro Feature Card */
+.recurio-pro-feature-card {
+	background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+	color: #fff;
+	padding: 24px;
+	border-radius: 8px;
+	margin: 20px 0;
+	box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+.recurio-pro-feature-card h3 {
+	margin: 0 0 12px 0;
+	color: #fff;
+	font-size: 20px;
+}
+
+.recurio-pro-feature-card p {
+	margin: 0 0 16px 0;
+	color: rgba(255, 255, 255, 0.9);
+	font-size: 14px;
+	line-height: 1.6;
+}
+
+.recurio-pro-feature-card ul {
+	list-style: none;
+	padding: 0;
+	margin: 0 0 20px 0;
+}
+
+.recurio-pro-feature-card ul li {
+	padding-left: 24px;
+	position: relative;
+	margin-bottom: 8px;
+	color: rgba(255, 255, 255, 0.95);
+	font-size: 14px;
+}
+
+.recurio-pro-feature-card ul li::before {
+	content: "✓";
+	position: absolute;
+	left: 0;
+	font-weight: bold;
+	color: #fff;
+}
+
+.recurio-pro-feature-card .button {
+	background: #fff;
+	color: #667eea;
+	border: none;
+	font-weight: 600;
+	padding: 10px 24px;
+	box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.recurio-pro-feature-card .button:hover {
+	background: #f0f0ff;
+	color: #5568d3;
+}
+
+/* Table Row Pro Badge */
+.recurio-table-pro-badge {
+	display: inline-flex;
+	align-items: center;
+	gap: 4px;
+	background: #f0f0ff;
+	color: #667eea;
+	font-size: 11px;
+	font-weight: 600;
+	padding: 2px 6px;
+	border-radius: 3px;
+	margin-left: 6px;
+}
+
+/* Settings Section Pro Lock */
+.recurio-settings-pro-section {
+	position: relative;
+}
+
+.recurio-settings-pro-section::before {
+	content: "";
+	position: absolute;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	background: linear-gradient(to bottom, rgba(255, 255, 255, 0.7) 0%, rgba(255, 255, 255, 0.9) 100%);
+	backdrop-filter: blur(1px);
+	z-index: 5;
+	pointer-events: none;
+}
+
+.recurio-settings-pro-badge {
+	position: absolute;
+	top: 12px;
+	right: 12px;
+	z-index: 6;
+}
+
+/* Responsive Styles */
+@media (max-width: 768px) {
+	.recurio-upgrade-notice {
+		flex-direction: column;
+		padding: 16px;
+	}
+
+	.recurio-upgrade-icon {
+		width: 40px;
+		height: 40px;
+	}
+
+	.recurio-upgrade-content .button {
+		display: block;
+		width: 100%;
+		margin-right: 0;
+		margin-bottom: 8px;
+		text-align: center;
+	}
+
+	.recurio-feature-locked-message {
+		max-width: 90%;
+		padding: 16px 20px;
+	}
+
+	.recurio-pro-feature-card {
+		padding: 20px;
+	}
+}
+
+/* Animation */
+@keyframes recurio-pro-pulse {
+	0% {
+		box-shadow: 0 0 0 0 rgba(102, 126, 234, 0.7);
+	}
+	70% {
+		box-shadow: 0 0 0 10px rgba(102, 126, 234, 0);
+	}
+	100% {
+		box-shadow: 0 0 0 0 rgba(102, 126, 234, 0);
+	}
+}
+
+.recurio-pro-badge-animated {
+	animation: recurio-pro-pulse 2s infinite;
+}

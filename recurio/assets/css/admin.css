@@ -1,0 +1,347 @@
+/**
+ * Recurio - Admin Styles
+ * @package Ultimate_Woo_Subscriptions
+ * @since 1.0.0
+ */
+
+/* Loading State Improvements */
+.wrap {
+    background: #f0f0f1;
+    min-height: calc(100vh - 32px - 46px);
+    margin-right: 0;
+}
+
+#recurio-dashboard-app {
+    background: transparent;
+    min-height: calc(100vh - 32px - 100px);
+    position: relative;
+}
+
+/* Better Loading Animation */
+.recurio-loading {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+    z-index: 9999;
+}
+
+/* Modern Loading Spinner */
+.recurio-spinner-container {
+    margin-bottom: 24px;
+}
+
+/* SVG Spinner Animation */
+.recurio-spinner-svg {
+    animation: recurio-rotate 1.4s linear infinite;
+    display: block;
+    margin: 0 auto;
+}
+
+.recurio-spinner-track {
+    opacity: 0.25;
+}
+
+.recurio-spinner-fill {
+    animation: recurio-dash 1.4s ease-in-out infinite;
+    stroke-linecap: round;
+    transform-origin: center;
+}
+
+@keyframes recurio-rotate {
+    0% {
+        transform: rotate(0deg);
+    }
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+@keyframes recurio-dash {
+    0% {
+        stroke-dasharray: 1, 126;
+        stroke-dashoffset: 0;
+    }
+    50% {
+        stroke-dasharray: 90, 36;
+        stroke-dashoffset: -31;
+    }
+    100% {
+        stroke-dasharray: 90, 36;
+        stroke-dashoffset: -126;
+    }
+}
+
+.recurio-loading p {
+    color: #555;
+    font-size: 16px;
+    font-weight: 500;
+    margin: 0;
+    letter-spacing: 0.3px;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+/* Fade in animation when app loads */
+#recurio-dashboard-app .el-container {
+    animation: fadeIn 0.3s ease-in;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+input[type=color], input[type=date], input[type=datetime-local], input[type=datetime], input[type=email], input[type=month], input[type=number], input[type=password], input[type=search], input[type=tel], input[type=text], input[type=time], input[type=url], input[type=week] {
+    border-radius: 0 !important;
+    padding: 0 !important;
+    border: 0 !important;
+}
+
+input[type=checkbox]:focus, input[type=color]:focus, input[type=date]:focus, input[type=datetime-local]:focus, input[type=datetime]:focus, input[type=email]:focus, input[type=month]:focus, input[type=number]:focus, input[type=password]:focus, input[type=radio]:focus, input[type=search]:focus, input[type=tel]:focus, input[type=text]:focus, input[type=time]:focus, input[type=url]:focus, input[type=week]:focus, select:focus, textarea:focus
+ {
+    border: 0 !important;
+    box-shadow: none !important;
+    outline: none !important;
+}
+
+/* Dashboard Widget Styles */
+.recurio-dashboard-widget {
+    padding: 10px 0;
+}
+
+.recurio-stats-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 15px;
+    margin-bottom: 20px;
+}
+
+.recurio-stat {
+    background: #f8f9fa;
+    padding: 15px;
+    border-radius: 5px;
+    text-align: center;
+    border: 1px solid #e2e4e7;
+}
+
+.recurio-stat-label {
+    display: block;
+    font-size: 11px;
+    color: #666;
+    text-transform: uppercase;
+    margin-bottom: 5px;
+    font-weight: 600;
+}
+
+.recurio-stat-value {
+    display: block;
+    font-size: 20px;
+    font-weight: bold;
+    color: #23282d;
+}
+
+.recurio-dashboard-link {
+    text-align: center;
+    margin-top: 15px;
+    padding-top: 15px;
+    border-top: 1px solid #e2e4e7;
+}
+
+/* Loading State */
+.recurio-loading {
+    text-align: center;
+    margin-top: 20px;
+}
+
+.recurio-loading .spinner {
+    float: none;
+    margin: 0 auto 20px;
+}
+
+.recurio-loading p {
+    color: #666;
+    font-size: 14px;
+}
+
+/* Tools Page */
+.recurio-tools-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 20px;
+    margin-top: 20px;
+}
+
+.recurio-tools-container .card {
+    background: #fff;
+    border: 1px solid #e2e4e7;
+    border-radius: 5px;
+    padding: 20px;
+}
+
+.recurio-tools-container .card h2 {
+    margin-top: 0;
+    margin-bottom: 10px;
+    font-size: 18px;
+    color: #23282d;
+}
+
+.recurio-tools-container .card p {
+    color: #666;
+    margin-bottom: 15px;
+}
+
+.recurio-tools-container .button {
+    margin-right: 10px;
+    margin-bottom: 5px;
+}
+
+.welcome-section .welcome-right .feature-card.gradient-card{
+    background-image: url(../images/welcome-banner.png);
+    background-position: center center;
+    background-size: 100%;
+    background-repeat: no-repeat;
+}
+
+/* Status Tags */
+.recurio-status-tag {
+    display: inline-block;
+    padding: 3px 8px;
+    border-radius: 3px;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.recurio-status-active {
+    background: #d4edda;
+    color: #155724;
+}
+
+.recurio-status-paused {
+    background: #d1ecf1;
+    color: #0c5460;
+}
+
+.recurio-status-cancelled {
+    background: #f8d7da;
+    color: #721c24;
+}
+
+.recurio-status-pending {
+    background: #fff3cd;
+    color: #856404;
+}
+
+/* Subscription Table */
+.wp-list-table .column-subscription_status {
+    width: 100px;
+}
+
+.wp-list-table .column-next_payment {
+    width: 120px;
+}
+
+.wp-list-table .column-billing_amount {
+    width: 100px;
+}
+
+/* Notices */
+.recurio-notice {
+    padding: 12px;
+    margin: 15px 0;
+    border-left: 4px solid;
+    background: #fff;
+}
+
+.recurio-notice-success {
+    border-color: #46b450;
+    background: #f0f8f0;
+}
+
+.recurio-notice-error {
+    border-color: #dc3232;
+    background: #fef7f7;
+}
+
+.recurio-notice-warning {
+    border-color: #ffb900;
+    background: #fffdf0;
+}
+
+.recurio-notice-info {
+    border-color: #00a0d2;
+    background: #f0f8ff;
+}
+
+/* Forms */
+.recurio-form-group {
+    margin-bottom: 20px;
+}
+
+.recurio-form-group label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: 600;
+    color: #23282d;
+}
+
+.recurio-form-group input[type="text"],
+.recurio-form-group input[type="number"],
+.recurio-form-group input[type="email"],
+.recurio-form-group select,
+.recurio-form-group textarea {
+    width: 100%;
+    max-width: 400px;
+}
+
+.recurio-form-group .description {
+    margin-top: 5px;
+    color: #666;
+    font-size: 13px;
+    font-style: italic;
+}
+
+/* Responsive */
+@media screen and (max-width: 782px) {
+    .recurio-stats-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .recurio-tools-container {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Vue App Container */
+#recurio-dashboard-app {
+    margin-top: 20px;
+    min-height: 400px;
+}
+
+/* Override Element Plus styles for WordPress admin */
+.el-message-box,
+.el-dialog,
+.el-notification {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
+}
+
+.el-button {
+    font-family: inherit;
+}
+
+/* Fix for Element Plus in WordPress admin */
+.wrap .el-table {
+    font-size: 13px;
+}
+
+.wrap .el-card {
+    box-shadow: 0 1px 1px rgba(0,0,0,.04);
+    border: 1px solid #e2e4e7;
+}

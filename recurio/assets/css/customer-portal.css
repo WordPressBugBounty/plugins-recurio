@@ -1,0 +1,861 @@
+/* Utility class for hidden elements */
+.is-hidden {
+    display: none !important;
+}
+
+.recurio-portal-dashboard,
+.recurio-portal-subscription-list,
+.recurio-portal-subscription-detail {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.recurio-portal-header {
+    margin-bottom: 30px;
+    border-bottom: 2px solid #e0e0e0;
+    padding-bottom: 20px;
+}
+
+.recurio-portal-header h2 {
+    margin: 0 0 10px 0;
+    color: #333;
+    font-size: 28px;
+}
+
+.recurio-portal-subtitle {
+    color: #666;
+    font-size: 16px;
+    margin: 0;
+}
+
+.recurio-back-link {
+    display: inline-block;
+    margin-bottom: 10px;
+    color: #007cba;
+    text-decoration: none;
+}
+
+.recurio-back-link:hover {
+    text-decoration: underline;
+}
+
+.recurio-portal-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 20px;
+    margin-bottom: 40px;
+}
+
+.recurio-stat-card {
+    background: #fff;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    padding: 20px;
+    text-align: center;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.recurio-stat-value {
+    font-size: 32px;
+    font-weight: bold;
+    color: #333;
+    margin-bottom: 5px;
+}
+
+.recurio-stat-label {
+    color: #666;
+    font-size: 14px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.recurio-portal-subscriptions h3 {
+    margin-bottom: 20px;
+    color: #333;
+}
+
+.recurio-subscriptions-table {
+    background: #fff;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.recurio-subscriptions-table table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.recurio-subscriptions-table th {
+    background: #f5f5f5;
+    padding: 15px;
+    text-align: left;
+    font-weight: 600;
+    color: #333;
+    border-bottom: 2px solid #e0e0e0;
+}
+
+.recurio-subscriptions-table td {
+    padding: 15px;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+.recurio-subscriptions-table td:last-child {
+    min-width: 280px;
+}
+
+.recurio-subscriptions-table tr:last-child td {
+    border-bottom: none;
+}
+
+.recurio-product-info {
+    display: flex;
+    flex-direction: column;
+}
+
+.recurio-product-info strong {
+    margin-bottom: 5px;
+}
+
+.recurio-subscription-id {
+    color: #666;
+    font-size: 12px;
+}
+
+.recurio-status {
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.recurio-status-active {
+    background: #d4edda;
+    color: #155724;
+}
+
+.recurio-status-paused {
+    background: #fff3cd;
+    color: #856404;
+}
+
+.recurio-status-cancelled,
+.recurio-status-expired {
+    background: #f8d7da;
+    color: #721c24;
+}
+
+.recurio-status-trial {
+    background: #d1ecf1;
+    color: #0c5460;
+}
+
+.recurio-status-pending_cancellation {
+    background: #f8d7da;
+    color: #721c24;
+}
+
+.recurio-status-pending_payment {
+    background: #fff3cd;
+    color: #856404;
+}
+
+.recurio-status-completed {
+    background: #d4edda;
+    color: #155724;
+}
+
+.recurio-billing-interval {
+    color: #666;
+    font-size: 14px;
+}
+
+.recurio-actions {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.recurio-actions .button {
+    padding: 6px 12px;
+    font-size: 13px;
+    white-space: nowrap;
+}
+
+.recurio-portal-empty {
+    text-align: center;
+    padding: 60px 20px;
+    background: #f9f9f9;
+    border-radius: 8px;
+}
+
+.recurio-portal-empty p {
+    font-size: 18px;
+    color: #666;
+    margin-bottom: 20px;
+}
+
+.recurio-button-primary {
+    background: #007cba !important;
+    color: #fff !important;
+    border-color: #007cba !important;
+}
+
+.recurio-button-primary:hover {
+    background: #005a87 !important;
+    border-color: #005a87 !important;
+}
+
+.recurio-button-success {
+    background: #28a745 !important;
+    color: #fff !important;
+    border-color: #28a745 !important;
+}
+
+.recurio-button-success:hover {
+    background: #218838 !important;
+    border-color: #1e7e34 !important;
+}
+
+/* Split Payment Progress Bar */
+.recurio-progress-container {
+    display: flex !important;
+    align-items: center !important;
+    gap: 10px !important;
+}
+
+.recurio-progress-bar {
+    flex: 1;
+    height: 12px;
+    background: #e9ecef;
+    border-radius: 6px;
+    overflow: hidden;
+    max-width: 200px;
+}
+
+.recurio-progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #28a745 0%, #20c997 100%);
+    border-radius: 6px;
+    transition: width 0.3s ease;
+}
+
+.recurio-progress-text {
+    font-weight: 600;
+    color: #28a745;
+    min-width: 40px;
+}
+
+/* Badge styles */
+.recurio-badge {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.recurio-badge-info {
+    background: #e7f3ff;
+    color: #0066cc;
+}
+
+.recurio-subscription-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+    gap: 20px;
+}
+
+.recurio-subscription-card {
+    background: #fff;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.recurio-card-header {
+    background: #f5f5f5;
+    padding: 15px;
+    border-bottom: 1px solid #e0e0e0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.recurio-card-header h3 {
+    margin: 0;
+    font-size: 18px;
+    color: #333;
+}
+
+.recurio-card-body {
+    padding: 20px;
+}
+
+.recurio-card-info {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.recurio-info-item {
+    display: flex;
+    justify-content: space-between;
+}
+
+.recurio-info-label {
+    color: #666;
+    font-size: 14px;
+}
+
+.recurio-info-value {
+    font-weight: 600;
+    color: #333;
+    font-size: 14px;
+}
+
+.recurio-card-footer {
+    padding: 15px;
+    background: #f9f9f9;
+    border-top: 1px solid #e0e0e0;
+    display: flex;
+    gap: 10px;
+}
+
+.recurio-detail-grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 30px;
+    margin-bottom: 30px;
+}
+
+.recurio-detail-section {
+    background: #fff;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    padding: 20px;
+}
+
+.recurio-detail-section h3 {
+    margin: 0 0 20px 0;
+    color: #333;
+    font-size: 20px;
+}
+
+.recurio-detail-info {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.recurio-detail-row {
+    display: flex;
+    justify-content: space-between;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.recurio-detail-row:last-child {
+    border-bottom: none;
+}
+
+.recurio-detail-label {
+    color: #666;
+    font-size: 14px;
+}
+
+.recurio-detail-value {
+    font-weight: 600;
+    color: #333;
+    font-size: 14px;
+}
+
+.recurio-action-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.recurio-action-buttons .button {
+    width: 100%;
+    padding: 10px;
+    text-align: center;
+}
+
+.recurio-detail-addresses {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 30px;
+    margin-bottom: 30px;
+}
+
+.recurio-address-content {
+    background: #f9f9f9;
+    padding: 15px;
+    border-radius: 4px;
+    margin-bottom: 10px;
+    font-size: 14px;
+    line-height: 1.6;
+}
+
+.recurio-payment-history {
+    grid-column: 1 / -1;
+}
+
+.recurio-payment-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.recurio-payment-table th {
+    background: #f5f5f5;
+    padding: 10px;
+    text-align: left;
+    font-weight: 600;
+    border-bottom: 2px solid #e0e0e0;
+}
+
+.recurio-payment-table td {
+    padding: 10px;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+.recurio-payment-table tr:last-child td {
+    border-bottom: none;
+}
+
+.recurio-modal.is-hidden {
+    display: none;
+}
+
+.recurio-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0,0,0,0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+}
+.recurio-modal:not(.is-hidden){
+    display: flex !important;
+}
+
+.recurio-modal-content {
+    background: #fff;
+    border-radius: 8px;
+    padding: 30px;
+    max-width: 500px;
+    width: 90%;
+    position: relative;
+    /* margin: auto; */
+}
+
+.recurio-modal-close:hover {
+    color: #000 !important;
+    transform: scale(1.1);
+}
+
+.recurio-modal-close.button:hover {
+    color: #fff !important;
+}
+
+.recurio-modal-content h3 {
+    margin: 0 0 20px 0;
+    color: #333;
+}
+
+.recurio-cancel-options {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    margin: 20px 0;
+}
+
+.recurio-cancel-options label {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+}
+
+.recurio-modal-actions {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+    margin-top: 20px;
+}
+
+/* Modal button styles */
+.recurio-modal-actions button,
+.recurio-modal-actions .button {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 4px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+/* Primary button (default blue buttons) */
+.recurio-modal-actions button.button-primary,
+.recurio-modal-actions .button.button-primary,
+.recurio-modal-actions .btn-primary,
+.recurio-modal-actions button[type="submit"]:not(.btn-secondary):not(.button-secondary) {
+    background: #007cba;
+    color: #fff !important;
+}
+
+.recurio-modal-actions button.button-primary:hover,
+.recurio-modal-actions .button.button-primary:hover,
+.recurio-modal-actions .btn-primary:hover,
+.recurio-modal-actions button[type="submit"]:not(.btn-secondary):not(.button-secondary):hover {
+    background: #006ba1;
+    color: #fff !important;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+}
+
+/* Secondary button (gray cancel/keep active buttons) */
+.recurio-modal-actions button.button-secondary,
+.recurio-modal-actions .button.button-secondary,
+.recurio-modal-actions .btn-secondary,
+.recurio-modal-actions button[type="button"]:not(.button-primary):not(.btn-primary) {
+    background: #6c757d;
+    color: #fff !important;
+}
+
+.recurio-modal-actions button.button-secondary:hover,
+.recurio-modal-actions .button.button-secondary:hover,
+.recurio-modal-actions .btn-secondary:hover,
+.recurio-modal-actions button[type="button"]:not(.button-primary):not(.btn-primary):hover {
+    background: #5a6268;
+    color: #fff !important;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+}
+
+/* Special case for "Add New Payment Method" button (info style) */
+.recurio-modal-actions button.btn-info,
+.recurio-modal-actions .button.button-info {
+    background: #17a2b8;
+    color: #fff !important;
+}
+
+.recurio-modal-actions button.btn-info:hover,
+.recurio-modal-actions .button.button-info:hover {
+    background: #138496;
+    color: #fff !important;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+}
+
+.recurio-address-input {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 14px;
+    resize: vertical;
+}
+
+.recurio-portal-notice {
+    background: #f0f0f0;
+    padding: 20px;
+    border-radius: 8px;
+    text-align: center;
+    color: #666;
+}
+
+/* Modal close button styles */
+.recurio-modal-close:not(.recurio-modal-keep) {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: none;
+    border: none;
+    font-size: 24px;
+    cursor: pointer;
+    color: #666;
+    padding: 0;
+    width: 30px;
+    height: 30px;
+    line-height: 30px;
+}
+
+.recurio-modal-close:hover {
+    color: #333;
+}
+
+/* Modal content positioning */
+.recurio-modal-content {
+    position: relative;
+}
+
+/* Notification styles for modals */
+.recurio-portal-notice.recurio-notice-warning {
+    background: #fff3cd;
+    border-left: 4px solid #ff9800;
+    padding: 12px;
+    margin: 15px 0;
+    text-align: left;
+}
+
+.recurio-portal-notice.recurio-notice-info {
+    background: #d1ecf1;
+    border-left: 4px solid #0c5460;
+    padding: 12px;
+    margin: 15px 0;
+    text-align: left;
+}
+
+.recurio-portal-notice.recurio-notice-success {
+    background: #d4edda;
+    border-left: 4px solid #28a745;
+    padding: 12px;
+    margin: 15px 0;
+    text-align: left;
+}
+
+/* WooCommerce My Account specific styles */
+.woocommerce-MyAccount-content .recurio-subscriptions-table {
+    overflow-x: auto;
+    display: block;
+}
+
+.woocommerce-MyAccount-content .recurio-subscriptions-table table {
+    min-width: 700px;
+}
+
+.woocommerce-MyAccount-content .recurio-actions {
+    min-width: 240px;
+}
+
+.woocommerce-MyAccount-content .recurio-actions .button {
+    margin: 0;
+    padding: 6px 10px;
+    font-size: 12px;
+}
+
+@media (max-width: 768px) {
+    .recurio-portal-stats {
+        grid-template-columns: 1fr;
+    }
+
+    .recurio-detail-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .recurio-subscriptions-table {
+        overflow-x: auto;
+    }
+
+    .recurio-subscription-cards {
+        grid-template-columns: 1fr;
+    }
+
+    .recurio-actions {
+        flex-direction: column;
+    }
+
+    .recurio-card-footer {
+        flex-direction: column;
+    }
+}
+
+/* ===== Switch Plan Modal Styles ===== */
+.recurio-modal-large {
+    max-width: 600px;
+    width: 90%;
+    max-height: 85vh;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    margin: 5vh auto;
+}
+
+.recurio-modal-large .recurio-modal-actions {
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 1px solid #e0e0e0;
+    flex-shrink: 0;
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+}
+
+.recurio-modal-large .recurio-modal-actions .button {
+    min-width: 100px;
+    text-align: center;
+    white-space: nowrap;
+    padding: 10px 20px;
+}
+
+/* Cancel button in switch modal */
+#recurio-switch-plan-modal .recurio-modal-actions .recurio-modal-close {
+    background: #6c757d;
+    color: #fff !important;
+}
+
+#recurio-switch-plan-modal .recurio-modal-actions .recurio-modal-close:hover {
+    background: #5a6268;
+}
+
+.recurio-switch-current-plan {
+    background: #f8f9fa;
+    border-radius: 8px;
+    padding: 15px;
+    margin-bottom: 20px;
+}
+
+.recurio-switch-current-plan h4 {
+    margin: 0 0 10px 0;
+    font-size: 14px;
+    color: #666;
+    text-transform: uppercase;
+}
+
+.recurio-current-plan-info {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.recurio-current-plan-info .recurio-plan-name {
+    font-weight: 600;
+    font-size: 16px;
+}
+
+.recurio-current-plan-info .recurio-plan-price {
+    color: #007cba;
+    font-weight: 600;
+}
+
+.recurio-switch-plans-loading {
+    text-align: center;
+    padding: 30px;
+    color: #666;
+}
+
+.recurio-switch-plans-loading .spinner {
+    float: none;
+    margin: 0 10px 0 0;
+}
+
+.recurio-switch-plans-list h4 {
+    margin: 0 0 15px 0;
+    font-size: 14px;
+    color: #666;
+    text-transform: uppercase;
+}
+
+.recurio-plans-container {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.recurio-plan-option {
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
+    padding: 15px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.recurio-plan-option:hover {
+    border-color: #007cba;
+    background: #f8f9fa;
+}
+
+.recurio-plan-option.selected {
+    border-color: #007cba;
+    background: #e8f4fd;
+}
+
+.recurio-plan-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.recurio-plan-option .recurio-plan-name {
+    font-weight: 600;
+    font-size: 16px;
+}
+
+.recurio-plan-option .recurio-plan-price {
+    color: #333;
+    font-size: 14px;
+    margin-bottom: 5px;
+}
+
+.recurio-plan-option .recurio-plan-amount-due {
+    color: #28a745;
+    font-size: 13px;
+    font-weight: 500;
+}
+
+.recurio-switch-proration {
+    background: #f8f9fa;
+    border-radius: 8px;
+    padding: 15px;
+    margin-top: 20px;
+}
+
+.recurio-switch-proration h4 {
+    margin: 0 0 15px 0;
+    font-size: 14px;
+    color: #666;
+    text-transform: uppercase;
+}
+
+.recurio-proration-details .recurio-detail-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 8px 0;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+.recurio-proration-details .recurio-detail-row:last-child {
+    border-bottom: none;
+}
+
+.recurio-proration-details .recurio-total-row {
+    margin-top: 10px;
+    padding-top: 15px;
+    border-top: 2px solid #007cba;
+    border-bottom: none;
+}
+
+.recurio-proration-details .recurio-credit {
+    color: #28a745;
+}
+
+.recurio-proration-details .recurio-amount-due strong {
+    color: #007cba;
+    font-size: 18px;
+}
+
+/* Button info style for Switch Plan button */
+.recurio-button-info {
+    background: #17a2b8 !important;
+    color: #fff !important;
+    border-color: #17a2b8 !important;
+}
+
+.recurio-button-info:hover {
+    background: #138496 !important;
+    border-color: #117a8b !important;
+}
