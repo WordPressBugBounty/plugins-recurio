@@ -1,0 +1,226 @@
+/**
+ * Variable Product Subscriptions - Admin Styles
+ *
+ * @package Recurio
+ * @since 1.0.0
+ */
+
+/* Variation Subscription Settings Container */
+.recurio-variation-subscription-settings {
+	margin: 15px 0;
+	padding: 15px;
+	background: #f8f9fa;
+	border: 1px solid #ddd;
+	border-radius: 4px;
+}
+
+.recurio-variation-subscription-settings .recurio-variation-header {
+	margin: 0 0 12px 0;
+	padding-bottom: 10px;
+	border-bottom: 1px solid #ddd;
+	display: flex;
+	align-items: center;
+	gap: 8px;
+}
+
+.recurio-variation-subscription-settings .recurio-variation-header strong {
+	font-size: 13px;
+	color: #1e1e1e;
+}
+
+/* PRO Badge */
+.recurio-variation-subscription-settings .recurio-pro-badge {
+	display: inline-block;
+	background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+	color: #fff;
+	font-size: 9px;
+	font-weight: 600;
+	padding: 2px 6px;
+	border-radius: 3px;
+	text-transform: uppercase;
+	letter-spacing: 0.5px;
+}
+
+/* PRO Upsell */
+.recurio-variation-subscription-settings .recurio-pro-upsell {
+	margin: 0;
+	padding: 12px;
+	background: #fff;
+	border: 1px dashed #ddd;
+	border-radius: 4px;
+	color: #666;
+	font-size: 13px;
+	line-height: 1.5;
+}
+
+.recurio-variation-subscription-settings .recurio-pro-upsell .button {
+	margin-top: 8px;
+}
+
+/* Override Checkbox */
+.recurio-variation-subscription-settings .form-row label input[type="checkbox"].recurio-override-subscription,
+.recurio-variation-subscription-settings .form-row label input[type="checkbox"].recurio-variation-custom-period {
+	vertical-align: middle;
+}
+
+.recurio-variation-subscription-settings p.form-row label {
+	display: flex;
+	align-items: center;
+	gap: 5px;
+}
+
+/* Subscription Options Container */
+.recurio-variation-subscription-options {
+	margin-top: 12px;
+	padding-top: 12px;
+	border-top: 1px solid #e0e0e0;
+}
+
+.recurio-variation-subscription-options .form-row {
+	margin-bottom: 12px;
+}
+
+.recurio-variation-subscription-options .form-row label {
+	display: block;
+	margin-bottom: 4px;
+	font-weight: 500;
+	color: #1e1e1e;
+	font-size: 12px;
+}
+
+.recurio-variation-subscription-options .form-row-first,
+.recurio-variation-subscription-options .form-row-last {
+	width: 48%;
+	display: inline-block;
+	vertical-align: top;
+}
+
+.recurio-variation-subscription-options .form-row-first {
+	margin-right: 2%;
+}
+
+.recurio-variation-subscription-options input[type="text"],
+.recurio-variation-subscription-options input[type="number"],
+.recurio-variation-subscription-options select {
+	width: 100%;
+	max-width: 100%;
+}
+
+/* Custom Period Wrapper */
+.recurio-variation-subscription-options .recurio-custom-period-wrapper {
+	display: flex;
+	gap: 8px;
+	align-items: center;
+}
+
+.recurio-variation-subscription-options .recurio-custom-period-wrapper input[type="number"] {
+	width: 70px !important;
+	flex: 0 0 auto;
+}
+
+.recurio-variation-subscription-options .recurio-custom-period-wrapper select {
+	flex: 1;
+}
+
+/* Standard Period Selection */
+.recurio-variation-standard-period select {
+	width: 100%;
+}
+
+/* Custom Period Fields */
+.recurio-variation-custom-period-fields {
+	margin-top: 8px;
+}
+
+/* Hidden State */
+.recurio-variation-subscription-settings.recurio-hidden,
+.recurio-variation-subscription-settings .recurio-hidden {
+	display: none !important;
+}
+
+/* Disabled/Inherited State - fields visible but greyed out */
+.recurio-variation-subscription-options.recurio-fields-disabled {
+	opacity: 0.5;
+	pointer-events: none;
+}
+
+.recurio-variation-subscription-options.recurio-fields-disabled input,
+.recurio-variation-subscription-options.recurio-fields-disabled select {
+	background-color: #f5f5f5;
+	cursor: not-allowed;
+}
+
+/* Responsive adjustments */
+@media screen and (max-width: 782px) {
+
+	.recurio-variation-subscription-options .form-row-first,
+	.recurio-variation-subscription-options .form-row-last {
+		width: 100%;
+		display: block;
+		margin-right: 0;
+	}
+}
+
+/* Animation for toggle */
+.recurio-variation-subscription-options {
+	transition: opacity 0.2s ease-in-out;
+}
+
+/* Input placeholders */
+.recurio-variation-subscription-options input::placeholder {
+	color: #999;
+	font-style: italic;
+}
+
+/* Focus states */
+.recurio-variation-subscription-options input:focus,
+.recurio-variation-subscription-options select:focus {
+	border-color: #007cba;
+	box-shadow: 0 0 0 1px #007cba;
+	outline: none;
+}
+
+/* Checkbox alignment */
+.recurio-variation-subscription-settings .form-row label input[type="checkbox"] {
+	margin-right: 8px;
+	vertical-align: middle;
+	flex-shrink: 0;
+}
+
+/* Custom period checkbox row */
+.recurio-variation-subscription-options .form-row-last label {
+	display: inline-flex;
+	align-items: center;
+}
+
+/* Custom period toggle alignment */
+.recurio-variation-subscription-options .recurio-custom-period-toggle {
+	padding-top: 28px;
+}
+
+.recurio-variation-subscription-options .recurio-custom-period-toggle label {
+	display: inline-flex;
+	align-items: center;
+	gap: 0;
+}
+
+/* Select dropdown styling */
+.recurio-variation-subscription-options select {
+	height: 32px;
+	padding: 0 24px 0 8px;
+	background-position: right 8px center;
+}
+
+/* Billing period section */
+.recurio-variation-standard-period,
+.recurio-variation-custom-period-fields {
+	background: #fff;
+	padding: 10px;
+	border-radius: 4px;
+	margin-top: 8px;
+}
+
+.recurio-variation-standard-period>label,
+.recurio-variation-custom-period-fields>label {
+	margin-bottom: 8px;
+}

@@ -3,10 +3,11 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-$subscription      = $subscription ?? null;
-$payment_history   = $payment_history ?? array();
-$available_actions = $available_actions ?? array();
-$portal_url        = $portal_url ?? '';
+$subscription           = $subscription ?? null;
+$payment_history        = $payment_history ?? array();
+$pending_renewal_orders = $pending_renewal_orders ?? array();
+$available_actions      = $available_actions ?? array();
+$portal_url             = $portal_url ?? '';
 
 if ( ! $subscription ) {
 	echo '<div class="recurio-portal-notice">' . esc_html__( 'Subscription not found.', 'recurio' ) . '</div>';
@@ -96,15 +97,54 @@ function recurio_format_address( $address_json ) {
 
 	return implode( "\n", $formatted );
 }
+
+$recurio_skip_next_formatted      = '';
+$recurio_skip_scheduled_formatted = '';
+if (
+	in_array( 'skip_next_payment', $available_actions, true )
+	&& ! empty( $subscription->next_payment_date )
+	&& class_exists( 'Recurio_Subscription_Engine' )
+) {
+	$skip_engine       = Recurio_Subscription_Engine::get_instance();
+	$recurio_skip_next = $skip_engine->calculate_date_after_one_billing_cycle(
+		$subscription->next_payment_date,
+		$subscription->billing_period,
+		$subscription->billing_interval
+	);
+	if ( $recurio_skip_next ) {
+		$recurio_skip_scheduled_formatted = date_i18n( get_option( 'date_format' ), strtotime( $subscription->next_payment_date ) );
+		$recurio_skip_next_formatted      = date_i18n( get_option( 'date_format' ), strtotime( $recurio_skip_next ) );
+	}
+}
 ?>
 
 <div class="recurio-portal-subscription-detail">
 	<div class="recurio-portal-header">
-		<a href="<?php echo esc_url( $portal_url ?: '#' ); ?>" class="recurio-back-link" <?php echo ! $portal_url ? 'onclick="history.back(); return false;"' : ''; ?>>← <?php echo esc_html__( 'Back to Subscriptions', 'recurio' ); ?></a>
-		<h2><?php echo esc_html( $product_name ); ?></h2>
-		<span class="recurio-status recurio-status-<?php echo esc_attr( $subscription->status ); ?>">
-			<?php echo esc_html( ucfirst( str_replace( '_', ' ', $subscription->status ) ) ); ?>
-		</span>
+		<a href="<?php echo esc_url( $portal_url ?: '#' ); ?>" class="recurio-back-link" <?php echo ! $portal_url ? 'onclick="history.back(); return false;"' : ''; ?>>
+			&larr; <?php echo esc_html__( 'Back to Subscriptions', 'recurio' ); ?>
+		</a>
+		<div class="recurio-portal-header-title">
+			<h2><?php echo esc_html( $product_name ); ?></h2>
+			<span class="recurio-status recurio-status-<?php echo esc_attr( $subscription->status ); ?>">
+				<span class="recurio-status-dot" aria-hidden="true"></span>
+				<?php echo esc_html( ucfirst( str_replace( '_', ' ', $subscription->status ) ) ); ?>
+			</span>
+		</div>
+		<p class="recurio-portal-header-meta">
+			<?php
+			echo wp_kses_post( wc_price( $subscription->billing_amount ) );
+			echo ' &middot; ';
+			$interval = isset( $subscription->billing_interval ) ? intval( $subscription->billing_interval ) : 1;
+			if ( $interval > 1 ) {
+				/* translators: %1$d: interval, %2$s: period */
+				printf( esc_html__( 'every %1$d %2$ss', 'recurio' ), $interval, esc_html( $subscription->billing_period ) );
+			} else {
+				/* translators: %s: billing period (month, year…) */
+				printf( esc_html__( 'per %s', 'recurio' ), esc_html( $subscription->billing_period ) );
+			}
+			echo ' &middot; ' . esc_html__( 'ID: #', 'recurio' ) . esc_html( $subscription->id );
+			?>
+		</p>
 	</div>
 
 	<div class="recurio-detail-grid">
@@ -257,52 +297,36 @@ function recurio_format_address( $address_json ) {
 			</div>
 		</div>
 
-		<div class="recurio-detail-section">
+		<div class="recurio-detail-section recurio-actions-panel">
 			<h3><?php echo esc_html__( 'Actions', 'recurio' ); ?></h3>
-			
+
 			<div class="recurio-action-buttons">
-				<?php if ( in_array( 'pause', $available_actions ) ) : ?>
-					<button class="button recurio-pause-subscription" data-subscription-id="<?php echo esc_attr( $subscription->id ); ?>">
-						<?php echo esc_html__( 'Pause Subscription', 'recurio' ); ?>
-					</button>
-				<?php endif; ?>
-				
-				<?php if ( in_array( 'resume', $available_actions ) ) : ?>
-					<button class="button recurio-resume-subscription" data-subscription-id="<?php echo esc_attr( $subscription->id ); ?>">
+
+				<?php /* Primary / positive actions */ ?>
+				<?php if ( in_array( 'resume', $available_actions, true ) ) : ?>
+					<button type="button" class="button recurio-action-btn recurio-action-success recurio-resume-subscription" data-subscription-id="<?php echo esc_attr( $subscription->id ); ?>">
 						<?php echo esc_html__( 'Resume Subscription', 'recurio' ); ?>
 					</button>
 				<?php endif; ?>
-				
-				<?php if ( in_array( 'cancel', $available_actions ) ) : ?>
-					<button class="button button-secondary recurio-cancel-subscription" data-subscription-id="<?php echo esc_attr( $subscription->id ); ?>">
-						<?php echo esc_html__( 'Cancel Subscription', 'recurio' ); ?>
-					</button>
-				<?php endif; ?>
-				
-				<?php if ( in_array( 'update_payment', $available_actions ) ) : ?>
-					<button class="button recurio-update-payment" data-subscription-id="<?php echo esc_attr( $subscription->id ); ?>">
-						<?php echo esc_html__( 'Update Payment Method', 'recurio' ); ?>
-					</button>
-				<?php endif; ?>
-				
-				<?php if ( in_array( 'reactivate', $available_actions ) ) : ?>
-					<button class="button recurio-button-primary recurio-reactivate-subscription" data-subscription-id="<?php echo esc_attr( $subscription->id ); ?>">
+
+				<?php if ( in_array( 'reactivate', $available_actions, true ) ) : ?>
+					<button type="button" class="button recurio-action-btn recurio-action-primary recurio-reactivate-subscription" data-subscription-id="<?php echo esc_attr( $subscription->id ); ?>">
 						<?php echo esc_html__( 'Reactivate Subscription', 'recurio' ); ?>
 					</button>
 				<?php endif; ?>
 
-				<?php if ( in_array( 'early_renewal', $available_actions ) ) : ?>
-					<button class="button recurio-button-success recurio-early-renewal" data-subscription-id="<?php echo esc_attr( $subscription->id ); ?>">
+				<?php if ( in_array( 'early_renewal', $available_actions, true ) ) : ?>
+					<button type="button" class="button recurio-action-btn recurio-action-success recurio-early-renewal" data-subscription-id="<?php echo esc_attr( $subscription->id ); ?>">
 						<?php echo esc_html__( 'Renew Now', 'recurio' ); ?>
 					</button>
 				<?php endif; ?>
 
-				<?php if ( in_array( 'pay_installment', $available_actions ) ) : ?>
+				<?php if ( in_array( 'pay_installment', $available_actions, true ) ) : ?>
 					<?php
 					$max_payments  = isset( $subscription->max_payments ) ? intval( $subscription->max_payments ) : 0;
 					$payments_made = isset( $subscription->renewal_count ) ? intval( $subscription->renewal_count ) : 0;
 					?>
-					<button class="button recurio-button-primary recurio-pay-installment" data-subscription-id="<?php echo esc_attr( $subscription->id ); ?>">
+					<button type="button" class="button recurio-action-btn recurio-action-primary recurio-pay-installment" data-subscription-id="<?php echo esc_attr( $subscription->id ); ?>">
 						<?php
 						/* translators: %1$d: next installment number, %2$d: total installments */
 						printf( esc_html__( 'Pay Installment %1$d of %2$d', 'recurio' ), $payments_made + 1, $max_payments );
@@ -310,11 +334,49 @@ function recurio_format_address( $address_json ) {
 					</button>
 				<?php endif; ?>
 
-				<?php if ( in_array( 'switch_plan', $available_actions ) ) : ?>
-					<button class="button recurio-button-info recurio-switch-plan" data-subscription-id="<?php echo esc_attr( $subscription->id ); ?>">
+				<?php /* Secondary / management actions */ ?>
+				<?php if ( in_array( 'switch_plan', $available_actions, true ) ) : ?>
+					<button type="button" class="button recurio-action-btn recurio-action-secondary recurio-switch-plan" data-subscription-id="<?php echo esc_attr( $subscription->id ); ?>">
 						<?php echo esc_html__( 'Switch Plan', 'recurio' ); ?>
 					</button>
 				<?php endif; ?>
+
+				<?php if ( in_array( 'pause', $available_actions, true ) ) : ?>
+					<button type="button" class="button recurio-action-btn recurio-action-secondary recurio-pause-subscription" data-subscription-id="<?php echo esc_attr( $subscription->id ); ?>">
+						<?php echo esc_html__( 'Pause Subscription', 'recurio' ); ?>
+					</button>
+				<?php endif; ?>
+
+				<?php if ( in_array( 'skip_next_payment', $available_actions, true ) && $recurio_skip_next_formatted && $recurio_skip_scheduled_formatted ) : ?>
+					<button
+						type="button"
+						class="button recurio-action-btn recurio-action-secondary recurio-skip-next-payment"
+						data-subscription-id="<?php echo esc_attr( $subscription->id ); ?>"
+						data-prev-date="<?php echo esc_attr( $recurio_skip_scheduled_formatted ); ?>"
+						data-next-date="<?php echo esc_attr( $recurio_skip_next_formatted ); ?>"
+						data-amount-text="<?php echo esc_attr( wp_strip_all_tags( wc_price( $subscription->billing_amount ) ) ); ?>"
+					>
+						<?php
+						/* translators: %s: date of the skipped payment */
+						printf( esc_html__( 'Skip next payment (%s)', 'recurio' ), esc_html( $recurio_skip_scheduled_formatted ) );
+						?>
+					</button>
+				<?php endif; ?>
+
+				<?php if ( in_array( 'update_payment', $available_actions, true ) ) : ?>
+					<button type="button" class="button recurio-action-btn recurio-action-secondary recurio-update-payment" data-subscription-id="<?php echo esc_attr( $subscription->id ); ?>">
+						<?php echo esc_html__( 'Update Payment Method', 'recurio' ); ?>
+					</button>
+				<?php endif; ?>
+
+				<?php /* Destructive action — separated by a divider */ ?>
+				<?php if ( in_array( 'cancel', $available_actions, true ) ) : ?>
+					<div class="recurio-action-divider"></div>
+					<button type="button" class="button recurio-action-btn recurio-action-danger recurio-cancel-subscription" data-subscription-id="<?php echo esc_attr( $subscription->id ); ?>">
+						<?php echo esc_html__( 'Cancel Subscription', 'recurio' ); ?>
+					</button>
+				<?php endif; ?>
+
 			</div>
 		</div>
 	</div>
@@ -330,7 +392,7 @@ function recurio_format_address( $address_json ) {
 						echo wp_kses_post( nl2br( $formatted_billing ) );
 						?>
 					</div>
-					<button class="button button-small recurio-edit-address" data-type="billing">
+					<button type="button" class="button recurio-action-btn recurio-action-secondary recurio-edit-address" data-type="billing">
 						<?php echo esc_html__( 'Edit', 'recurio' ); ?>
 					</button>
 				</div>
@@ -345,7 +407,7 @@ function recurio_format_address( $address_json ) {
 						echo wp_kses_post( nl2br( $formatted_shipping ) );
 						?>
 					</div>
-					<button class="button button-small recurio-edit-address" data-type="shipping">
+					<button type="button" class="button recurio-action-btn recurio-action-secondary recurio-edit-address" data-type="shipping">
 						<?php echo esc_html__( 'Edit', 'recurio' ); ?>
 					</button>
 				</div>
@@ -356,7 +418,7 @@ function recurio_format_address( $address_json ) {
 	<div class="recurio-detail-section recurio-payment-history">
 		<h3><?php echo esc_html__( 'Payment History', 'recurio' ); ?></h3>
 		
-		<?php if ( empty( $payment_history ) ) : ?>
+		<?php if ( empty( $payment_history ) && empty( $pending_renewal_orders ) ) : ?>
 			<p><?php echo esc_html__( 'No payment history available.', 'recurio' ); ?></p>
 		<?php else : ?>
 			<table class="recurio-payment-table">
@@ -366,15 +428,30 @@ function recurio_format_address( $address_json ) {
 						<th><?php echo esc_html__( 'Amount', 'recurio' ); ?></th>
 						<th><?php echo esc_html__( 'Method', 'recurio' ); ?></th>
 						<th><?php echo esc_html__( 'Transaction ID', 'recurio' ); ?></th>
+						<th><?php echo esc_html__( 'Status', 'recurio' ); ?></th>
 					</tr>
 				</thead>
 				<tbody>
+					<?php foreach ( $pending_renewal_orders as $pending_order ) : ?>
+						<tr class="recurio-pending-payment-row">
+							<td><?php echo esc_html( date_i18n( get_option( 'date_format' ), $pending_order->get_date_created()->getTimestamp() ) ); ?></td>
+							<td><?php echo wp_kses_post( wc_price( $pending_order->get_total() ) ); ?></td>
+							<td><?php echo esc_html( $pending_order->get_payment_method_title() ?: '—' ); ?></td>
+							<td>—</td>
+							<td>
+								<a href="<?php echo esc_url( $pending_order->get_checkout_payment_url() ); ?>" class="button recurio-pay-now-btn">
+									<?php echo esc_html__( 'Pay Now', 'recurio' ); ?>
+								</a>
+							</td>
+						</tr>
+					<?php endforeach; ?>
 					<?php foreach ( $payment_history as $payment ) : ?>
 						<tr>
 							<td><?php echo esc_html( date_i18n( get_option( 'date_format' ), strtotime( $payment->created_at ) ) ); ?></td>
 							<td><?php echo wp_kses_post( wc_price( $payment->amount ) ); ?></td>
 							<td><?php echo esc_html( $payment->payment_method ?: '—' ); ?></td>
 							<td><?php echo esc_html( $payment->transaction_id ?: '—' ); ?></td>
+							<td><span class="recurio-paid-badge"><?php echo esc_html__( 'Paid', 'recurio' ); ?></span></td>
 						</tr>
 					<?php endforeach; ?>
 				</tbody>
@@ -385,15 +462,15 @@ function recurio_format_address( $address_json ) {
 
 <div id="recurio-cancel-modal" class="recurio-modal is-hidden">
 	<div class="recurio-modal-content">
-		<button class="recurio-modal-close">&times;</button>
+		<button class="recurio-modal-close" type="button" aria-label="<?php esc_attr_e( 'Close', 'recurio' ); ?>">&times;</button>
 		<h3><?php echo esc_html__( 'Cancel Subscription', 'recurio' ); ?></h3>
 		<p><?php echo esc_html__( 'When would you like to cancel this subscription?', 'recurio' ); ?></p>
-		
+
 		<div class="recurio-portal-notice recurio-notice-warning">
-			<strong><?php echo esc_html__( '⚠️ This action cannot be undone', 'recurio' ); ?></strong><br>
+			<strong><?php echo esc_html__( 'This action cannot be undone', 'recurio' ); ?></strong>
 			<?php echo esc_html__( 'Once cancelled, this subscription cannot be reactivated.', 'recurio' ); ?>
 		</div>
-		
+
 		<div class="recurio-cancel-options">
 			<label>
 				<input type="radio" name="cancel_at" value="immediately" checked>
@@ -404,10 +481,10 @@ function recurio_format_address( $address_json ) {
 				<?php echo esc_html__( 'Cancel at end of current billing period', 'recurio' ); ?>
 			</label>
 		</div>
-		
+
 		<div class="recurio-modal-actions">
-			<button class="button recurio-modal-keep recurio-modal-close"><?php echo esc_html__( 'Keep Subscription', 'recurio' ); ?></button>
-			<button class="button button-primary recurio-confirm-cancel"><?php echo esc_html__( 'Confirm Cancellation', 'recurio' ); ?></button>
+			<button class="button recurio-modal-keep recurio-modal-close" type="button"><?php echo esc_html__( 'Keep Subscription', 'recurio' ); ?></button>
+			<button class="button recurio-confirm-cancel" type="button"><?php echo esc_html__( 'Confirm Cancellation', 'recurio' ); ?></button>
 		</div>
 	</div>
 </div>
@@ -415,20 +492,36 @@ function recurio_format_address( $address_json ) {
 <!-- Pause Subscription Modal -->
 <div id="recurio-pause-modal" class="recurio-modal is-hidden">
 	<div class="recurio-modal-content">
-		<button class="recurio-modal-close">&times;</button>
+		<button class="recurio-modal-close" type="button" aria-label="<?php esc_attr_e( 'Close', 'recurio' ); ?>">&times;</button>
 		<h3><?php echo esc_html__( 'Pause Subscription', 'recurio' ); ?></h3>
 		<p><?php echo esc_html__( 'Are you sure you want to pause this subscription?', 'recurio' ); ?></p>
-		
+
 		<div class="recurio-portal-notice recurio-notice-info">
-			<strong><?php echo esc_html__( 'ℹ️ What happens when you pause:', 'recurio' ); ?></strong><br>
-			<?php echo esc_html__( '• No charges will be made while paused', 'recurio' ); ?><br>
-			<?php echo esc_html__( '• You can resume your subscription anytime', 'recurio' ); ?><br>
-			<?php echo esc_html__( '• Your subscription benefits will be temporarily suspended', 'recurio' ); ?>
+			<strong><?php echo esc_html__( 'What happens when you pause:', 'recurio' ); ?></strong>
+			<?php echo esc_html__( 'No charges while paused &bull; Resume anytime &bull; Benefits temporarily suspended', 'recurio' ); ?>
 		</div>
-		
+
 		<div class="recurio-modal-actions">
-			<button class="button recurio-modal-keep recurio-modal-close"><?php echo esc_html__( 'Keep Active', 'recurio' ); ?></button>
-			<button class="button button-primary recurio-confirm-pause"><?php echo esc_html__( 'Pause Subscription', 'recurio' ); ?></button>
+			<button class="button recurio-modal-keep recurio-modal-close" type="button"><?php echo esc_html__( 'Keep Active', 'recurio' ); ?></button>
+			<button class="button button-primary recurio-confirm-pause" type="button"><?php echo esc_html__( 'Pause Subscription', 'recurio' ); ?></button>
+		</div>
+	</div>
+</div>
+
+<!-- Skip Next Payment Modal -->
+<div id="recurio-skip-modal" class="recurio-modal is-hidden">
+	<div class="recurio-modal-content">
+		<button class="recurio-modal-close" type="button">&times;</button>
+		<h3><?php echo esc_html__( 'Skip Next Payment', 'recurio' ); ?></h3>
+		<p class="recurio-skip-modal-message"><?php echo esc_html__( 'Your next payment will be skipped and billing will resume on your new date.', 'recurio' ); ?></p>
+
+		<div class="recurio-portal-notice recurio-notice-info">
+			<p class="recurio-skip-modal-detail"></p>
+		</div>
+
+		<div class="recurio-modal-actions">
+			<button type="button" class="button recurio-modal-keep recurio-modal-close"><?php echo esc_html__( 'Keep Current Schedule', 'recurio' ); ?></button>
+			<button type="button" class="button button-primary recurio-confirm-skip"><?php echo esc_html__( 'Skip Next Payment', 'recurio' ); ?></button>
 		</div>
 	</div>
 </div>
@@ -498,6 +591,26 @@ function recurio_format_address( $address_json ) {
 					<?php echo wp_kses_post( wc_price( $subscription->billing_amount ) ); ?>
 				</span>
 			</div>
+			<?php
+			$renewal_shipping_meta = get_post_meta( $subscription->product_id, '_recurio_include_renewal_shipping', true );
+			if ( 'yes' === $renewal_shipping_meta && ! empty( $subscription->shipping_amount ) && (float) $subscription->shipping_amount > 0 ) :
+			?>
+			<div class="recurio-detail-row">
+				<span class="recurio-detail-label"><?php echo esc_html__( 'Shipping:', 'recurio' ); ?></span>
+				<span class="recurio-detail-value">
+					<?php echo wp_kses_post( wc_price( $subscription->shipping_amount ) ); ?>
+					<?php if ( ! empty( $subscription->shipping_method ) ) : ?>
+						<small>(<?php echo esc_html( $subscription->shipping_method ); ?>)</small>
+					<?php endif; ?>
+				</span>
+			</div>
+			<div class="recurio-detail-row">
+				<span class="recurio-detail-label"><strong><?php echo esc_html__( 'Total:', 'recurio' ); ?></strong></span>
+				<span class="recurio-detail-value">
+					<strong><?php echo wp_kses_post( wc_price( (float) $subscription->billing_amount + (float) $subscription->shipping_amount ) ); ?></strong>
+				</span>
+			</div>
+			<?php endif; ?>
 		</div>
 
 		<div class="recurio-modal-actions">

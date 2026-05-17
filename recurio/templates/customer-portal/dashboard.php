@@ -146,6 +146,7 @@ $user = wp_get_current_user();
 								</td>
 								<td>
 									<span class="recurio-status recurio-status-<?php echo esc_attr( $subscription->status ); ?>">
+										<span class="recurio-status-dot" aria-hidden="true"></span>
 										<?php echo esc_html( ucfirst( str_replace( '_', ' ', $subscription->status ) ) ); ?>
 									</span>
 								</td>
@@ -198,22 +199,22 @@ $user = wp_get_current_user();
 								</td>
 								<td>
 									<div class="recurio-actions">
-										<a href="?view=subscription&id=<?php echo esc_attr( $subscription->id ); ?>" class="button button-small">
+										<a href="?view=subscription&id=<?php echo esc_attr( $subscription->id ); ?>" class="button recurio-tbl-btn recurio-tbl-btn-secondary">
 											<?php echo esc_html__( 'View', 'recurio' ); ?>
 										</a>
-										
-							<?php if ( 'active' === $subscription->status ) : ?>
-											<button class="button button-small recurio-pause-subscription" data-subscription-id="<?php echo esc_attr( $subscription->id ); ?>">
+
+										<?php if ( 'active' === $subscription->status ) : ?>
+											<button type="button" class="button recurio-tbl-btn recurio-tbl-btn-secondary recurio-pause-subscription" data-subscription-id="<?php echo esc_attr( $subscription->id ); ?>">
 												<?php echo esc_html__( 'Pause', 'recurio' ); ?>
 											</button>
-							<?php elseif ( 'paused' === $subscription->status ) : ?>
-											<button class="button button-small recurio-resume-subscription" data-subscription-id="<?php echo esc_attr( $subscription->id ); ?>">
+										<?php elseif ( 'paused' === $subscription->status ) : ?>
+											<button type="button" class="button recurio-tbl-btn recurio-tbl-btn-success recurio-resume-subscription" data-subscription-id="<?php echo esc_attr( $subscription->id ); ?>">
 												<?php echo esc_html__( 'Resume', 'recurio' ); ?>
 											</button>
 										<?php endif; ?>
-										
-							<?php if ( ! in_array( $subscription->status, array( 'cancelled', 'expired' ), true ) ) : ?>
-											<button class="button button-small recurio-cancel-subscription" data-subscription-id="<?php echo esc_attr( $subscription->id ); ?>">
+
+										<?php if ( ! in_array( $subscription->status, array( 'cancelled', 'expired' ), true ) ) : ?>
+											<button type="button" class="button recurio-tbl-btn recurio-tbl-btn-danger recurio-cancel-subscription" data-subscription-id="<?php echo esc_attr( $subscription->id ); ?>">
 												<?php echo esc_html__( 'Cancel', 'recurio' ); ?>
 											</button>
 										<?php endif; ?>

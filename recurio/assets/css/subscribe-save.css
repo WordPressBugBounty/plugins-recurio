@@ -7,6 +7,7 @@
 
 /* Purchase Options Container */
 .recurio-purchase-options {
+	--recurio-primary: #1E40AF;
 	display: flex;
 	flex-direction: column;
 	gap: 12px;
@@ -27,7 +28,7 @@
 }
 
 .recurio-option:hover {
-	border-color: #2271b1;
+	border-color: var(--recurio-primary);
 	background: #f8fafc;
 }
 
@@ -45,9 +46,9 @@
 
 /* Selected State */
 .recurio-option:has(input[type="radio"]:checked) {
-	border-color: #2271b1;
+	border-color: var(--recurio-primary);
 	background: #f0f6fc;
-	box-shadow: 0 0 0 1px #2271b1;
+	box-shadow: 0 0 0 1px var(--recurio-primary);
 }
 
 /* Option Content */
@@ -157,6 +158,59 @@
 /* Hidden class */
 .recurio-hidden {
 	display: none !important;
+}
+
+/* Value Badge (custom text e.g. "Best Value") */
+.recurio-purchase-options .recurio-value-badge {
+	display: inline-flex !important;
+	align-items: center;
+	padding: 3px 10px;
+	background: var(--recurio-primary) !important;
+	color: #fff !important;
+	font-size: 11px !important;
+	font-weight: 700;
+	text-transform: uppercase;
+	border-radius: 20px;
+	letter-spacing: 0.5px;
+	line-height: 1.5;
+	vertical-align: middle;
+	white-space: nowrap;
+}
+
+/* ===== Widget Styles ===== */
+
+/* Simple — default, no wrapper chrome */
+.recurio-widget-simple {
+	/* inherits base styles */
+}
+
+/* Card — boxed with a subtle border and shadow */
+.recurio-widget-card {
+	background: #fff;
+	border: 1px solid #e0e0e0;
+	border-radius: 12px;
+	padding: 20px;
+	box-shadow: 0 1px 6px rgba(0, 0, 0, 0.07);
+}
+
+.recurio-widget-card .recurio-option {
+	border-radius: 6px;
+}
+
+/* Highlighted — strong border accent using the primary colour */
+.recurio-widget-highlighted {
+	background: #fafcff;
+	border: 2px solid var(--recurio-primary);
+	border-radius: 12px;
+	padding: 20px;
+}
+
+.recurio-widget-highlighted .recurio-option {
+	border-radius: 6px;
+}
+
+.recurio-widget-highlighted .recurio-option:has(input[type="radio"]:checked) {
+	background: rgba(30, 64, 175, 0.05);
 }
 
 /* Mobile Responsive */

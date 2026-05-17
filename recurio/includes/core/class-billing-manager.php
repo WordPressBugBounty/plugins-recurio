@@ -44,17 +44,6 @@ class Recurio_Billing_Manager {
 		add_action( 'recurio_retry_failed_payments', array( $this, 'retry_failed_payments' ) );
 		add_action( 'recurio_send_renewal_reminders', array( $this, 'send_renewal_reminders' ) );
 
-		// Payment gateway specific hooks
-		add_action( 'woocommerce_scheduled_subscription_payment', array( $this, 'handle_gateway_recurring_payment' ), 10, 2 );
-
-		// Webhook handlers for payment gateways
-		add_action( 'woocommerce_api_recurio_stripe_webhook', array( $this, 'handle_stripe_webhook' ) );
-		add_action( 'woocommerce_api_recurio_paypal_webhook', array( $this, 'handle_paypal_webhook' ) );
-
-		// AJAX handlers for manual payment processing
-		add_action( 'wp_ajax_recurio_process_payment', array( $this, 'ajax_process_payment' ) );
-		add_action( 'wp_ajax_recurio_retry_payment', array( $this, 'ajax_retry_payment' ) );
-
 		// Filter for custom payment methods
 		add_filter( 'recurio_available_payment_methods', array( $this, 'get_available_payment_methods' ) );
 	}
@@ -246,7 +235,22 @@ class Recurio_Billing_Manager {
 		$payment_result = apply_filters( 'recurio_process_subscription_payment', $payment_result, $subscription, $payment_method );
 
 		if ( $payment_result && ! is_wp_error( $payment_result ) ) {
-			$this->handle_payment_success( $subscription, $payment_result );
+			// For synchronous gateways the WC integration's handle_renewal_order_payment()
+			// fires during the gateway call (before we get here) and already logs revenue
+			// and updates the subscription. Skip handle_payment_success() in that case to
+			// prevent double revenue entries, duplicate events, and double hook firing.
+			$already_processed = false;
+			if ( ! empty( $payment_result['order_id'] ) ) {
+				$renewal_order = wc_get_order( $payment_result['order_id'] );
+				if ( $renewal_order && $renewal_order->get_meta( '_recurio_renewal_processed' ) === 'yes' ) {
+					$already_processed = true;
+				}
+			}
+
+			if ( ! $already_processed ) {
+				$this->handle_payment_success( $subscription, $payment_result );
+			}
+
 			return true;
 		} else {
 			$error_message = is_wp_error( $payment_result ) ? $payment_result->get_error_message() : 'Payment failed';
@@ -452,9 +456,15 @@ class Recurio_Billing_Manager {
 
 		$gateway = $payment_gateways[ $gateway_id ];
 
-		// Check if gateway supports subscriptions
-		if ( ! $gateway->supports( 'subscriptions' ) ) {
-			// Gateway doesn't support subscriptions
+		// Check if gateway supports automated recurring payments
+		if ( ! $gateway->supports( 'subscriptions' ) && ! $gateway->supports( 'tokenization' ) ) {
+			return new WP_Error(
+				'gateway_not_supported',
+				sprintf(
+					'Gateway "%s" does not support automated recurring payments. The customer must use a payment method that supports tokenization (e.g. Stripe, PayPal).',
+					$gateway_id
+				)
+			);
 		}
 
 		// Create renewal order
@@ -464,25 +474,38 @@ class Recurio_Billing_Manager {
 			return new WP_Error( 'order_creation_failed', 'Failed to create renewal order' );
 		}
 
-		// Set payment method on order
+		// Set payment method on order and save before calling the gateway.
 		$order->set_payment_method( $gateway );
+		$order->save();
 
-		// Process payment
-		$payment_result = $gateway->process_payment( $order->get_id() );
+		// Fire the WC Subscriptions standard scheduled-payment action.
+		// Gateways that support recurring billing (e.g. Takepayments, Mollie, etc.) hook
+		// into woocommerce_scheduled_subscription_payment_{gateway_id} to charge the saved
+		// card token server-side. This is the correct server-side path — NOT process_payment(),
+		// which is designed for interactive checkout redirects and does not charge the card.
+		do_action(
+			'woocommerce_scheduled_subscription_payment_' . $gateway_id,
+			floatval( $subscription->billing_amount ),
+			$order
+		);
 
-		if ( $payment_result && isset( $payment_result['result'] ) && $payment_result['result'] === 'success' ) {
-			$order->payment_complete();
+		// Reload the order so we see the status the gateway just set.
+		$order = wc_get_order( $order->get_id() );
 
+		if ( $order->is_paid() || $order->has_status( array( 'processing', 'completed' ) ) ) {
 			return array(
 				'transaction_id' => $order->get_transaction_id(),
 				'order_id'       => $order->get_id(),
 				'amount'         => $subscription->billing_amount,
 				'gateway'        => $gateway_id,
 			);
-		} else {
-			$order->update_status( 'failed', 'Payment failed' );
-			return new WP_Error( 'payment_failed', 'Payment processing failed' );
 		}
+
+		$order->update_status( 'failed', 'Payment not confirmed after gateway processing.' );
+		return new WP_Error(
+			'payment_failed',
+			sprintf( 'Gateway "%s" did not confirm payment. Order status: %s', $gateway_id, $order->get_status() )
+		);
 	}
 
 	/**
@@ -494,18 +517,25 @@ class Recurio_Billing_Manager {
 		$original_order_id = $subscription->wc_subscription_id;
 		$original_order    = $original_order_id ? wc_get_order( $original_order_id ) : null;
 
-		// Create new order
+		// Create new order.
+		// Do NOT set 'parent' — WooCommerce hides child orders (post_parent != 0)
+		// from the default admin orders list. Link to original order via meta instead.
 		$order = wc_create_order(
 			array(
 				'customer_id' => $subscription->customer_id,
 				'created_via' => 'subscription_renewal',
-				'parent'      => $original_order_id,
 			)
 		);
 
 		if ( ! $order ) {
 			return false;
 		}
+
+		// Determine whether to include shipping on this renewal.
+		// Only charge shipping when the meta is explicitly set to 'yes'.
+		$product_id            = $subscription->product_id;
+		$include_shipping_meta = get_post_meta( $product_id, '_recurio_include_renewal_shipping', true );
+		$include_shipping      = ( 'yes' === $include_shipping_meta );
 
 		// Get product
 		$product = wc_get_product( $subscription->product_id );
@@ -556,15 +586,36 @@ class Recurio_Billing_Manager {
 			);
 		}
 
+		// Conditionally add shipping line (independent of original order — data comes from subscription row).
+		if ( $include_shipping ) {
+			$shipping_total = (float) $subscription->shipping_amount;
+			$shipping_label = ! empty( $subscription->shipping_method )
+				? $subscription->shipping_method
+				: __( 'Shipping', 'recurio' );
+
+			if ( $shipping_total > 0 ) {
+				$shipping_item = new WC_Order_Item_Shipping();
+				$shipping_item->set_method_title( $shipping_label );
+				$shipping_item->set_method_id( 'recurio_renewal_shipping' );
+				$shipping_item->set_total( $shipping_total );
+				$shipping_item->set_order_id( $order->get_id() );
+				$order->add_item( $shipping_item );
+			}
+		}
+
 		// Calculate totals
 		$order->calculate_totals();
 
-		// Add order meta
+		// Add order meta.
 		$order->add_meta_data( '_recurio_subscription_id', $subscription->id );
-		// $order->add_meta_data( '_subscription_renewal', 'yes' );
 
-		// CRITICAL: Mark this as a renewal order to prevent duplicate subscription creation
-		// This flag is checked by process_new_subscription() to skip renewal orders
+		// Store link to original order as meta (not as WC parent, which hides the order in admin).
+		if ( $original_order_id ) {
+			$order->add_meta_data( '_recurio_parent_order_id', $original_order_id );
+		}
+
+		// CRITICAL: Mark this as a renewal order to prevent duplicate subscription creation.
+		// This flag is checked by process_new_subscription() to skip renewal orders.
 		$order->add_meta_data( '_recurio_is_renewal_order', 'yes' );
 
 		// Save order
@@ -756,6 +807,7 @@ class Recurio_Billing_Manager {
 		do_action( 'recurio_payment_successful', $subscription->id, $payment_data, (array)$subscription );
 
 		// Hook after successful payment for Pro (additional analytics, forecasting, etc.)
+		
 		do_action( 'recurio_after_payment_processed', $subscription->id, $payment_data['amount'], $payment_data['transaction_id'] );
 
 		// Update customer analytics
@@ -804,8 +856,15 @@ class Recurio_Billing_Manager {
 			)
 		);
 
-		// Send notification (existing hook)
-		do_action( 'recurio_payment_failed', $subscription->id, $error_message, $failed_count );
+		// Send notification (existing hook — handlers expect payment payload + subscription row shape).
+		$payment_data = array(
+			'amount'           => floatval( $subscription->billing_amount ),
+			'failure_reason'   => $error_message,
+			'date'             => current_time( 'mysql' ),
+			'failed_attempt'   => $failed_count,
+		);
+
+		do_action( 'recurio_payment_failed', $subscription->id, $payment_data, (array) $subscription );
 
 		// Hook after failed payment for Pro (dunning, retry logic, etc.)
 		do_action( 'recurio_after_payment_failed', $subscription->id, $error_message, $failed_count, $subscription );
@@ -836,32 +895,6 @@ class Recurio_Billing_Manager {
 
 		foreach ( $subscriptions as $subscription ) {
 			$this->process_subscription_payment( $subscription );
-		}
-	}
-
-	/**
-	 * AJAX handler for manual payment processing
-	 */
-	public function ajax_process_payment() {
-		check_ajax_referer( 'recurio_nonce', 'nonce' );
-
-		if ( ! current_user_can( 'manage_woocommerce' ) ) {
-			wp_send_json_error( 'Insufficient permissions' );
-		}
-
-		$subscription_id = isset( $_POST['subscription_id'] ) ? intval( $_POST['subscription_id'] ) : 0;
-		$subscription    = $this->get_subscription_engine()->get_subscription( $subscription_id );
-
-		if ( ! $subscription ) {
-			wp_send_json_error( 'Subscription not found' );
-		}
-
-		$result = $this->process_subscription_payment( $subscription );
-
-		if ( $result ) {
-			wp_send_json_success( 'Payment processed successfully' );
-		} else {
-			wp_send_json_error( 'Payment processing failed' );
 		}
 	}
 

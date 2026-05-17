@@ -1,0 +1,40 @@
+---
+description: Recurio admin email settings UI — toggles, drawer/editor, WP classic editor, defaults (Vue + PHP)
+globs: assets/vue-dashboard/src/views/Settings.vue,assets/vue-dashboard/src/constants/emailTemplates.js,includes/admin/class-dashboard.php,includes/core/class-email-notifications.php,includes/api/class-rest-api.php
+alwaysApply: false
+---
+
+# Email settings (dashboard)
+
+## Behaviour to preserve
+
+- **`CORE_EMAIL_ROWS` / `PRO_EMAIL_ROWS`:** Each core row that sends email needs `toggleProp` matching `settings.emails.*` and a guard in `class-email-notifications.php`. Built-in trial uses **`sendTrialReminder`**; Pro trial automation uses **`sendTrialEnding`** (do not merge).
+- **Overlays:** Drawer + preview dialog use **`EMAIL_UI_OVERLAY_ZINDEX` (100050)** + **`modal-class="recurio-email-ui-overlay"`**. While editing HTML, **`body.recurio-email-editor-active`** bumps TinyMCE floats above the drawer.
+- **HTML body:** Use **`wp_enqueue_editor()`** (PHP) + **`wp.editor.initialize` / `remove`** on **`#recurio-email-body-wp-editor`**. Subject stays **inside tabs**; body editor is **one instance below tabs** — flush to `customTemplates` on tab switch, drawer close, and **Save**.
+- **Editor defaults:** Show **`EMAIL_DEFAULT_SUBJECT_STUBS[key]`** / **`getDefaultEmailBodyHtml(key)`** when stored values are empty. `getDefaultEmailBodyHtml` prefers `EMAIL_DEFAULT_BODY_STUBS[key]` (actual HTML matching PHP output), falling back to `buildDefaultPreviewBodyHtml`. On save, normalize back to **`''`** if content still equals default — keep "empty means use PHP built-in template" semantics.
+- **Change detection (body):** Uses **two-stage comparison** in `flushWpEmailBodyToSettings`:
+  1. **Primary** — compare against `wpEmailEditorInitialContent`, which is TinyMCE's own reformatted version of the initial load (captured via `init_instance_callback`). This handles TinyMCE normalising whitespace, self-closing tags, etc.
+  2. **Fallback** — compare against the raw JS stub string via `normalizeWhitespaceBundle` (covers the race where TinyMCE hasn't fired before a very fast close).
+  Only store non-empty body when content is genuinely different from both.
+
+## `EMAIL_DEFAULT_BODY_STUBS` (emailTemplates.js)
+
+- Object keyed by all **27 template keys** (11 core + 16 Pro) with actual HTML bodies matching PHP's `get_default_template()` output, using `{{variable}}` placeholder syntax.
+- **Always update this constant** when adding new template keys or changing PHP's built-in body copy, so the editor and preview display real email content.
+- `buildDefaultPreviewBodyHtml(meta)` checks this constant first; only falls back to the scaffold generator for unknown keys.
+
+## `wpEmailEditorInitialContent` (Settings.vue)
+
+- Module-level `let wpEmailEditorInitialContent = ''`.
+- Set in `init_instance_callback` on first mount.
+- Recaptured (via `ed.getContent()`) on tab switch and when TinyMCE is already mounted for a re-open.
+- Reset to `''` in `teardownWpEmailEditor`.
+
+## Key paths
+
+- Vue: `assets/vue-dashboard/src/views/Settings.vue`
+- Row defs + stubs: `assets/vue-dashboard/src/constants/emailTemplates.js`
+- Enqueue: `includes/admin/class-dashboard.php`
+- Sends: `includes/core/class-email-notifications.php`
+- Finalize/sanitize: `includes/core/class-email-custom-templates.php`
+- Defaults: `includes/api/class-rest-api.php` → `emails`

@@ -9,9 +9,23 @@
 	'use strict';
 
 	var RecurioSubscribeSave = {
+		showSavings: function() {
+			return recurioSubscribeSave.showSavings !== false;
+		},
+
 		init: function() {
+			this.applyWidgetColor();
 			this.bindEvents();
 			this.updateButtonText();
+		},
+
+		applyWidgetColor: function() {
+			var $container = $('.recurio-purchase-options');
+			if (!$container.length) return;
+			// Prefer localized script value; fall back to data attribute (already set server-side)
+			var color = (recurioSubscribeSave.widgetColor || $container.data('widget-color') || '').trim();
+			if (!color) return;
+			$container[0].style.setProperty('--recurio-primary', color);
 		},
 
 		bindEvents: function() {
@@ -61,18 +75,52 @@
 			// when switching between one-time and subscription
 		},
 
+		/**
+		 * When a variation overrides subscription price, use recurio_subscription from
+		 * woocommerce_available_variation — do not stack parent Subscribe % on that amount.
+		 */
 		handleVariationChange: function(variation) {
-			var self = this;
 
-			// Update prices in the Subscribe & Save options when variation changes
-			if (variation && variation.display_price) {
-				var regularPrice = parseFloat(variation.display_regular_price || variation.display_price);
+			if (!variation || variation.display_price === undefined || variation.display_price === null || variation.display_price === '') {
+				return;
+			}
+
+			var regularPrice = parseFloat(variation.display_regular_price);
+			if (isNaN(regularPrice) || regularPrice < 0) {
+				regularPrice = parseFloat(variation.display_price);
+			}
+			if (isNaN(regularPrice)) {
+				return;
+			}
+
+			var rs = variation.recurio_subscription;
+			var subscriptionPrice;
+			var savingsAmount;
+			var savingsPercentRounded;
+			var billingText = '';
+
+			if (rs && rs.enabled && rs.override_parent && rs.price !== undefined && rs.price !== null && rs.price !== '') {
+				subscriptionPrice = parseFloat(rs.price);
+				if (isNaN(subscriptionPrice)) {
+					subscriptionPrice = regularPrice;
+				}
+
+				subscriptionPrice = Math.max(0, subscriptionPrice);
+				savingsAmount = Math.max(0, regularPrice - subscriptionPrice);
+				savingsPercentRounded = regularPrice > 0
+					? Math.round((savingsAmount / regularPrice) * 100)
+					: 0;
+
+				if (typeof rs.billing_text === 'string' && rs.billing_text.trim().length > 0) {
+					billingText = $.trim(rs.billing_text);
+				}
+			} else {
 				var discountType = recurioSubscribeSave.discountType || 'percentage';
 				var discountValue = parseFloat(recurioSubscribeSave.discountValue) || 0;
 
-				// Calculate subscription price
-				var subscriptionPrice = regularPrice;
-				var savingsAmount = 0;
+				subscriptionPrice = regularPrice;
+				savingsAmount = 0;
+				savingsPercentRounded = Math.round(discountValue);
 
 				if (discountValue > 0) {
 					if (discountType === 'percentage') {
@@ -81,56 +129,71 @@
 						savingsAmount = discountValue;
 					}
 					subscriptionPrice = Math.max(0, regularPrice - savingsAmount);
+					if (discountType !== 'percentage' && regularPrice > 0) {
+						savingsPercentRounded = Math.round((savingsAmount / regularPrice) * 100);
+					}
 				}
-
-				// Update the option prices
-				self.updateOptionPrices(regularPrice, subscriptionPrice, savingsAmount, discountValue);
 			}
+
+			this.updateOptionPrices(regularPrice, subscriptionPrice, savingsAmount, savingsPercentRounded, billingText);
 		},
 
-		updateOptionPrices: function(regularPrice, subscriptionPrice, savingsAmount, discountPercent) {
+		updateOptionPrices: function(regularPrice, subscriptionPrice, savingsAmount, savingsPercentRounded, billingText) {
 			var $options = $('.recurio-purchase-options');
 
 			if (!$options.length) {
 				return;
 			}
 
-			// Format prices using WooCommerce format (basic formatting)
 			var formattedRegular = this.formatPrice(regularPrice);
 			var formattedSubscription = this.formatPrice(subscriptionPrice);
 			var formattedSavings = this.formatPrice(savingsAmount);
+
+			var showSav = this.showSavings();
+
+			// Preserve existing billing suffix if none passed (simple products server-rendered markup)
+			var billingEscaped = billingText !== undefined && billingText !== null && billingText !== ''
+				? $('<div/>').text(billingText).html()
+				: '';
+			var $subscriptionPriceBefore = $options.find('.recurio-option-subscription .recurio-option-price');
+			if (!billingEscaped && $subscriptionPriceBefore.length) {
+				billingEscaped = $('<div/>').text($subscriptionPriceBefore.find('.recurio-billing-period').first().text() || '').html();
+			}
 
 			// Update one-time option
 			$options.find('.recurio-option:not(.recurio-option-subscription) .recurio-option-price')
 				.html(formattedRegular);
 
-			// Update subscription option
 			var $subscriptionPrice = $options.find('.recurio-option-subscription .recurio-option-price');
-			var billingPeriod = $subscriptionPrice.find('.recurio-billing-period').text();
 
-			if (savingsAmount > 0) {
+			if (showSav && savingsAmount > 0) {
 				$subscriptionPrice.html(
 					'<del>' + formattedRegular + '</del> ' +
 					formattedSubscription +
-					'<span class="recurio-billing-period">' + billingPeriod + '</span>'
+					'<span class="recurio-billing-period">' + billingEscaped + '</span>'
 				);
+				var savingsText = (recurioSubscribeSave.i18n.savePrefix || 'Save') + ' ' + formattedSavings;
+				$options.find('.recurio-savings').show().html(savingsText);
+
+				var $badge = $options.find('.recurio-save-badge');
+				if ($badge.length) {
+					$badge.show().text(
+						(recurioSubscribeSave.i18n.savePrefix || 'Save') + ' ' +
+						Math.round(savingsPercentRounded) + '%'
+					);
+				}
 			} else {
 				$subscriptionPrice.html(
 					formattedSubscription +
-					'<span class="recurio-billing-period">' + billingPeriod + '</span>'
+					'<span class="recurio-billing-period">' + billingEscaped + '</span>'
 				);
-			}
-
-			// Update savings display
-			if (savingsAmount > 0) {
-				var savingsText = (recurioSubscribeSave.i18n.savePrefix || 'You save') + ' ' + formattedSavings;
-				$options.find('.recurio-savings').html(savingsText);
-				$options.find('.recurio-save-badge').text(recurioSubscribeSave.i18n.savePrefix + ' ' + Math.round(discountPercent) + '%');
+				$options.find('.recurio-savings').hide().empty();
+				$options.find('.recurio-save-badge').hide().empty();
 			}
 		},
 
 		formatPrice: function(price) {
-			// Basic price formatting - could be enhanced with WooCommerce settings
+			// Basic price formatting — matches prior behaviour
 			var formatted = parseFloat(price).toFixed(2);
 
 			// Get currency symbol from the page if available
@@ -146,7 +209,7 @@
 		},
 
 		resetVariationData: function() {
-			// Reset to default state when variation is cleared
+			// Optionally extend: restore placeholder prices when variation cleared
 		}
 	};
 

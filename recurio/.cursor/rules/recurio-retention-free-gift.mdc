@@ -1,0 +1,26 @@
+---
+description: Cancellation retention flow, free-product offer, and post-accept coupon email (Recurio + Recurio Pro)
+globs: includes/api/class-rest-api.php,assets/vue-dashboard/**/CancellationFlow*.vue,assets/vue-dashboard/**/cancellationFlowPortalCopy.js
+alwaysApply: false
+---
+
+# Retention cancellation & free gift
+
+Pro code lives in the **sibling** plugin folder `recurio-pro/` (same parent as this `recurio/` repo).
+
+## Behaviour to preserve
+
+- **Free product offer:** AJAX `recurio_get_retention_offer` returns `offer_type: free_product` + `products` (no coupon on load). **`recurio_accept_retention_free_product`** creates a **single-use 100% coupon** scoped to chosen product + customer email, then **must send** `send_free_product_retention_coupon_email()` — WC does not auto-email programmatic coupons.
+- **Email path:** Prefer `Recurio_Pro_Email_Campaigns::send_transactional_html_email()`; From uses `recurio_settings.emails`.
+- **Events:** Log `cancellation_survey` with `retained_via: free_product` and coupon/product ids.
+
+## This workspace (free plugin)
+
+REST defaults + Vue Cancellation flow + `cancellationFlowPortalCopy.js` should stay aligned when adding copy or `free_product_ids` / `offer_type` options.
+
+## Key Pro files
+
+- `recurio-pro/includes/class-cancellation-flow.php` — offer build, grant coupon, **email helper + filters**
+- `recurio-pro/includes/class-cancellation-flow-portal.php` — AJAX + hook registration
+- `recurio-pro/includes/emails/class-email-campaigns.php` — `send_transactional_html_email`
+- `recurio-pro/assets/js/recurio-pro-cancellation-flow.js` — portal UI

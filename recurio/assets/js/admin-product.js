@@ -73,20 +73,44 @@ jQuery(function($) {
         }
     }).trigger('change');
 
+    // ===== Widget Display: Badge Text Toggle =====
+    $('#_recurio_show_badge').change(function() {
+        if ($(this).is(':checked')) {
+            $('.recurio-badge-options').removeClass('recurio-hidden');
+        } else {
+            $('.recurio-badge-options').addClass('recurio-hidden');
+        }
+    }).trigger('change');
+
+    // ===== Inner Tab Switching =====
+    $(document).on('click', '.recurio-tab-nav li a', function(e) {
+        e.preventDefault();
+        var $li = $(this).closest('li');
+        var tabId = $li.data('tab');
+        if (!tabId) return;
+
+        // Update nav active state
+        $li.siblings().removeClass('recurio-tab-active');
+        $li.addClass('recurio-tab-active');
+
+        // Show target panel, hide others
+        var $target = $('#' + tabId);
+        $target.siblings('.recurio-tab-panel').addClass('recurio-tab-panel-hidden');
+        $target.removeClass('recurio-tab-panel-hidden');
+    });
+
     // WooCommerce's built-in tab handling should also work
-    $(document).on('woocommerce_variations_loaded', function() {
+    $(document.body).on('woocommerce_variations_loaded', function() {
         $('#recurio_subscription_data').addClass('hidden');
     });
 
-    // Handle clicks on disabled PRO-only billing periods
-    $('.recurio-period-disabled input[type="radio"]').on('click', function(e) {
-        e.preventDefault();
+    // Handle clicks on disabled PRO-only billing periods (delegated — variable rows load asynchronously)
+    $(document.body).on('click', '.subscription-periods .recurio-period-disabled input[type="radio"]', function(e) {
+		e.preventDefault();
 
-        // Get upgrade URL from localized data
         var upgradeUrl = typeof recurioProductData !== 'undefined' ? recurioProductData.proUpgradeUrl : '';
 
-        // Show alert with upgrade message
-        var periodLabel = $(this).closest('label').text().trim().replace('PRO', '').trim();
+        var periodLabel = $(this).closest('label').clone().children().remove().end().text().trim().replace('PRO', '').trim();
         var message = periodLabel + ' billing period is a PRO feature.\n\n' +
                      'Upgrade to Recurio Pro to unlock Daily, Weekly, and Quarterly billing periods.\n\n' +
                      'Click OK to visit the upgrade page.';
@@ -100,8 +124,7 @@ jQuery(function($) {
         return false;
     });
 
-    // Also prevent label clicks
-    $('.recurio-period-disabled').on('click', function(e) {
+    $(document.body).on('click', '.subscription-periods .recurio-period-disabled', function(e) {
         var input = $(this).find('input[type="radio"]');
         if (input.length) {
             input.trigger('click');
@@ -109,4 +132,5 @@ jQuery(function($) {
             return false;
         }
     });
+
 });

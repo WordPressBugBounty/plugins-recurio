@@ -183,6 +183,16 @@ class Recurio_Subscription_Engine {
 			}
 		}
 
+		// Add shipping amount if provided (snapshot for renewal order creation)
+		if ( isset( $data['shipping_amount'] ) ) {
+			$insert_data['shipping_amount'] = floatval( $data['shipping_amount'] );
+		}
+
+		// Add shipping method if provided
+		if ( isset( $data['shipping_method'] ) && ! empty( $data['shipping_method'] ) ) {
+			$insert_data['shipping_method'] = $data['shipping_method'];
+		}
+
 		// Add optional fields if they exist in the data
 		$metadata = array();
 		if ( isset( $data['notes'] ) && ! empty( $data['notes'] ) ) {
@@ -310,6 +320,31 @@ class Recurio_Subscription_Engine {
 
 		// Trigger action for other components (existing hook)
 		do_action( 'recurio_subscription_updated', $subscription_id, $data );
+
+		// Subscription became active after checkout/admin approval: emit activation hook so emails fire.
+		// Excludes pause → active (handled by recurio_subscription_resumed).
+		if (
+			isset( $data['status'] ) && 'active' === $data['status']
+			&& $old_subscription && 'active' !== $old_subscription->status && 'paused' !== $old_subscription->status
+		) {
+			$previous = $old_subscription->status;
+			if ( in_array( $previous, array( 'pending', 'pending_payment', 'pending_renewal' ), true ) ) {
+				$fresh = $this->get_subscription( $subscription_id );
+				if ( $fresh ) {
+					do_action( 'recurio_subscription_activated', $subscription_id, (array) $fresh );
+				}
+			}
+		}
+
+		if (
+			isset( $data['status'] ) && 'expired' === $data['status']
+			&& $old_subscription && 'expired' !== $old_subscription->status
+		) {
+			$fresh = $this->get_subscription( $subscription_id );
+			if ( $fresh ) {
+				do_action( 'recurio_subscription_expired', $subscription_id, (array) $fresh );
+			}
+		}
 
 		// Additional hook for Pro features (after update complete)
 		do_action( 'recurio_after_subscription_updated', $subscription_id, $data, $old_subscription );
@@ -480,6 +515,129 @@ class Recurio_Subscription_Engine {
 	}
 
 	/**
+	 * Advance a reference datetime by one full billing cycle (period + interval).
+	 *
+	 * @param string   $from_mysql       MySQL datetime string to start from (typically next_payment_date).
+	 * @param string   $billing_period    One of day, week, month, year.
+	 * @param int      $billing_interval Billing interval (e.g. 3 for quarterly with month period).
+	 * @return string|null New MySQL datetime or null if input is invalid.
+	 */
+	public function calculate_date_after_one_billing_cycle( $from_mysql, $billing_period, $billing_interval = 1 ) {
+		if ( empty( $from_mysql ) ) {
+			return null;
+		}
+
+		try {
+			$dt = new DateTime( $from_mysql );
+		} catch ( \Exception $e ) {
+			return null;
+		}
+
+		$interval_count = max( 1, intval( $billing_interval ) ?: 1 );
+		$period_key     = strtolower( (string) $billing_period );
+
+		switch ( $period_key ) {
+			case 'day':
+				$dt->add( new DateInterval( 'P' . $interval_count . 'D' ) );
+				break;
+			case 'week':
+				$dt->add( new DateInterval( 'P' . ( $interval_count * 7 ) . 'D' ) );
+				break;
+			case 'month':
+				$dt->add( new DateInterval( 'P' . $interval_count . 'M' ) );
+				break;
+			case 'year':
+				$dt->add( new DateInterval( 'P' . $interval_count . 'Y' ) );
+				break;
+			default:
+				return null;
+		}
+
+		return $dt->format( 'Y-m-d H:i:s' );
+	}
+
+	/**
+	 * Skip one upcoming billing cycle — moves next_payment_date forward by one interval (no charge).
+	 *
+	 * @param int $subscription_id Subscription ID.
+	 * @return array|WP_Error Success payload keys: success, previous_next_payment, new_next_payment, skip_count; or WP_Error.
+	 */
+	public function skip_next_cycle( $subscription_id ) {
+		$subscription = $this->get_subscription( $subscription_id );
+
+		if ( ! $subscription ) {
+			return new WP_Error( 'not_found', __( 'Subscription not found', 'recurio' ) );
+		}
+
+		if ( ! in_array( $subscription->status, array( 'active', 'trial' ), true ) ) {
+			return new WP_Error( 'invalid_status', __( 'Only active or trial subscriptions can skip a billing cycle', 'recurio' ) );
+		}
+
+		if ( empty( $subscription->next_payment_date ) ) {
+			return new WP_Error( 'no_next_payment', __( 'This subscription has no scheduled next payment to skip', 'recurio' ) );
+		}
+
+		$previous_next = $subscription->next_payment_date;
+		$new_next      = $this->calculate_date_after_one_billing_cycle(
+			$previous_next,
+			$subscription->billing_period,
+			$subscription->billing_interval
+		);
+
+		if ( ! $new_next ) {
+			return new WP_Error( 'cannot_calculate', __( 'Unable to calculate the next billing date for this subscription.', 'recurio' ) );
+		}
+
+		$prev_skip = isset( $subscription->skip_count ) ? intval( $subscription->skip_count ) : 0;
+
+		$update_data = array(
+			'next_payment_date' => $new_next,
+			'skip_count'        => $prev_skip + 1,
+		);
+
+		$result = $this->update_subscription( $subscription_id, $update_data );
+
+		if ( is_wp_error( $result ) ) {
+			return $result;
+		}
+
+		$this->log_event(
+			$subscription_id,
+			'skipped',
+			$subscription->billing_amount,
+			array(
+				'previous_next_payment' => $previous_next,
+				'new_next_payment'      => $new_next,
+			)
+		);
+
+		$payload = array(
+			'subscription_id'       => $subscription_id,
+			'previous_next_payment' => $previous_next,
+			'new_next_payment'      => $new_next,
+			'skip_count'            => $prev_skip + 1,
+		);
+
+		do_action( 'recurio_subscription_skipped', $subscription_id, $payload );
+
+		if ( class_exists( 'Recurio_Email_Notifications' ) ) {
+			$fresh               = $this->get_subscription( $subscription_id );
+			$email_notifications = Recurio_Email_Notifications::get_instance();
+			$email_notifications->clear_scheduled_reminders( $subscription_id );
+			$subscription_data                    = (array) $fresh;
+			$subscription_data['next_payment_date'] = $new_next;
+			$email_notifications->schedule_reminders( $subscription_id, $subscription_data );
+		}
+
+		return array(
+			'success'               => true,
+			'previous_next_payment' => $previous_next,
+			'new_next_payment'      => $new_next,
+			'skip_count'            => $prev_skip + 1,
+		);
+	}
+
+	/**
 	 * Cancel a subscription
 	 */
 	public function cancel_subscription( $subscription_id, $reason = '', $timing = 'immediate' ) {
@@ -572,6 +730,20 @@ class Recurio_Subscription_Engine {
 			return new WP_Error( 'max_renewals_reached', __( 'This subscription has reached its maximum number of renewals', 'recurio' ) );
 		}
 
+		if ( empty( $subscription->next_payment_date ) ) {
+			return new WP_Error( 'no_next_payment', __( 'No next payment date to extend', 'recurio' ) );
+		}
+
+		$new_next_formatted = $this->calculate_date_after_one_billing_cycle(
+			$subscription->next_payment_date,
+			$subscription->billing_period,
+			$subscription->billing_interval
+		);
+
+		if ( ! $new_next_formatted ) {
+			return new WP_Error( 'cannot_calculate', __( 'Unable to calculate next billing date.', 'recurio' ) );
+		}
+
 		// Get billing manager to create renewal order
 		$billing_manager = Recurio_Billing_Manager::get_instance();
 
@@ -582,85 +754,21 @@ class Recurio_Subscription_Engine {
 			return new WP_Error( 'order_creation_failed', __( 'Failed to create renewal order', 'recurio' ) );
 		}
 
-		// Mark this as an early renewal order
+		// Mark this as an early renewal order and store the intended new date.
+		// Subscription date, renewal count, and revenue are updated only after the
+		// customer completes payment — handled by handle_renewal_order_payment().
 		$order->add_meta_data( '_recurio_is_early_renewal', 'yes' );
 		$order->add_meta_data( '_recurio_early_renewal_subscription_id', $subscription_id );
+		$order->add_meta_data( '_recurio_early_renewal_new_next_payment', $new_next_formatted );
+		$order->add_meta_data( '_recurio_early_renewal_previous_next_payment', $subscription->next_payment_date );
 		$order->save();
 
-		// Calculate new next payment date from CURRENT next payment date (not from today)
-		// This ensures the subscription period is properly extended
-		$current_next_payment = new DateTime( $subscription->next_payment_date );
-		$new_next_payment = clone $current_next_payment;
-
-		$period   = $subscription->billing_period;
-		$interval = $subscription->billing_interval ?: 1;
-
-		switch ( $period ) {
-			case 'day':
-				$new_next_payment->add( new DateInterval( 'P' . $interval . 'D' ) );
-				break;
-			case 'week':
-				$new_next_payment->add( new DateInterval( 'P' . ( $interval * 7 ) . 'D' ) );
-				break;
-			case 'month':
-				$new_next_payment->add( new DateInterval( 'P' . $interval . 'M' ) );
-				break;
-			case 'year':
-				$new_next_payment->add( new DateInterval( 'P' . $interval . 'Y' ) );
-				break;
-		}
-
-		// Update subscription with new next payment date and increment renewal count
-		$update_data = array(
-			'next_payment_date' => $new_next_payment->format( 'Y-m-d H:i:s' ),
-			'renewal_count'     => $subscription->renewal_count + 1,
-			'updated_at'        => current_time( 'mysql' ),
-		);
-
-		$result = $this->update_subscription( $subscription_id, $update_data );
-
-		if ( is_wp_error( $result ) ) {
-			// If subscription update fails, we should still return the order for manual handling
-			$this->log_event(
-				$subscription_id,
-				'early_renewal_partial',
-				$subscription->billing_amount,
-				array(
-					'order_id' => $order->get_id(),
-					'error'    => $result->get_error_message(),
-				)
-			);
-		} else {
-			// Log the successful early renewal
-			$this->log_event(
-				$subscription_id,
-				'early_renewal',
-				$subscription->billing_amount,
-				array(
-					'order_id'              => $order->get_id(),
-					'previous_next_payment' => $subscription->next_payment_date,
-					'new_next_payment'      => $new_next_payment->format( 'Y-m-d H:i:s' ),
-				)
-			);
-
-			// Record the payment/revenue
-			$this->log_revenue(
-				$subscription_id,
-				$subscription->billing_amount,
-				$order->get_payment_method(),
-				'early_renewal_' . $order->get_id()
-			);
-
-			// Fire action for other plugins/modules to hook into
-			do_action( 'recurio_subscription_early_renewal', $subscription_id, $order->get_id(), $subscription );
-		}
-
 		return array(
-			'success'           => true,
-			'order_id'          => $order->get_id(),
-			'order_url'         => $order->get_checkout_payment_url(),
-			'new_next_payment'  => $new_next_payment->format( 'Y-m-d H:i:s' ),
-			'subscription_id'   => $subscription_id,
+			'success'          => true,
+			'order_id'         => $order->get_id(),
+			'order_url'        => $order->get_checkout_payment_url(),
+			'new_next_payment' => $new_next_formatted,
+			'subscription_id'  => $subscription_id,
 		);
 	}
 
@@ -996,6 +1104,41 @@ class Recurio_Subscription_Engine {
 	}
 
 	/**
+	 * Get the shipping total from order items directly.
+	 *
+	 * Reads from wp_woocommerce_order_items rather than the order object's cached
+	 * data property. This avoids a stale-cache issue where woocommerce_payment_complete
+	 * fires with an in-memory order object that was built before calculate_totals()
+	 * wrote the shipping total, causing get_shipping_total() to return 0.
+	 *
+	 * @param WC_Order $order
+	 * @return float
+	 */
+	private function get_order_shipping_total( WC_Order $order ): float {
+		$total = 0.0;
+		foreach ( $order->get_items( 'shipping' ) as $item ) {
+			$total += (float) $item->get_total();
+		}
+		return $total;
+	}
+
+	/**
+	 * Get the first shipping method title from order items directly.
+	 *
+	 * @param WC_Order $order
+	 * @return string
+	 */
+	private function get_order_shipping_method( WC_Order $order ): string {
+		foreach ( $order->get_items( 'shipping' ) as $item ) {
+			$title = $item->get_method_title();
+			if ( ! empty( $title ) ) {
+				return $title;
+			}
+		}
+		return '';
+	}
+
+	/**
 	 * Process new subscription from WooCommerce order
 	 */
 	public function process_new_subscription( $order_id ) {
@@ -1073,9 +1216,9 @@ class Recurio_Subscription_Engine {
 				}
 			}
 
-			// Check if variation has overridden subscription settings (PRO feature)
+			// Per-variation subscription overrides (billing / trial / sign-up fee)
 			$variation_override = false;
-			if ( $variation_id && Recurio_Pro_Manager::get_instance()->is_license_valid() ) {
+			if ( $variation_id ) {
 				$variation_override = get_post_meta( $variation_id, '_recurio_override_subscription', true ) === 'yes';
 			}
 
@@ -1164,8 +1307,7 @@ class Recurio_Subscription_Engine {
 				$recurring_price = floatval( $subscription_price_meta );
 			} else {
 				// Check if Subscribe & Save discount is configured on the product
-				$is_pro         = Recurio_Pro_Manager::get_instance()->is_license_valid();
-				$allow_one_time = $is_pro && get_post_meta( $product_id, '_recurio_allow_one_time_purchase', true ) === 'yes';
+				$allow_one_time = get_post_meta( $product_id, '_recurio_allow_one_time_purchase', true ) === 'yes';
 
 				$base_product    = wc_get_product( $product_id );
 				$recurring_price = $base_product->get_regular_price();
@@ -1412,6 +1554,8 @@ class Recurio_Subscription_Engine {
 				'payment_token_id'      => $payment_token_id, // Store payment token ID for renewals
 				'billing_address'       => json_encode( $billing_address ), // Store billing address as JSON
 				'shipping_address'      => json_encode( $shipping_address ), // Store shipping address as JSON
+				'shipping_amount'       => $this->get_order_shipping_total( $order ), // Snapshot shipping for renewal orders
+				'shipping_method'       => $this->get_order_shipping_method( $order ), // Snapshot shipping method label
 				'trial_end_date'        => $trial_end_date,
 				'next_payment_date'     => $this->calculate_next_payment_date( $period, $interval, $trial_end_date, $signup_fee > 0 || $payment_type === 'split' ),
 				'renewal_count'         => $initial_renewal_count,

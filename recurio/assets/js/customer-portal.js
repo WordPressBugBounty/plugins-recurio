@@ -42,6 +42,53 @@ jQuery(document).ready(function($) {
         });
     });
     
+    // Skip next payment - show modal
+    $(document).on('click', '.recurio-skip-next-payment', function(e) {
+        e.preventDefault();
+        var btn = $(this);
+        var subscriptionId = btn.data('subscription-id');
+        var prevDate = btn.data('prev-date');
+        var nextDate = btn.data('next-date');
+        var amountText = btn.data('amount-text');
+        var modal = $('#recurio-skip-modal');
+        var detail = 'Your next payment of ' + amountText + ' on ' + prevDate + ' will be skipped. Your next charge will be on ' + nextDate + '.';
+        modal.find('.recurio-skip-modal-detail').text(detail);
+        modal.data('subscription-id', subscriptionId).fadeIn().removeClass('is-hidden');
+    });
+
+    $(document).on('click', '.recurio-confirm-skip', function(e) {
+        e.preventDefault();
+
+        var modal = $('#recurio-skip-modal');
+        var subscriptionId = modal.data('subscription-id');
+        var button = $(this);
+
+        button.prop('disabled', true).text(recurio_portal.strings.processing);
+
+        $.ajax({
+            url: recurio_portal.ajax_url,
+            type: 'POST',
+            data: {
+                action: 'recurio_skip_subscription',
+                subscription_id: subscriptionId,
+                nonce: recurio_portal.nonce
+            },
+            success: function(response) {
+                if (response.success) {
+                    location.reload();
+                } else {
+                    var err = (typeof response.data === 'string') ? response.data : (response.data && response.data.message) ? response.data.message : recurio_portal.strings.error;
+                    alert(err);
+                    button.prop('disabled', false).text('Skip Next Payment');
+                }
+            },
+            error: function() {
+                alert(recurio_portal.strings.error);
+                button.prop('disabled', false).text('Skip Next Payment');
+            }
+        });
+    });
+
     // Resume subscription - show modal
     $(document).on('click', '.recurio-resume-subscription', function(e) {
         e.preventDefault();
@@ -113,6 +160,11 @@ jQuery(document).ready(function($) {
             },
             success: function(response) {
                 if (response.success) {
+                    if (response.data && response.data.cancellation_flow) {
+                        $(document).trigger('recurio:cancellation-flow-start', [response.data, subscriptionId, cancelAt]);
+                        button.prop('disabled', false).text('Confirm Cancellation');
+                        return;
+                    }
                     location.reload();
                 } else {
                     alert(response.data || recurio_portal.strings.error);
@@ -348,72 +400,75 @@ jQuery(document).ready(function($) {
     
     // Function to show payment method selection modal
     function showPaymentMethodModal(subscriptionId, data) {
-        // Create modal HTML if it doesn't exist
-        if ($('#recurio-payment-method-modal').length === 0) {
-            var modalHtml = '<div id="recurio-payment-method-modal" class="recurio-modal is-hidden">' +
-                '<div class="recurio-modal-content" style="position: relative;">' +
-                '<button class="recurio-modal-close" style="position: absolute; top: 10px; right: 10px; background: none; border: none; font-size: 24px; cursor: pointer; color: #666; padding: 0; width: 30px; height: 30px; line-height: 30px;">&times;</button>' +
-                '<h3>Update Payment Method</h3>' +
-                '<div class="recurio-payment-methods-list"></div>' +
-                '<div class="recurio-modal-actions">' +
-                '<a href="' + data.add_payment_url + '" class="button">Add New Payment Method</a>' +
-                '<button class="button recurio-modal-keep recurio-modal-close">Cancel</button>' +
-                '<button class="button button-primary recurio-confirm-payment-update" disabled>Update Payment Method</button>' +
-                '</div>' +
-                '</div>' +
-                '</div>';
-            $('body').append(modalHtml);
-        }
-        
+        // Remove stale modal so it's rebuilt fresh with the correct add_payment_url
+        $('#recurio-payment-method-modal').remove();
+
+        var modalHtml =
+            '<div id="recurio-payment-method-modal" class="recurio-modal is-hidden">' +
+            '<div class="recurio-modal-content">' +
+            '<button class="recurio-modal-close" type="button" aria-label="Close">&times;</button>' +
+            '<h3>Update Payment Method</h3>' +
+            '<p>Select a saved payment method or add a new one.</p>' +
+            '<div class="recurio-payment-methods-list"></div>' +
+            '<div class="recurio-modal-actions">' +
+            '<a href="' + data.add_payment_url + '" class="recurio-pm-add-link">+ Add payment method</a>' +
+            '<button class="button recurio-modal-keep recurio-modal-close" type="button">Cancel</button>' +
+            '<button class="button button-primary recurio-confirm-payment-update" type="button" disabled>Update Method</button>' +
+            '</div>' +
+            '</div>' +
+            '</div>';
+        $('body').append(modalHtml);
+
         var modal = $('#recurio-payment-method-modal');
         var methodsList = modal.find('.recurio-payment-methods-list');
         var updateButton = modal.find('.recurio-confirm-payment-update');
-        
-        // Clear and populate payment methods
-        methodsList.empty();
-        
+
         if (data.saved_methods && data.saved_methods.length > 0) {
-            methodsList.append('<p>Select a payment method for this subscription:</p>');
-            
             data.saved_methods.forEach(function(method) {
-                var methodHtml = '<label class="recurio-payment-method-option" style="display: block; margin: 10px 0; padding: 10px; border: 1px solid #ddd; border-radius: 4px; cursor: pointer;">' +
-                    '<input type="radio" name="payment_method" value="' + method.id + '" ' + 
-                    (method.is_default ? 'checked' : '') + '> ';
-                
+                var title = $('<span>').text(method.gateway_title || '').html();
+                var meta = '';
+
                 if (method.card_type) {
-                    methodHtml += '<strong>' + method.gateway_title + '</strong> - ' +
-                        method.card_type + ' ending in ' + method.last4;
+                    meta += $('<span>').text(method.card_type + ' ending in ' + method.last4).html();
                     if (method.expiry) {
-                        methodHtml += ' (Expires: ' + method.expiry + ')';
+                        meta += ' <span class="recurio-pm-expiry">' +
+                            $('<span>').text('Expires ' + method.expiry).html() + '</span>';
                     }
-                } else {
-                    methodHtml += '<strong>' + method.gateway_title + '</strong>';
                 }
-                
-                if (method.is_default) {
-                    methodHtml += ' <span style="color: #28a745;">(Default)</span>';
-                }
-                
-                methodHtml += '</label>';
-                methodsList.append(methodHtml);
+
+                var defaultBadge = method.is_default
+                    ? '<span class="recurio-pm-default-badge">Default</span>'
+                    : '';
+
+                var checked = method.is_default ? ' checked' : '';
+
+                methodsList.append(
+                    '<label class="recurio-payment-method-option">' +
+                    '<input type="radio" name="payment_method" value="' + parseInt(method.id, 10) + '"' + checked + '>' +
+                    '<span class="recurio-pm-card-icon" aria-hidden="true">&#9646;</span>' +
+                    '<span class="recurio-pm-info">' +
+                    '<span class="recurio-pm-title">' + title + defaultBadge + '</span>' +
+                    '<span class="recurio-pm-meta">' + meta + '</span>' +
+                    '</span>' +
+                    '</label>'
+                );
             });
-            
-            // Enable update button when a method is selected
+
+            // Auto-enable update button if a method is already checked (default)
+            if (methodsList.find('input[type="radio"]:checked').length) {
+                updateButton.prop('disabled', false);
+            }
+
             methodsList.find('input[type="radio"]').on('change', function() {
                 updateButton.prop('disabled', false);
             });
-            
-            // Handle update button click
-            updateButton.off('click').on('click', function() {
+
+            updateButton.on('click', function() {
                 var selectedTokenId = methodsList.find('input[type="radio"]:checked').val();
-                
                 if (!selectedTokenId) {
-                    alert('Please select a payment method');
                     return;
                 }
-                
                 updateButton.prop('disabled', true).text(recurio_portal.strings.processing);
-                
                 $.ajax({
                     url: recurio_portal.ajax_url,
                     type: 'POST',
@@ -429,21 +484,22 @@ jQuery(document).ready(function($) {
                             location.reload();
                         } else {
                             alert(response.data || recurio_portal.strings.error);
-                            updateButton.prop('disabled', false).text('Update Payment Method');
+                            updateButton.prop('disabled', false).text('Update Method');
                         }
                     },
                     error: function() {
                         alert(recurio_portal.strings.error);
-                        updateButton.prop('disabled', false).text('Update Payment Method');
+                        updateButton.prop('disabled', false).text('Update Method');
                     }
                 });
             });
         } else {
-            methodsList.append('<p>No saved payment methods found. Please add a payment method first.</p>');
-            updateButton.hide();
+            methodsList.append(
+                '<p class="recurio-pm-empty">No saved payment methods found.</p>'
+            );
+            updateButton.prop('disabled', true);
         }
-        
-        // Store subscription ID and show modal
+
         modal.data('subscription-id', subscriptionId).fadeIn().removeClass('is-hidden');
     }
     

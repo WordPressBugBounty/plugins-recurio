@@ -1,0 +1,129 @@
+---
+description: Subscription Blueprints feature — push-model reusable billing templates, REST API, propagation, analytics, and Vue layer
+globs: includes/api/class-blueprints-api.php,assets/vue-dashboard/src/views/Blueprints.vue,assets/vue-dashboard/src/components/Blueprint*.vue,assets/vue-dashboard/src/router/index.js,includes/integrations/class-woocommerce-product.php,recurio.php
+alwaysApply: false
+---
+
+# Subscription Blueprints
+
+## Architecture: Push model (not Pull)
+
+Recurio Blueprints **stamp settings directly onto products** via `stamp_settings_on_product()`.
+Products hold a back-reference `_recurio_blueprint_id` post meta.
+This differs from pull-model competitors: no runtime plan lookup happens on the product page.
+
+## Key invariants to preserve
+
+- **`slug` is unique** — always generated via `unique_slug()` on create/duplicate; never user-supplied.
+- **`status` lifecycle:** `draft` → `active` (auto on first `apply`) → `archived` (soft delete; DELETE endpoint).
+  Never hard-delete a blueprint row — subscriptions use linked product meta, not the blueprint row directly.
+- **Propagation flag:** `PUT /blueprints/{id}?propagate=true` triggers `propagate_to_linked_products()`
+  which iterates `_recurio_blueprint_id` post meta holders and calls `stamp_settings_on_product()` on each.
+  This must always re-apply the current `settings` JSON, not a diff.
+- **Analytics** are computed on-the-fly from `recurio_subscriptions` and `recurio_subscription_revenue`.
+  No separate analytics cache table. Keep `get_analytics()` query efficient (uses `IN (product_ids)`).
+
+## Settings fields — keep in sync in three places
+
+Any new billing setting must be added to **all three**:
+1. `sanitize_settings()` whitelist in `class-blueprints-api.php`
+2. `stamp_settings_on_product()` `$meta_map` in `class-blueprints-api.php`
+3. Step 2 of `BlueprintWizard.vue`
+
+Current fields: `billing_period`, `billing_interval`, `trial_days`, `signup_fee`,
+`signup_fee_type`, `discount_type`, `discount_value`, `payment_type`, `max_payments`,
+`subscription_length`, `allow_one_time_purchase`.
+
+`allow_one_time_purchase` is stored as `'yes'`/`'no'` inside the settings JSON (matches
+`_recurio_allow_one_time_purchase` product meta convention). The Vue checkbox sends a
+boolean; `sanitize_settings()` converts it to `'yes'`/`'no'`. `enrich_row()` returns the
+raw string, so the wizard `watch` coerces it back to boolean before binding.
+
+## Blueprint types
+
+`subscribe_save` | `recurring` | `installment`
+
+Changing the enum → update `$allowed_types` array in `extract_blueprint_data()` AND the
+`types` array in `BlueprintWizard.vue` (both `value` and `desc`).
+
+## DB schema
+
+Table: `{prefix}recurio_blueprints` — `id`, `name`, `description`, `slug`, `type`, `status`,
+`settings` (LONGTEXT JSON), `created_at`, `updated_at`, `created_by`.
+Created in `create_database_tables()` (new installs) and `upgrade_to_1_0_4_blueprints()` (existing).
+DB version gate: `recurio_db_version < 1.0.4` in `maybe_upgrade_database()` — `recurio.php`.
+
+## REST endpoints (`recurio/v1/blueprints`)
+
+All require `manage_woocommerce` capability via `check_permission()`.
+
+| Method | Path | Notes |
+|---|---|---|
+| GET | `/blueprints` | `page`, `per_page`, `search`, `type`, `status` params |
+| POST | `/blueprints` | `name` required |
+| GET/PUT/DELETE | `/blueprints/{id}` | PUT accepts `propagate` bool param |
+| POST | `/blueprints/{id}/apply` | `product_ids[]` required; auto-promotes to `active` |
+| GET/DELETE | `/blueprints/{id}/products` | DELETE needs `product_id` param |
+| GET | `/blueprints/{id}/analytics` | Live query — no caching |
+| POST | `/blueprints/{id}/duplicate` | Creates `{name} (Copy)` as `draft` |
+
+## Vue layer
+
+- **`Blueprints.vue`** — list page; summary tiles; filter bar (search + type + status); El-Table
+  with row-click → detail drawer; archive uses `ElMessageBox.confirm`.
+- **`BlueprintWizard.vue`** — dialog with `el-steps`; step 0 = name/type cards; step 1 = billing;
+  step 2 = `BlueprintProductPicker` (create mode only). Edit mode skips step 2, shows propagation toggle.
+- **`BlueprintAnalyticsCard.vue`** — fetches `/blueprints/{id}/analytics`; metric grid.
+- **`BlueprintProductPicker.vue`** — remote-search uses `/products` endpoint; apply calls
+  `/blueprints/{id}/apply`; detach calls DELETE `/blueprints/{id}/products`.
+
+API calls use the shared axios instance from `@/services/api`.
+
+## Category / Tag Scope
+
+Blueprints carry `scope_category_ids` and `scope_tag_ids` inside the `settings` JSON (sanitised
+as integer arrays in `sanitize_settings()`). These drive two things:
+
+### Priority system (`_recurio_blueprint_link_type` post meta)
+
+| Value | Priority | Set by |
+|---|---|---|
+| `direct` | 3 (highest) | Merchant applies manually |
+| `tag` | 2 | `apply-scope` matched a tag |
+| `category` | 1 (lowest) | `apply-scope` matched a category |
+
+`can_stamp($product_id, $incoming_link_type)` checks the existing link type and returns `false`
+if a higher-priority link already exists. Never call `stamp_settings_on_product()` without
+checking `can_stamp()` first (except for `direct` links, which always win).
+
+### Auto-enroll new products
+
+`maybe_auto_stamp_product()` runs on `save_post_product`. It fetches all active blueprints with
+a scope, compares their category/tag IDs against the product's terms, and stamps the best match.
+Skips products already carrying a `direct` link type.
+
+### New REST endpoints
+
+| Method | Path | Purpose |
+|---|---|---|
+| POST | `/blueprints/{id}/apply-scope` | Apply to all products matching scope; respects priority |
+| GET | `/blueprints/{id}/scope-coverage` | Dry-run count + term labels |
+| GET | `/blueprints/taxonomy-search` | Term search for `product_cat` / `product_tag` |
+
+### Vue scope tab (wizard step 3)
+
+Two tabs: "By Product" (`BlueprintProductPicker`) and "By Category / Tag" (remote `el-select`
+for categories + tags, coverage preview button, "Apply scope now" button).
+
+### `BlueprintProductPicker.vue`
+
+Shows Direct / Tag / Category badge on each row. Only `direct`-linked products have an active
+Remove button. Scope-linked products show a tooltip: "Remove via category/tag scope to detach."
+
+## Product edit page
+
+`class-woocommerce-product.php` renders an "Active Blueprint" notice in the Subscription tab
+when `_recurio_blueprint_id` is set. Displays both the blueprint name and the link type label
+("Direct link", "via Tag", "via Category") with a contextual tooltip. `save_blueprint_meta()`
+persists the ID on WC save; `_recurio_blueprint_link_type` is managed by the REST API only
+(not overwritten on product save unless the blueprint_id is cleared).

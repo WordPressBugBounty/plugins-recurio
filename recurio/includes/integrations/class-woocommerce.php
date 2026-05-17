@@ -64,6 +64,9 @@ class Recurio_WooCommerce_Integration {
 		// Enqueue checkout scripts
 		add_action( 'wp_enqueue_scripts', array( $this, 'enqueue_checkout_scripts' ) );
 
+		// Mixed cart: recurring total row below order total at checkout
+		add_action( 'woocommerce_review_order_after_order_total', array( $this, 'display_recurring_total_row' ) );
+
 		// Order processing - use single comprehensive hook to avoid duplicate calls
 		// woocommerce_payment_complete fires when payment is successful (covers most scenarios)
 		add_action( 'woocommerce_payment_complete', array( $this, 'create_subscription_from_order' ) );
@@ -234,42 +237,39 @@ class Recurio_WooCommerce_Integration {
 	 * @param object $cart The cart object.
 	 * @return bool
 	 */
-	public function cart_needs_payment_for_subscriptions( $needs_payment, $cart ) {
-		// If already needs payment, return true
-		if ( $needs_payment ) {
-			return true;
-		}
-
-		// Check if cart has subscription products
+	/**
+	 * Check whether the given cart (or WC cart if null) contains at least one subscription item.
+	 * Excludes Subscribe & Save items chosen as one-time purchases.
+	 *
+	 * @param WC_Cart|null $cart
+	 * @return bool
+	 */
+	private function cart_has_subscription( $cart = null ) {
+		$cart = $cart ?: WC()->cart;
 		if ( ! $cart || $cart->is_empty() ) {
-			return $needs_payment;
+			return false;
 		}
-
 		foreach ( $cart->get_cart() as $cart_item ) {
-			// Skip one-time purchases from Subscribe & Save
 			if ( isset( $cart_item['recurio_purchase_type'] ) && $cart_item['recurio_purchase_type'] === 'one-time' ) {
 				continue;
 			}
-
-			$product = $cart_item['data'];
-			if ( ! $product ) {
-				continue;
-			}
-
-			// Check if this is a subscription product
-			if ( $this->is_subscription_product( $product ) ) {
-				// For subscription products, we always need payment method
-				// to capture card/payment details for future recurring charges
-				return true;
-			}
-
-			// Also check cart item subscription meta
 			if ( ! empty( $cart_item['subscription'] ) ) {
 				return true;
 			}
+			$product = isset( $cart_item['data'] ) ? $cart_item['data'] : null;
+			if ( $product && $this->is_subscription_product( $product ) ) {
+				return true;
+			}
 		}
+		return false;
+	}
 
-		return $needs_payment;
+	public function cart_needs_payment_for_subscriptions( $needs_payment, $cart ) {
+		if ( $needs_payment ) {
+			return true;
+		}
+		// Subscriptions always need a payment method to capture details for future renewals.
+		return $this->cart_has_subscription( $cart ) ? true : $needs_payment;
 	}
 
 	/**
@@ -355,36 +355,7 @@ class Recurio_WooCommerce_Integration {
 			return;
 		}
 
-		// Check if cart has subscription products (not one-time purchases)
-		$has_subscription = false;
-		if ( WC()->cart && ! WC()->cart->is_empty() ) {
-			foreach ( WC()->cart->get_cart() as $cart_item ) {
-				$purchase_type = isset( $cart_item['recurio_purchase_type'] ) ? $cart_item['recurio_purchase_type'] : null;
-
-				// Skip one-time purchases - they don't need subscription checkout handling
-				if ( $purchase_type === 'one-time' ) {
-					continue;
-				}
-
-				// Only consider as subscription if:
-				// 1. Has subscription data in cart, OR
-				// 2. Product is subscription product AND purchase type is 'subscription' or not set
-				if ( ! empty( $cart_item['subscription'] ) ) {
-					$has_subscription = true;
-					break;
-				}
-
-				if ( $purchase_type === 'subscription' || $purchase_type === null ) {
-					$product = $cart_item['data'];
-					if ( $product && $this->is_subscription_product( $product ) ) {
-						$has_subscription = true;
-						break;
-					}
-				}
-			}
-		}
-
-		if ( ! $has_subscription ) {
+		if ( ! $this->cart_has_subscription() ) {
 			return;
 		}
 
@@ -413,6 +384,86 @@ class Recurio_WooCommerce_Integration {
 				'has_subscription'           => true,
 			)
 		);
+
+		// Inline styles for the recurring total row (avoids creating a dedicated CSS file)
+		$css = '
+			.recurio-recurring-total th,
+			.recurio-recurring-total td { color: #2271b1; font-size: 0.9em; padding-top: 4px !important; }
+			.recurio-recurring-total td { font-weight: 600; }
+			.recurio-recurring-period { font-weight: 400; color: #555; margin-left: 2px; }
+			.recurio-mixed-cart-notice { margin: 8px 0 0; padding: 8px 12px; background: #f0f6fc; border-left: 3px solid #2271b1; font-size: 13px; color: #555; }
+		';
+		wp_add_inline_style( 'woocommerce-general', $css );
+	}
+
+	/**
+	 * Display a recurring total row below the order total when the cart has subscriptions.
+	 * Groups subscription items by billing period so a mixed cart shows both the one-time
+	 * total and the recurring cost separately.
+	 */
+	public function display_recurring_total_row() {
+		if ( ! WC()->cart || WC()->cart->is_empty() ) {
+			return;
+		}
+
+		// Collect recurring totals grouped by billing period key (interval_period).
+		$recurring = array();
+		$has_onetime_items = false;
+
+		foreach ( WC()->cart->get_cart() as $cart_item ) {
+			// One-time S&S purchase: contributes to the one-time total only.
+			if ( isset( $cart_item['recurio_purchase_type'] ) && $cart_item['recurio_purchase_type'] === 'one-time' ) {
+				$has_onetime_items = true;
+				continue;
+			}
+
+			if ( empty( $cart_item['subscription'] ) ) {
+				// Regular non-subscription product.
+				$has_onetime_items = true;
+				continue;
+			}
+
+			$sub      = $cart_item['subscription'];
+			$price    = floatval( isset( $sub['price'] ) ? $sub['price'] : 0 );
+			$period   = isset( $sub['period'] ) ? $sub['period'] : 'month';
+			$interval = max( 1, intval( isset( $sub['interval'] ) ? $sub['interval'] : 1 ) );
+			$key      = $interval . '_' . $period;
+			$qty      = max( 1, intval( $cart_item['quantity'] ) );
+
+			if ( ! isset( $recurring[ $key ] ) ) {
+				$recurring[ $key ] = array(
+					'total'    => 0,
+					'period'   => $period,
+					'interval' => $interval,
+				);
+			}
+			$recurring[ $key ]['total'] += $price * $qty;
+		}
+
+		if ( empty( $recurring ) ) {
+			return; // No subscription items — nothing to show.
+		}
+
+		foreach ( $recurring as $item ) {
+			$billing_text = $this->format_billing_period( $item['interval'], $item['period'] );
+			?>
+			<tr class="recurio-recurring-total">
+				<th><?php esc_html_e( 'Recurring total', 'recurio' ); ?></th>
+				<td><?php echo wp_kses_post( wc_price( $item['total'] ) ); ?> <span class="recurio-recurring-period"><?php echo esc_html( $billing_text ); ?></span></td>
+			</tr>
+			<?php
+		}
+
+		// When the cart is truly mixed, add a short clarifying note.
+		if ( $has_onetime_items && ! empty( $recurring ) ) {
+			?>
+			<tr>
+				<td colspan="2">
+					<p class="recurio-mixed-cart-notice"><?php esc_html_e( 'Your order includes both one-time and recurring items. The recurring total shown above will be charged automatically after each billing period.', 'recurio' ); ?></p>
+				</td>
+			</tr>
+			<?php
+		}
 	}
 
 	/**
@@ -453,14 +504,11 @@ class Recurio_WooCommerce_Integration {
 			return $cart_item_data;
 		}
 
-		// Check for Subscribe & Save selection (Pro feature)
-		$is_pro = Recurio_Pro_Manager::get_instance()->is_license_valid();
-
+		// Subscribe & Save: one-time vs subscription when enabled on product
 		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- Cart action, nonce verified by WooCommerce
 		$purchase_type = isset( $_POST['recurio_purchase_type'] ) ? sanitize_text_field( wp_unslash( $_POST['recurio_purchase_type'] ) ) : 'subscription';
 
-		// Check if one-time purchase is allowed and selected (Pro feature)
-		$allow_one_time = $is_pro && get_post_meta( $product_id, '_recurio_allow_one_time_purchase', true ) === 'yes';
+		$allow_one_time = get_post_meta( $product_id, '_recurio_allow_one_time_purchase', true ) === 'yes';
 
 		if ( $allow_one_time && $purchase_type === 'one-time' ) {
 			// One-time purchase selected - don't add subscription data
@@ -474,9 +522,9 @@ class Recurio_WooCommerce_Integration {
 
 		// Ensure we have a price - use product regular price if subscription price is 0
 		if ( empty( $subscription_data['price'] ) || $subscription_data['price'] == 0 ) {
-			$subscription_data['price'] = $product->get_regular_price();
+			$subscription_data['price'] = $data_product->get_regular_price();
 			if ( empty( $subscription_data['price'] ) ) {
-				$subscription_data['price'] = $product->get_price();
+				$subscription_data['price'] = $data_product->get_price();
 			}
 		}
 
@@ -502,14 +550,6 @@ class Recurio_WooCommerce_Integration {
 			}
 		}
 
-		// Check for custom billing period (Pro feature)
-		$use_custom_period = $is_pro && get_post_meta( $product_id, '_recurio_use_custom_period', true ) === 'yes';
-		if ( $use_custom_period ) {
-			$subscription_data['interval'] = get_post_meta( $product_id, '_recurio_subscription_billing_interval', true ) ?: 1;
-			$subscription_data['period']   = get_post_meta( $product_id, '_recurio_subscription_billing_unit', true ) ?: 'month';
-		}
-
-		// Add split payment info to subscription data
 		$payment_type = get_post_meta( $product_id, '_recurio_payment_type', true ) ?: 'recurring';
 		$subscription_data['payment_type'] = $payment_type;
 
@@ -531,7 +571,7 @@ class Recurio_WooCommerce_Integration {
 		$cart_item_data['subscription']          = $subscription_data;
 		$cart_item_data['recurio_purchase_type'] = 'subscription';
 
-		return $cart_item_data;
+		return apply_filters( 'recurio_subscription_cart_item_data', $cart_item_data, $product_id, $variation_id, array() );
 	}
 
 	/**
@@ -912,8 +952,46 @@ class Recurio_WooCommerce_Integration {
 				)
 			);
 		} else {
-			// Early renewal - renewal count and next_payment_date already updated by process_early_renewal()
-			// Just mark order as processed and skip the rest
+			// Early renewal: payment confirmed — now safe to update subscription state.
+			$new_next_payment      = $order->get_meta( '_recurio_early_renewal_new_next_payment', true );
+			$previous_next_payment = $order->get_meta( '_recurio_early_renewal_previous_next_payment', true );
+			$new_renewal_count     = intval( $subscription->renewal_count ) + 1;
+
+			// Extend the next payment date and increment renewal count.
+			$subscription_engine->update_subscription(
+				$subscription_id,
+				array(
+					'next_payment_date' => $new_next_payment ?: null,
+					'renewal_count'     => $new_renewal_count,
+					'updated_at'        => current_time( 'mysql' ),
+				)
+			);
+
+			// Record the revenue.
+			$subscription_engine->log_revenue(
+				$subscription_id,
+				$order->get_total(),
+				$order->get_payment_method(),
+				$order->get_transaction_id() ?: 'early_renewal_' . $order->get_id()
+			);
+
+			// Log the event.
+			$subscription_engine->log_event(
+				$subscription_id,
+				'early_renewal',
+				$order->get_total(),
+				array(
+					'order_id'              => $order->get_id(),
+					'previous_next_payment' => $previous_next_payment,
+					'new_next_payment'      => $new_next_payment,
+					'renewal_count'         => $new_renewal_count,
+				)
+			);
+
+			do_action( 'recurio_subscription_early_renewal', $subscription_id, $order->get_id(), $subscription );
+
+			$this->dispatch_renewal_payment_success_hooks( $order, $subscription_id );
+
 			$order->update_meta_data( '_recurio_renewal_processed', 'yes' );
 			$order->save();
 			return;
@@ -982,9 +1060,51 @@ class Recurio_WooCommerce_Integration {
 		// Update the subscription.
 		$subscription_engine->update_subscription( $subscription_id, $update_data );
 
+		$this->dispatch_renewal_payment_success_hooks( $order, $subscription_id );
+
 		// Mark this renewal order as processed to prevent duplicate processing.
 		$order->add_meta_data( '_recurio_renewal_processed', 'yes', true );
 		$order->save();
+	}
+
+	/**
+	 * Mirror Billing_Manager::handle_payment_success notifications for WooCommerce-paid renewal orders.
+	 *
+	 * @param WC_Order $order           Paid renewal order.
+	 * @param int      $subscription_id Subscription ID.
+	 */
+	private function dispatch_renewal_payment_success_hooks( $order, $subscription_id ) {
+		if ( ! $order instanceof WC_Order ) {
+			return;
+		}
+
+		$subscription_id = (int) $subscription_id;
+		if ( $subscription_id <= 0 ) {
+			return;
+		}
+
+		$engine = Recurio_Subscription_Engine::get_instance();
+		$fresh  = $engine->get_subscription( $subscription_id );
+		if ( ! $fresh ) {
+			return;
+		}
+
+		$paid = $order->get_date_paid();
+		$payment_date = $paid ? $paid->format( 'Y-m-d H:i:s' ) : current_time( 'mysql' );
+
+		$payment_data = array(
+			'amount'         => floatval( $order->get_total() ),
+			'gateway'        => $order->get_payment_method(),
+			'transaction_id' => $order->get_transaction_id() ? $order->get_transaction_id() : 'order_' . $order->get_id(),
+			'date'           => $payment_date,
+		);
+
+		do_action( 'recurio_payment_successful', $subscription_id, $payment_data, (array) $fresh );
+		do_action( 'recurio_after_payment_processed', $subscription_id, $payment_data['amount'], $payment_data['transaction_id'] );
+
+		if ( ! empty( $fresh->customer_id ) ) {
+			do_action( 'recurio_update_recurio_customer_analytics', (int) $fresh->customer_id );
+		}
 	}
 
 	/**
@@ -1442,47 +1562,53 @@ class Recurio_WooCommerce_Integration {
 	 */
 	private function get_subscription_data_from_product( $product ) {
 		$product_id = $product->get_id();
-
-		// For variations, check parent product for subscription enabled status
-		$parent_id = null;
+		$parent_id  = null;
 		if ( $product->get_type() === 'variation' ) {
-			$parent_id  = $product->get_parent_id();
-			$enabled    = get_post_meta( $parent_id, '_recurio_subscription_enabled', true );
+			$parent_id = $product->get_parent_id();
+			$enabled   = get_post_meta( $parent_id, '_recurio_subscription_enabled', true );
 		} else {
 			$enabled = get_post_meta( $product_id, '_recurio_subscription_enabled', true );
 		}
 
 		if ( $enabled === 'yes' ) {
-			// Determine which product ID to use for settings (parent for variations)
-			$settings_product_id = $parent_id ? $parent_id : $product_id;
+			$is_pro             = Recurio_Pro_Manager::get_instance()->is_license_valid();
+			$variation_id       = ( $product->get_type() === 'variation' ) ? $product_id : 0;
+			$override           = $variation_id && get_post_meta( $variation_id, '_recurio_override_subscription', true ) === 'yes';
+			$meta_parent        = $parent_id ? $parent_id : $product_id;
+			$schedule_meta_id   = $meta_parent;
+			$use_custom_period  = false;
 
-			// Check for custom billing period first (Pro feature)
-			$is_pro            = Recurio_Pro_Manager::get_instance()->is_license_valid();
-			$use_custom_period = $is_pro && get_post_meta( $settings_product_id, '_recurio_use_custom_period', true ) === 'yes';
+			if ( $variation_id && $override ) {
+				$use_custom_period = get_post_meta( $variation_id, '_recurio_use_custom_period', true ) === 'yes';
+				$schedule_meta_id  = $variation_id;
+			} else {
+				$use_custom_period = $is_pro && get_post_meta( $meta_parent, '_recurio_use_custom_period', true ) === 'yes';
+				$schedule_meta_id  = $meta_parent;
+			}
 
 			if ( $use_custom_period ) {
-				// Use custom billing period settings
-				$interval = intval( get_post_meta( $settings_product_id, '_recurio_subscription_billing_interval', true ) ) ?: 1;
-				$period   = get_post_meta( $settings_product_id, '_recurio_subscription_billing_unit', true ) ?: 'month';
+				$interval = intval( get_post_meta( $schedule_meta_id, '_recurio_subscription_billing_interval', true ) ) ?: 1;
+				$period   = get_post_meta( $schedule_meta_id, '_recurio_subscription_billing_unit', true ) ?: 'month';
 			} else {
-				// Use standard billing period
-				$billing_period = get_post_meta( $settings_product_id, '_recurio_subscription_billing_period', true );
+				$billing_period = get_post_meta( $schedule_meta_id, '_recurio_subscription_billing_period', true );
 
-				// Fallback to periods array for backward compatibility
 				if ( ! $billing_period ) {
-					$periods        = get_post_meta( $settings_product_id, '_recurio_subscription_periods', true );
+					$periods        = get_post_meta( $schedule_meta_id, '_recurio_subscription_periods', true );
 					$periods        = $periods ? maybe_unserialize( $periods ) : array( 'monthly' );
-					$billing_period = reset( $periods );
+					$billing_period = is_array( $periods ) ? reset( $periods ) : 'monthly';
+				}
+
+				if ( $variation_id && $override && ! $billing_period ) {
+					$billing_period = get_post_meta( $meta_parent, '_recurio_subscription_billing_period', true );
 				}
 
 				$billing_period = $billing_period ?: 'monthly';
 
-				// Convert period names
 				$period_map = array(
 					'daily'     => 'day',
 					'weekly'    => 'week',
 					'monthly'   => 'month',
-					'quarterly' => 'month', // Will use interval of 3
+					'quarterly' => 'month',
 					'yearly'    => 'year',
 				);
 
@@ -1490,23 +1616,35 @@ class Recurio_WooCommerce_Integration {
 				$interval = ( $billing_period === 'quarterly' ) ? 3 : 1;
 			}
 
+			$trial_length = intval( get_post_meta( $meta_parent, '_recurio_subscription_trial_days', true ) ) ?: 0;
+			$sign_up_fee  = floatval( get_post_meta( $meta_parent, '_recurio_subscription_signup_fee', true ) ) ?: 0;
+
+			if ( $variation_id && $override ) {
+				$var_trial = get_post_meta( $variation_id, '_recurio_subscription_trial_days', true );
+				if ( $var_trial !== '' && $var_trial !== false ) {
+					$trial_length = intval( $var_trial );
+				}
+				$var_signup = get_post_meta( $variation_id, '_recurio_subscription_signup_fee', true );
+				if ( $var_signup !== '' && $var_signup !== false ) {
+					$sign_up_fee = floatval( $var_signup );
+				}
+			}
+
 			$subscription_data = array(
 				'price'            => $product->get_price(),
 				'period'           => $period,
 				'interval'         => $interval,
-				'length'           => get_post_meta( $settings_product_id, '_recurio_subscription_length', true ) ?: 0,
-				'trial_length'     => get_post_meta( $settings_product_id, '_recurio_subscription_trial_days', true ) ?: 0,
+				'length'           => get_post_meta( $meta_parent, '_recurio_subscription_length', true ) ?: 0,
+				'trial_length'     => $trial_length,
 				'trial_period'     => 'day',
-				'sign_up_fee'      => get_post_meta( $settings_product_id, '_recurio_subscription_signup_fee', true ) ?: 0,
-				'limit'            => get_post_meta( $settings_product_id, '_recurio_subscription_limit', true ) ?: 0,
-				'auto_renewal'     => get_post_meta( $settings_product_id, '_recurio_subscription_auto_renewal', true ) === 'yes',
-				'renewal_reminder' => get_post_meta( $settings_product_id, '_recurio_subscription_renewal_reminder', true ) === 'yes',
+				'sign_up_fee'      => $sign_up_fee,
+				'limit'            => get_post_meta( $meta_parent, '_recurio_subscription_limit', true ) ?: 0,
+				'auto_renewal'     => get_post_meta( $meta_parent, '_recurio_subscription_auto_renewal', true ) === 'yes',
+				'renewal_reminder' => get_post_meta( $meta_parent, '_recurio_subscription_renewal_reminder', true ) === 'yes',
 			);
 
 			/**
 			 * Filter subscription data from product.
-			 *
-			 * Allows PRO features to modify subscription data for variations.
 			 *
 			 * @param array      $subscription_data Subscription data array.
 			 * @param WC_Product $product           Product object.
@@ -1879,11 +2017,6 @@ class Recurio_WooCommerce_Integration {
 			return;
 		}
 
-		// Subscribe & Save is a Pro feature
-		if ( ! Recurio_Pro_Manager::get_instance()->is_license_valid() ) {
-			return;
-		}
-
 		// Check if this is a subscription product
 		if ( ! $this->is_subscription_product( $product ) ) {
 			return;
@@ -1933,9 +2066,18 @@ class Recurio_WooCommerce_Integration {
 		// Get billing period display
 		$billing_period_text = $this->get_billing_period_text( $product_id, $subscription_data );
 
+		// Widget display settings
+		$widget_style = get_post_meta( $product_id, '_recurio_widget_style', true ) ?: 'simple';
+		$widget_color = get_post_meta( $product_id, '_recurio_widget_color', true ) ?: '#1E40AF';
+		$show_badge   = get_post_meta( $product_id, '_recurio_show_badge', true ) === 'yes';
+		$badge_text   = get_post_meta( $product_id, '_recurio_badge_text', true ) ?: __( 'Best Value', 'recurio' );
+
+		$widget_classes    = 'recurio-purchase-options recurio-widget-' . $widget_style;
+		$widget_inline_css = '--recurio-primary: ' . $widget_color . ';';
+
 		// Output the Subscribe & Save options
 		?>
-		<div class="recurio-purchase-options">
+		<div class="<?php echo esc_attr( $widget_classes ); ?>" style="<?php echo esc_attr( $widget_inline_css ); ?>" data-widget-color="<?php echo esc_attr( $widget_color ); ?>">
 			<label class="recurio-option">
 				<input type="radio" name="recurio_purchase_type" value="one-time" />
 				<span class="recurio-option-content">
@@ -1949,6 +2091,9 @@ class Recurio_WooCommerce_Integration {
 				<span class="recurio-option-content">
 					<span class="recurio-option-label">
 						<?php echo esc_html__( 'Subscribe', 'recurio' ); ?>
+						<?php if ( $show_badge ) : ?>
+							<span class="recurio-value-badge"><?php echo esc_html( $badge_text ); ?></span>
+						<?php endif; ?>
 						<?php if ( $savings_amount > 0 && $show_savings ) : ?>
 							<span class="recurio-save-badge"><?php echo esc_html( sprintf( 'Save %s%%', round( $savings_percent ) ) ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?></span>
 						<?php endif; ?>
@@ -2058,15 +2203,10 @@ class Recurio_WooCommerce_Integration {
 			return;
 		}
 
-		// Subscribe & Save is a Pro feature
-		if ( ! Recurio_Pro_Manager::get_instance()->is_license_valid() ) {
-			return;
-		}
-
-		// Check if this product has Subscribe & Save enabled
+		// Load assets only when Subscribe & Save (one-time vs subscription) is enabled
 		$allow_one_time = get_post_meta( $product->get_id(), '_recurio_allow_one_time_purchase', true ) === 'yes';
 
-		if ( ! $allow_one_time && ! $this->is_subscription_product( $product ) ) {
+		if ( ! $allow_one_time ) {
 			return;
 		}
 
@@ -2099,6 +2239,10 @@ class Recurio_WooCommerce_Integration {
 				'nonce'         => wp_create_nonce( 'recurio_nonce' ),
 				'discountType'  => $discount_type,
 				'discountValue' => $discount_value,
+				'showSavings'   => get_post_meta( $product->get_id(), '_recurio_show_savings', true ) !== 'no',
+				'widgetStyle'   => get_post_meta( $product->get_id(), '_recurio_widget_style', true ) ?: 'simple',
+				'widgetColor'   => get_post_meta( $product->get_id(), '_recurio_widget_color', true ) ?: '#1E40AF',
+				'badgeText'     => get_post_meta( $product->get_id(), '_recurio_badge_text', true ) ?: __( 'Best Value', 'recurio' ),
 				'i18n'          => array(
 					'subscribe'  => __( 'Subscribe Now', 'recurio' ),
 					'addToCart'  => __( 'Add to cart', 'recurio' ),

@@ -73,14 +73,15 @@
         filterPaymentGateways();
     });
 
-    // Re-filter on checkout update
-    // $(document.body).on('updated_checkout', function() {
-    //     filterPaymentGateways();
-    // });
+    // Re-filter after WooCommerce AJAX checkout updates (address change, coupon, etc.)
+    // WC re-renders the payment section on updated_checkout, so we must re-apply our filter.
+    $(document.body).on('updated_checkout', function() {
+        filterPaymentGateways();
+    });
 
-    // Re-filter on payment method update
-    // $(document.body).on('payment_method_selected', function() {
-    //     setTimeout(filterPaymentGateways, 100);
-    // });
+    // Re-filter when customer selects a different payment method
+    $(document.body).on('payment_method_selected', function() {
+        setTimeout(filterPaymentGateways, 100);
+    });
 
 })(jQuery);

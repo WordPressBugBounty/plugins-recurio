@@ -2,9 +2,9 @@
 Contributors: devitemsllc, zenaulislam, aslamhasib
 Tags: subscriptions, recurring payments, woocommerce subscriptions, recurring billing, subscription management, subscription box, reorder, revenue, Analytics, Report
 Requires at least: 5.8
-Tested up to: 6.8
+Tested up to: 7.0
 Requires PHP: 7.4
-Stable tag: 1.0.2
+Stable tag: 1.1.0
 License: GPL v2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -159,6 +159,15 @@ Recurio is designed to work seamlessly with most WooCommerce extensions. If you 
 8. Seamless WooCommerce integration with subscription product type
 
 == Changelog ==
+
+= 1.1.0 - 2026-05-17 =
+* Added: Variable product subscriptions — set unique pricing, trial periods, billing cycles, and sign-up fees per product variation.
+* Added: Subscribe & Save — customers can choose between one-time purchase or subscription with automatic discounts on the product page.
+* Added: Skip a billing cycle — customers can skip their next renewal payment from the customer portal.
+* Added: Mixed cart support — subscription and one-time purchase products can now be purchased together in a single order.
+* Added: Enhanced product page widget — improved subscription option display with configurable badge, pricing breakdown text, and colour picker.
+* Added: Shipping charge for renewal orders — plans and products now include an "Include shipping on renewals" toggle. When enabled, the original order's shipping amount and method are snapshotted at subscription creation and automatically added as a shipping line item to every renewal order.
+* Improved: Installment / split payment support fully implemented with configurable product access timing and duration settings.
 
 = 1.0.2 - 2026-04-15 =
 * Solved: Offer text showing issue in product page.
