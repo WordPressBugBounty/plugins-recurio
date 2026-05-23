@@ -51,6 +51,9 @@ class Recurio_WooCommerce_Integration {
 		// Filter payment gateways for subscription products (high priority to run after other filters)
 		add_filter( 'woocommerce_available_payment_gateways', array( $this, 'filter_payment_gateways_for_subscriptions' ), 999 );
 
+		// Validate gateways once on submission — prevents persistent session notices from the filter
+		add_action( 'woocommerce_after_checkout_validation', array( $this, 'validate_checkout_payment_gateways' ), 10, 2 );
+
 		// Force payment methods to show for free trial subscriptions (even when cart total is 0)
 		add_filter( 'woocommerce_cart_needs_payment', array( $this, 'cart_needs_payment_for_subscriptions' ), 10, 2 );
 
@@ -174,58 +177,46 @@ class Recurio_WooCommerce_Integration {
 			return $available_gateways;
 		}
 
-		// Get allowed payment methods from settings
-		$settings        = get_option( 'recurio_settings', array() );
-		$allowed_methods = isset( $settings['billing']['allowedPaymentMethods'] )
-			? $settings['billing']['allowedPaymentMethods']
-			: array();
+		$filtered_gateways = array();
 
-		// Define offline payment methods that should be excluded by default
-		$offline_methods = array( 'cod', 'bacs', 'cheque' );
-
-		// If no settings configured, use intelligent defaults
-		if ( empty( $allowed_methods ) ) {
-			// Allow online payment methods by default, exclude offline ones
-			foreach ( $available_gateways as $gateway_id => $gateway ) {
-				if ( in_array( $gateway_id, $offline_methods ) ) {
-					unset( $available_gateways[ $gateway_id ] );
-				}
+		foreach ( $available_gateways as $gateway_id => $gateway ) {
+			if ( ! \Recurio_Payment_Methods::are_gateways_allowed_for_subscriptions( $gateway_id ) ) {
+				continue;
 			}
-		} else {
-			// Filter gateways based on settings
-			$gateways_to_remove = array();
+			$filtered_gateways[ $gateway_id ] = $gateway;
+		}
 
-			foreach ( $available_gateways as $gateway_id => $gateway ) {
-				// Check if this gateway is explicitly set in our settings
-				if ( isset( $allowed_methods[ $gateway_id ] ) ) {
-					// If it's set to false (disabled), mark for removal
-					if ( empty( $allowed_methods[ $gateway_id ] ) || $allowed_methods[ $gateway_id ] === false || $allowed_methods[ $gateway_id ] === 'false' || $allowed_methods[ $gateway_id ] === '0' ) {
-						$gateways_to_remove[] = $gateway_id;
-					}
-				} else {
-					// Gateway not in our settings - apply default rules
-					// By default, disable known offline payment methods for subscriptions
-					if ( in_array( $gateway_id, $offline_methods ) ) {
-						$gateways_to_remove[] = $gateway_id;
-					}
-				}
-			}
+		return $filtered_gateways;
+	}
 
-			// Remove marked gateways
-			foreach ( $gateways_to_remove as $gateway_id ) {
-				unset( $available_gateways[ $gateway_id ] );
+	/**
+	 * Validate that at least one gateway is available for subscription orders at submission time.
+	 * Runs once via woocommerce_after_checkout_validation to avoid polluting the WC session
+	 * with persistent error notices from the payment-gateway filter.
+	 *
+	 * @param array    $data   Posted checkout data.
+	 * @param WP_Error $errors Checkout error container.
+	 */
+	public function validate_checkout_payment_gateways( $data, $errors ) {
+		if ( ! $this->cart_has_subscription() ) {
+			return;
+		}
+
+		$all_gateways      = WC()->payment_gateways()->get_available_payment_gateways();
+		$filtered_gateways = array();
+
+		foreach ( $all_gateways as $gateway_id => $gateway ) {
+			if ( \Recurio_Payment_Methods::are_gateways_allowed_for_subscriptions( $gateway_id ) ) {
+				$filtered_gateways[ $gateway_id ] = $gateway;
 			}
 		}
 
-		// Add a notice if all payment methods were filtered out
-		if ( empty( $available_gateways ) ) {
-			wc_add_notice(
-				esc_html__( 'No payment methods are available for subscription products. Please contact the store administrator.', 'recurio' ),
-				'error'
+		if ( empty( $filtered_gateways ) ) {
+			$errors->add(
+				'recurio_no_payment_gateways',
+				esc_html__( 'No payment methods are available for subscription products. Please contact the store administrator.', 'recurio' )
 			);
 		}
-
-		return $available_gateways;
 	}
 
 	/**
@@ -1536,25 +1527,7 @@ class Recurio_WooCommerce_Integration {
 
 		// Check for our subscription metadata (primary check)
 		$is_subscription = get_post_meta( $product_id, '_recurio_subscription_enabled', true );
-		if ( $is_subscription === 'yes' ) {
-			return true;
-		}else{
-			return false;
-		}
-
-		// Legacy check for old subscription price/period fields
-		$subscription_price  = get_post_meta( $product_id, '_subscription_price', true );
-		$subscription_period = get_post_meta( $product_id, '_subscription_period', true );
-
-		if ( ! empty( $subscription_price ) || ! empty( $subscription_period ) ) {
-			return true;
-		}else{
-			return false;
-		}
-
-		// Check product type (for compatibility with other subscription plugins)
-		$product_type = $product->get_type();
-		return in_array( $product_type, array( 'subscription', 'variable_subscription', 'variation' ) );
+		return $is_subscription === 'yes';
 	}
 
 	/**

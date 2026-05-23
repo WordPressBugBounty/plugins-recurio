@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Recurio – Ultimate Subscription for WooCommerce
  * Description: Ultimate Subscription Plugin for WooCommerce
- * Version: 1.1.0
+ * Version: 1.1.1
  * Author: DevItems
  * Author URI: https://devitems.com
  * Plugin URI: https://wprecurio.com
@@ -16,24 +16,24 @@
  */
 
 // Prevent direct access
-if ( ! defined( 'ABSPATH' ) ) {
-	exit;
+if (! defined('ABSPATH')) {
+    exit;
 }
 
 // Define plugin constants
-define( 'RECURIO_VERSION', '1.1.0' );
-define( 'RECURIO_PLUGIN_FILE', __FILE__ );
-define( 'RECURIO_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
-define( 'RECURIO_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
-define( 'RECURIO_PLUGIN_BASENAME', plugin_basename( __FILE__ ) );
+define('RECURIO_VERSION', '1.1.1');
+define('RECURIO_PLUGIN_FILE', __FILE__);
+define('RECURIO_PLUGIN_DIR', plugin_dir_path(__FILE__));
+define('RECURIO_PLUGIN_URL', plugin_dir_url(__FILE__));
+define('RECURIO_PLUGIN_BASENAME', plugin_basename(__FILE__));
 // Load main class
 require_once RECURIO_PLUGIN_DIR . 'includes/base/base.php';
 // Initialize the plugin
 Recurio::get_instance();
 
 // Compatible With WooCommerce Custom Order Tables
-add_action( 'before_woocommerce_init', function() {
-	if ( class_exists( '\Automattic\WooCommerce\Utilities\FeaturesUtil' ) ) {
-		\Automattic\WooCommerce\Utilities\FeaturesUtil::declare_compatibility( 'custom_order_tables', __FILE__, true );
-	}
-} );
+add_action('before_woocommerce_init', function () {
+    if (class_exists('\Automattic\WooCommerce\Utilities\FeaturesUtil')) {
+        \Automattic\WooCommerce\Utilities\FeaturesUtil::declare_compatibility('custom_order_tables', __FILE__, true);
+    }
+});

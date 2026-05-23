@@ -25,28 +25,57 @@ class Recurio_Payment_Methods {
 	}
 
 	/**
-	 * Get available payment gateways for subscriptions
+	 * Single source of truth for gateway allowlist checks.
+	 * Called by both filter_payment_gateways_for_subscriptions (checkout filter)
+	 * and get_available_payment_gateways (settings/portal queries).
+	 *
+	 * @param string $gateway_id Gateway identifier.
+	 * @return bool True if the gateway may be used for subscriptions.
+	 */
+	public static function are_gateways_allowed_for_subscriptions( $gateway_id ) {
+		$offline = array( 'cod', 'bacs', 'cheque' );
+		if ( in_array( $gateway_id, $offline, true ) ) {
+			return false;
+		}
+
+		$settings = get_option( 'recurio_settings', array() );
+		$allowed  = isset( $settings['billing']['allowedPaymentMethods'] )
+			? $settings['billing']['allowedPaymentMethods']
+			: array();
+
+		if ( isset( $allowed[ $gateway_id ] ) && (
+			empty( $allowed[ $gateway_id ] ) ||
+			$allowed[ $gateway_id ] === false ||
+			$allowed[ $gateway_id ] === '0' ||
+			$allowed[ $gateway_id ] === 'false'
+		) ) {
+			return false;
+		}
+
+		return true;
+	}
+
+	/**
+	 * Get available payment gateways for subscriptions.
+	 * Uses are_gateways_allowed_for_subscriptions() to filter out disallowed/offline
+	 * gateways, then additionally requires gateway_supports_subscriptions().
+	 *
+	 * @param bool $for_customer Reserved for future customer-scoped filtering; unused.
+	 * @return array Keyed by gateway ID.
 	 */
 	public function get_available_payment_gateways( $for_customer = true ) {
 		if ( ! function_exists( 'WC' ) ) {
 			return array();
 		}
 
-		$settings        = get_option( 'recurio_settings', array() );
-		$allowed_methods = isset( $settings['billing']['allowedPaymentMethods'] )
-			? $settings['billing']['allowedPaymentMethods']
-			: array();
-
 		$available_gateways    = WC()->payment_gateways->get_available_payment_gateways();
 		$subscription_gateways = array();
 
 		foreach ( $available_gateways as $gateway_id => $gateway ) {
-			// Check if this gateway is allowed for subscriptions
-			if ( isset( $allowed_methods[ $gateway_id ] ) && $allowed_methods[ $gateway_id ] === false ) {
+			if ( ! self::are_gateways_allowed_for_subscriptions( $gateway_id ) ) {
 				continue;
 			}
 
-			// Check if gateway supports subscriptions
 			if ( $this->gateway_supports_subscriptions( $gateway ) ) {
 				$subscription_gateways[ $gateway_id ] = $gateway;
 			}

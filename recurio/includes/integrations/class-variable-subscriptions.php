@@ -210,7 +210,7 @@ class Recurio_Variable_Subscriptions {
 			$nonce_ok = wp_verify_nonce( sanitize_key( wp_unslash( $_POST['woocommerce_meta_nonce'] ) ), 'woocommerce_save_data' );
 		}
 		if ( ! $nonce_ok && isset( $_POST['security'] ) ) {
-			$nonce_ok = wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['security'] ) ), 'save-variations' );
+			$nonce_ok = wp_verify_nonce( sanitize_key( wp_unslash( $_POST['security'] ) ), 'save-variations' );
 		}
 		if ( ! $nonce_ok ) {
 			return;

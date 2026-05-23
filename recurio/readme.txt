@@ -4,7 +4,7 @@ Tags: subscriptions, recurring payments, woocommerce subscriptions, recurring bi
 Requires at least: 5.8
 Tested up to: 7.0
 Requires PHP: 7.4
-Stable tag: 1.1.0
+Stable tag: 1.1.1
 License: GPL v2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -13,6 +13,11 @@ A powerful and comprehensive WooCommerce subscription management plugin with adv
 == Description ==
 
 **Recurio** is a complete subscription management solution for WooCommerce that helps you create, manage, and grow your recurring revenue business. With a modern Vue.js dashboard, automated billing, and comprehensive analytics, Recurio makes subscription management effortless.
+
+🎬 **[Live Demo](https://wprecurio.com/?utm_source=wprepo&utm_medium=freeplugin&utm_campaign=demo)** - See Recurio in action
+📚 **[Documentation](https://help.wprecurio.com/docs/?utm_source=wprepo&utm_medium=freeplugin&utm_campaign=doc)** - Complete setup guides & tutorials
+💎 **[Get Pro Version](https://wprecurio.com/pricing/?utm_source=wprepo&utm_medium=freeplugin&utm_campaign=purchasepro)** - Unlock all premium features
+💬 **[Support](https://wprecurio.com/contact-us/?utm_source=wprepo&utm_medium=freeplugin&utm_campaign=support)** - Get help from our team
 
 https://youtu.be/sylqtuZx-TA
 
@@ -150,15 +155,25 @@ Recurio is designed to work seamlessly with most WooCommerce extensions. If you 
 == Screenshots ==
 
 1. Real-time subscription dashboard with MRR, ARR, and churn analytics
-2. Powerful subscription management with bulk operations and export
-3. Customer segmentation and lifetime value tracking
-4. Revenue analytics with goal tracking and performance charts
-5. Beautiful self-service customer portal reduces support tickets
-6. Automated email notifications for all subscription events
-7. Flexible payment gateway configuration with smart retry logic
-8. Seamless WooCommerce integration with subscription product type
+2. Create and manage subscription plans across all your products instantly
+3. Powerful subscription management with bulk operations and export
+4. Customer segmentation and lifetime value tracking
+5. Revenue analytics with goal tracking and performance charts
+6. Beautiful self-service customer portal reduces support tickets
+7. Automated email notifications for all subscription events
+8. Flexible payment gateway configuration with smart retry logic
+9. Seamless WooCommerce integration with subscription product type
+10. Reduce churn with a smart cancellation retention flow
 
 == Changelog ==
+
+= 1.1.1 - 2026-05-23 =
+* Solved: Payment method filter caused persistent checkout error notices that prevented orders from completing — wc_add_notice removed from the gateway filter and moved to a dedicated woocommerce_after_checkout_validation handler.
+* Solved: Payment gateway allowlist logic was duplicated across two code paths; consolidated into a single static helper (Recurio_Payment_Methods::are_gateways_allowed_for_subscriptions) to ensure consistent behaviour at checkout and in the admin.
+* Solved: Admin notice warning for missing subscription-compatible gateways was being stripped by the Recurio admin notice cleanup; re-attached after the bulk removal so it reliably reaches the screen.
+* Improved: Admin gateway warning now only displays when at least one subscription product exists, is restricted to users with manage_options capability, and is dismissible.
+* Improved: Subscription-product existence check behind the gateway warning is now cached with a 12-hour transient (recurio_has_subscription_products) and invalidated automatically when any product is saved, trashed, or its status changes.
+* Improved: Chart render in dashboard.
 
 = 1.1.0 - 2026-05-17 =
 * Added: Variable product subscriptions — set unique pricing, trial periods, billing cycles, and sign-up fees per product variation.
