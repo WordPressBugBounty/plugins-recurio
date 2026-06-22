@@ -291,7 +291,7 @@ class Settings {
 			return new WP_REST_Response(
 				array(
 					'success' => true,
-					'message' => 'Cache cleared successfully',
+					'message' => __( 'Cache cleared successfully', 'recurio' ),
 				),
 				200
 			);
@@ -317,15 +317,58 @@ class Settings {
 					$hid = absint( $settings['emails']['headerImageId'] );
 					$settings['emails']['headerImageId'] = ( $hid && wp_attachment_is_image( $hid ) ) ? $hid : 0;
 				}
-				if ( isset( $settings['emails']['headerHtml'] ) ) {
-					$settings['emails']['headerHtml'] = wp_kses_post( $settings['emails']['headerHtml'] );
-				}
-				if ( isset( $settings['emails']['footerHtml'] ) ) {
-					$settings['emails']['footerHtml'] = wp_kses_post( $settings['emails']['footerHtml'] );
-				}
 				if ( isset( $settings['emails']['customTemplates'] ) ) {
 					$settings['emails']['customTemplates'] = recurio_email_sanitize_custom_templates_input( $settings['emails']['customTemplates'] );
 				}
+			}
+		}
+
+		// Sanitize general settings fields.
+		if ( isset( $settings['general'] ) && is_array( $settings['general'] ) ) {
+			$allowed_locations = array( 'myaccount', 'shortcode' );
+			if ( isset( $settings['general']['portalLocation'] ) ) {
+				$settings['general']['portalLocation'] = in_array( $settings['general']['portalLocation'], $allowed_locations, true )
+					? $settings['general']['portalLocation']
+					: 'myaccount';
+			}
+			if ( isset( $settings['general']['myAccountEndpoint'] ) ) {
+				$settings['general']['myAccountEndpoint'] = sanitize_key( $settings['general']['myAccountEndpoint'] );
+			}
+			if ( isset( $settings['general']['myAccountLabel'] ) ) {
+				$settings['general']['myAccountLabel'] = sanitize_text_field( $settings['general']['myAccountLabel'] );
+			}
+		}
+
+		// Sanitize billing settings fields.
+		if ( isset( $settings['billing'] ) && is_array( $settings['billing'] ) ) {
+			foreach ( array( 'batchSize', 'maxRetries', 'retryInterval', 'dataRetention' ) as $int_key ) {
+				if ( isset( $settings['billing'][ $int_key ] ) ) {
+					$settings['billing'][ $int_key ] = absint( $settings['billing'][ $int_key ] );
+				}
+			}
+		}
+
+		// Sanitize notification/email from-address fields.
+		if ( isset( $settings['emails'] ) && is_array( $settings['emails'] ) ) {
+			if ( isset( $settings['emails']['fromName'] ) ) {
+				$settings['emails']['fromName'] = sanitize_text_field( $settings['emails']['fromName'] );
+			}
+			if ( isset( $settings['emails']['fromEmail'] ) ) {
+				$settings['emails']['fromEmail'] = sanitize_email( $settings['emails']['fromEmail'] );
+			}
+			// Always sanitize HTML branding fields regardless of Pro status.
+			if ( isset( $settings['emails']['headerHtml'] ) ) {
+				$settings['emails']['headerHtml'] = wp_kses_post( $settings['emails']['headerHtml'] );
+			}
+			if ( isset( $settings['emails']['footerHtml'] ) ) {
+				$settings['emails']['footerHtml'] = wp_kses_post( $settings['emails']['footerHtml'] );
+			}
+		}
+
+		// Sanitize cancellation flow portal copy strings.
+		if ( isset( $settings['cancellationFlow']['portal_copy'] ) && is_array( $settings['cancellationFlow']['portal_copy'] ) ) {
+			foreach ( $settings['cancellationFlow']['portal_copy'] as $key => $value ) {
+				$settings['cancellationFlow']['portal_copy'][ sanitize_key( $key ) ] = sanitize_text_field( $value );
 			}
 		}
 
@@ -374,9 +417,9 @@ class Settings {
 			update_option( 'recurio_flush_rewrite_rules', true );
 		}
 
-		$message = 'Settings saved successfully';
+		$message = __( 'Settings saved successfully', 'recurio' );
 		if ( ( $endpoint_changed || $label_changed ) && $settings['general']['portalLocation'] === 'myaccount' ) {
-			$message = 'Settings saved successfully. Please refresh your My Account page to see the changes.';
+			$message = __( 'Settings saved successfully. Please refresh your My Account page to see the changes.', 'recurio' );
 		}
 
 		$preview_url = '';

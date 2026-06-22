@@ -61,10 +61,12 @@ class Recurio {
         if( $this->is_plugins_install( $woocommerce ) ) {
             $button['url'] = wp_nonce_url( 'plugins.php?action=activate&amp;plugin=' . $woocommerce . '&amp;plugin_status=all&amp;paged=1&amp;s', 'activate-plugin_' . $woocommerce );
             $button['text'] = __( 'Activate WooCommerce', 'recurio' );
+            /* translators: 1: opening strong tag, 2: closing strong tag */
             $message = sprintf( __( '%1$sRecurio%2$s requires %1$s"WooCommerce"%2$s plugin to be active. Please activate WooCommerce to continue.', 'recurio' ), '<strong>', '</strong>');
         }else{
             $button['url']  = wp_nonce_url( self_admin_url( 'update.php?action=install-plugin&plugin=woocommerce' ), 'install-plugin_woocommerce' );
             $button['text'] = __( 'Install WooCommerce', 'recurio' );
+            /* translators: 1: opening strong tag, 2: closing strong tag */
             $message = sprintf( __( '%1$sRecurio%2$s requires %1$s"WooCommerce"%2$s plugin to be installed and activated. Please install WooCommerce to continue.', 'recurio' ), '<strong>', '</strong>' );
         }
 

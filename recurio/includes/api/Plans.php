@@ -566,29 +566,36 @@ class Plans {
 			return rest_ensure_response( $this->empty_analytics() );
 		}
 
-		$ids_in        = implode( ',', array_map( 'intval', $product_ids ) );
 		$subs_table    = $wpdb->prefix . 'recurio_subscriptions';
 		$revenue_table = $wpdb->prefix . 'recurio_subscription_revenue';
 
+		$id_placeholders = implode( ',', array_fill( 0, count( $product_ids ), '%d' ) );
+
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 		$stats = $wpdb->get_row(
-			"SELECT
-				COUNT(*) AS total_subscriptions,
-				SUM(CASE WHEN status = 'active' THEN 1 ELSE 0 END) AS active_subscriptions,
-				SUM(CASE WHEN status = 'cancelled' THEN 1 ELSE 0 END) AS cancelled_subscriptions,
-				AVG(customer_ltv) AS avg_ltv,
-				AVG(renewal_count) AS avg_renewals
-			FROM {$subs_table}
-			WHERE product_id IN ({$ids_in})",
+			$wpdb->prepare(
+				"SELECT
+					COUNT(*) AS total_subscriptions,
+					SUM(CASE WHEN status = 'active' THEN 1 ELSE 0 END) AS active_subscriptions,
+					SUM(CASE WHEN status = 'cancelled' THEN 1 ELSE 0 END) AS cancelled_subscriptions,
+					AVG(customer_ltv) AS avg_ltv,
+					AVG(renewal_count) AS avg_renewals
+				FROM {$subs_table}
+				WHERE product_id IN ({$id_placeholders})",
+				...$product_ids
+			),
 			ARRAY_A
 		);
 
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 		$revenue_total = (float) $wpdb->get_var(
-			"SELECT SUM(amount) FROM {$revenue_table}
-			WHERE subscription_id IN (
-				SELECT id FROM {$subs_table} WHERE product_id IN ({$ids_in})
-			)"
+			$wpdb->prepare(
+				"SELECT SUM(amount) FROM {$revenue_table}
+				WHERE subscription_id IN (
+					SELECT id FROM {$subs_table} WHERE product_id IN ({$id_placeholders})
+				)",
+				...$product_ids
+			)
 		);
 
 		$total = max( 1, (int) $stats['total_subscriptions'] );

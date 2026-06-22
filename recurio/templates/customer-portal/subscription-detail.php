@@ -15,7 +15,8 @@ if ( ! $subscription ) {
 }
 
 $product      = wc_get_product( $subscription->product_id );
-$product_name = $product ? $product->get_name() : esc_html__( 'Product #', 'recurio' ) . $subscription->product_id;
+/* translators: %d: product ID */
+$product_name = $product ? $product->get_name() : sprintf( __( 'Product #%d', 'recurio' ), $subscription->product_id );
 
 // Helper function to format address
 function recurio_format_address( $address_json ) {
@@ -127,7 +128,7 @@ if (
 			<h2><?php echo esc_html( $product_name ); ?></h2>
 			<span class="recurio-status recurio-status-<?php echo esc_attr( $subscription->status ); ?>">
 				<span class="recurio-status-dot" aria-hidden="true"></span>
-				<?php echo esc_html( ucfirst( str_replace( '_', ' ', $subscription->status ) ) ); ?>
+				<?php echo esc_html( recurio_get_status_label( $subscription->status ) ); ?>
 			</span>
 		</div>
 		<p class="recurio-portal-header-meta">
@@ -160,7 +161,7 @@ if (
 				<div class="recurio-detail-row">
 					<span class="recurio-detail-label"><?php echo esc_html__( 'Status:', 'recurio' ); ?></span>
 					<span class="recurio-detail-value">
-						<?php echo esc_html( ucfirst( str_replace( '_', ' ', $subscription->status ) ) ); ?>
+						<?php echo esc_html( recurio_get_status_label( $subscription->status ) ); ?>
 					</span>
 				</div>
 				

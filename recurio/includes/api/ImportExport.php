@@ -11,6 +11,20 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 /**
+ * Neutralize CSV formula injection by prefixing cells that start with
+ * formula trigger characters (=, +, -, @, tab, CR).
+ *
+ * @param string $value Raw cell value.
+ * @return string Safe cell value.
+ */
+function recurio_csv_safe( $value ) {
+	if ( is_string( $value ) && preg_match( '/^[=+\-@\t\r]/', $value ) ) {
+		return "'" . $value;
+	}
+	return $value;
+}
+
+/**
  * Import / Export API
  *
  * Handles CSV export of subscriptions, customers, and revenue data,
@@ -165,15 +179,27 @@ class ImportExport {
 		);
 
 		$csv_lines   = array();
-		$csv_lines[] = 'ID,Customer Name,Email,Product,Status,Amount,Billing Period,Billing Interval,Created Date,Next Payment Date,Trial End Date';
+		$csv_lines[] = implode( ',', array(
+			__( 'ID', 'recurio' ),
+			__( 'Customer Name', 'recurio' ),
+			__( 'Email', 'recurio' ),
+			__( 'Product', 'recurio' ),
+			__( 'Status', 'recurio' ),
+			__( 'Amount', 'recurio' ),
+			__( 'Billing Period', 'recurio' ),
+			__( 'Billing Interval', 'recurio' ),
+			__( 'Created Date', 'recurio' ),
+			__( 'Next Payment Date', 'recurio' ),
+			__( 'Trial End Date', 'recurio' ),
+		) );
 
 		foreach ( $subscriptions as $sub ) {
 			$csv_lines[] = sprintf(
 				'%d,"%s","%s","%s","%s",%s,"%s",%d,%s,%s,%s',
 				$sub->id,
-				str_replace( '"', '""', $sub->customer_name  ?: 'N/A' ),
-				str_replace( '"', '""', $sub->customer_email ?: 'N/A' ),
-				str_replace( '"', '""', $sub->product_name   ?: 'N/A' ),
+				str_replace( '"', '""', recurio_csv_safe( $sub->customer_name  ?: 'N/A' ) ),
+				str_replace( '"', '""', recurio_csv_safe( $sub->customer_email ?: 'N/A' ) ),
+				str_replace( '"', '""', recurio_csv_safe( $sub->product_name   ?: 'N/A' ) ),
 				ucfirst( $sub->status ),
 				number_format( $sub->billing_amount, 2, '.', '' ),
 				ucfirst( $sub->billing_period ),
@@ -215,14 +241,22 @@ class ImportExport {
 		);
 
 		$csv_lines   = array();
-		$csv_lines[] = 'ID,Name,Email,Join Date,Total Subscriptions,Active Subscriptions,Total Revenue';
+		$csv_lines[] = implode( ',', array(
+			__( 'ID', 'recurio' ),
+			__( 'Name', 'recurio' ),
+			__( 'Email', 'recurio' ),
+			__( 'Join Date', 'recurio' ),
+			__( 'Total Subscriptions', 'recurio' ),
+			__( 'Active Subscriptions', 'recurio' ),
+			__( 'Total Revenue', 'recurio' ),
+		) );
 
 		foreach ( $customers as $customer ) {
 			$csv_lines[] = sprintf(
 				'%d,"%s","%s",%s,%d,%d,%s',
 				$customer->ID,
-				str_replace( '"', '""', $customer->name  ?: 'N/A' ),
-				str_replace( '"', '""', $customer->email ?: 'N/A' ),
+				str_replace( '"', '""', recurio_csv_safe( $customer->name  ?: 'N/A' ) ),
+				str_replace( '"', '""', recurio_csv_safe( $customer->email ?: 'N/A' ) ),
 				gmdate( 'Y-m-d', strtotime( $customer->join_date ) ),
 				$customer->total_subscriptions  ?: 0,
 				$customer->active_subscriptions ?: 0,
@@ -272,16 +306,27 @@ class ImportExport {
 		// UTF-8 BOM for Excel compatibility.
 		fprintf( $output, chr( 0xEF ) . chr( 0xBB ) . chr( 0xBF ) );
 
-		fputcsv( $output, array( 'Transaction ID', 'Date', 'Customer', 'Product', 'Amount', 'Currency', 'Payment Gateway', 'Period Type', 'Period Start', 'Period End' ) );
+		fputcsv( $output, array(
+			__( 'Transaction ID', 'recurio' ),
+			__( 'Date', 'recurio' ),
+			__( 'Customer', 'recurio' ),
+			__( 'Product', 'recurio' ),
+			__( 'Amount', 'recurio' ),
+			__( 'Currency', 'recurio' ),
+			__( 'Payment Gateway', 'recurio' ),
+			__( 'Period Type', 'recurio' ),
+			__( 'Period Start', 'recurio' ),
+			__( 'Period End', 'recurio' ),
+		) );
 
 		foreach ( $revenue_data as $revenue ) {
 			fputcsv(
 				$output,
 				array(
-					$revenue->transaction_id ?: 'N/A',
+					recurio_csv_safe( $revenue->transaction_id ?: 'N/A' ),
 					$revenue->created_at   ? gmdate( 'Y-m-d H:i:s', strtotime( $revenue->created_at ) )  : '',
-					$revenue->customer_name ?: 'N/A',
-					$revenue->product_name  ?: 'N/A',
+					recurio_csv_safe( $revenue->customer_name ?: 'N/A' ),
+					recurio_csv_safe( $revenue->product_name  ?: 'N/A' ),
 					number_format( $revenue->amount ?: 0, 2 ),
 					$revenue->currency    ?: 'USD',
 					$revenue->gateway     ?: 'N/A',

@@ -502,62 +502,68 @@ class Subscriptions {
 		$per_page = isset( $params['per_page'] ) ? intval( $params['per_page'] ) : 25;
 		$offset   = ( $page - 1 ) * $per_page;
 
-		$where = array( '1=1' );
+		$where_sql  = array( '1=1' );
+		$where_args = array();
 
 		// Filter by status.
 		if ( ! empty( $params['status'] ) ) {
-			$where[] = $wpdb->prepare( 's.status = %s', $params['status'] );
+			$where_sql[]  = 's.status = %s';
+			$where_args[] = sanitize_text_field( $params['status'] );
 		}
 
 		// Filter by customer.
 		if ( ! empty( $params['customer_id'] ) ) {
-			$where[] = $wpdb->prepare( 's.customer_id = %d', $params['customer_id'] );
+			$where_sql[]  = 's.customer_id = %d';
+			$where_args[] = absint( $params['customer_id'] );
 		}
 
 		// Filter by product.
 		if ( ! empty( $params['product_id'] ) ) {
-			$where[] = $wpdb->prepare( 's.product_id = %d', $params['product_id'] );
+			$where_sql[]  = 's.product_id = %d';
+			$where_args[] = absint( $params['product_id'] );
 		}
 
 		// Filter by date range.
 		if ( ! empty( $params['date_from'] ) ) {
-			$where[] = $wpdb->prepare( 'DATE(s.created_at) >= %s', $params['date_from'] );
+			$where_sql[]  = 'DATE(s.created_at) >= %s';
+			$where_args[] = sanitize_text_field( $params['date_from'] );
 		}
 		if ( ! empty( $params['date_to'] ) ) {
-			$where[] = $wpdb->prepare( 'DATE(s.created_at) <= %s', $params['date_to'] );
+			$where_sql[]  = 'DATE(s.created_at) <= %s';
+			$where_args[] = sanitize_text_field( $params['date_to'] );
 		}
 
 		// Search by customer name or email.
 		if ( ! empty( $params['search'] ) ) {
-			$search  = '%' . $wpdb->esc_like( $params['search'] ) . '%';
-			$where[] = $wpdb->prepare( '(u.display_name LIKE %s OR u.user_email LIKE %s)', $search, $search );
+			$search       = '%' . $wpdb->esc_like( sanitize_text_field( $params['search'] ) ) . '%';
+			$where_sql[]  = '(u.display_name LIKE %s OR u.user_email LIKE %s)';
+			$where_args[] = $search;
+			$where_args[] = $search;
 		}
 
-		$where_clause = implode( ' AND ', $where );
+		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- All placeholders collected above; single prepare() call below.
+		$where_clause = implode( ' AND ', $where_sql );
 
 		// Get total count.
-        // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery -- Direct query needed for REST API
-        // phpcs:ignore WordPress.DB.DirectDatabaseQuery.NoCaching -- Caching not appropriate for real-time API data
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 		$total = $wpdb->get_var(
 			$wpdb->prepare(
-				"SELECT COUNT(*) FROM {$wpdb->prefix}recurio_subscriptions s LEFT JOIN {$wpdb->users} u ON s.customer_id = u.ID WHERE {$where_clause}"
+				"SELECT COUNT(*) FROM {$wpdb->prefix}recurio_subscriptions s LEFT JOIN {$wpdb->users} u ON s.customer_id = u.ID WHERE {$where_clause}",
+				...$where_args
 			)
 		);
 
 		// Get subscriptions.
-        // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery -- Direct query needed for REST API
-        // phpcs:ignore WordPress.DB.DirectDatabaseQuery.NoCaching -- Caching not appropriate for real-time API data
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 		$subscriptions = $wpdb->get_results(
 			$wpdb->prepare(
-            // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Where clause safely constructed with placeholders
 				"SELECT s.*, u.display_name as customer_name, u.user_email as customer_email
-            FROM {$wpdb->prefix}recurio_subscriptions s
-            LEFT JOIN {$wpdb->users} u ON s.customer_id = u.ID
-            WHERE {$where_clause} /* phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared */
-            ORDER BY s.created_at DESC
-            LIMIT %d OFFSET %d",
-				$per_page,
-				$offset
+				FROM {$wpdb->prefix}recurio_subscriptions s
+				LEFT JOIN {$wpdb->users} u ON s.customer_id = u.ID
+				WHERE {$where_clause}
+				ORDER BY s.created_at DESC
+				LIMIT %d OFFSET %d",
+				...array_merge( $where_args, array( $per_page, $offset ) )
 			)
 		);
 
@@ -904,11 +910,11 @@ class Subscriptions {
 
 		$description = isset( $descriptions[ $event->event_type ] )
 			? $descriptions[ $event->event_type ]
-			: ucfirst( str_replace( '_', ' ', $event->event_type ) );
+			: esc_html( ucfirst( str_replace( '_', ' ', $event->event_type ) ) );
 
 		// Add value to description if applicable
-		if ( $event->event_value && in_array( $event->event_type, array( 'payment_processed', 'payment_failed' ) ) ) {
-			$description .= ' - ' . wc_price( $event->event_value );
+		if ( $event->event_value && in_array( $event->event_type, array( 'payment_processed', 'payment_failed' ), true ) ) {
+			$description .= ' - ' . wp_strip_all_tags( wc_price( $event->event_value ) );
 		}
 
 		return $description;
@@ -2702,7 +2708,7 @@ class Subscriptions {
 		);
 
 		if ( ! $existing ) {
-			return new WP_Error( 'goal_not_found', 'Revenue goal not found', array( 'status' => 404 ) );
+			return new WP_Error( 'goal_not_found', __( 'Revenue goal not found', 'recurio' ), array( 'status' => 404 ) );
 		}
 
 		// Get updated values from request
@@ -2810,7 +2816,7 @@ class Subscriptions {
 		);
 
 		if ( ! $existing ) {
-			return new WP_Error( 'goal_not_found', 'Revenue goal not found', array( 'status' => 404 ) );
+			return new WP_Error( 'goal_not_found', __( 'Revenue goal not found', 'recurio' ), array( 'status' => 404 ) );
 		}
 
 		// Soft delete by updating status to 'deleted'
@@ -2821,10 +2827,10 @@ class Subscriptions {
 		);
 
 		if ( $result !== false ) {
-			return new WP_REST_Response( array( 'message' => 'Goal deleted successfully' ), 200 );
+			return new WP_REST_Response( array( 'message' => __( 'Goal deleted successfully', 'recurio' ) ), 200 );
 		}
 
-		return new WP_Error( 'delete_failed', 'Failed to delete goal', array( 'status' => 500 ) );
+		return new WP_Error( 'delete_failed', __( 'Failed to delete goal', 'recurio' ), array( 'status' => 500 ) );
 	}
 
 	/**

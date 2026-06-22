@@ -472,14 +472,14 @@ class Customer_Portal {
 		check_ajax_referer( 'recurio_portal_nonce', 'nonce' );
 
 		if ( ! is_user_logged_in() ) {
-			wp_send_json_error( 'Not logged in' );
+			wp_send_json_error( __( 'Not logged in', 'recurio' ) );
 		}
 
 		$subscription_id = isset( $_POST['subscription_id'] ) ? intval( $_POST['subscription_id'] ) : 0;
 		$subscription    = $this->get_subscription( $subscription_id );
 
 		if ( ! $subscription || get_current_user_id() != $subscription->customer_id ) {
-			wp_send_json_error( 'Invalid subscription' );
+			wp_send_json_error( __( 'Invalid subscription', 'recurio' ) );
 		}
 
 		$allowed_fields = array( 'shipping_address', 'billing_address' );
@@ -492,7 +492,7 @@ class Customer_Portal {
 		}
 
 		if ( empty( $update_data ) ) {
-			wp_send_json_error( 'No data to update' );
+			wp_send_json_error( __( 'No data to update', 'recurio' ) );
 		}
 
 		global $wpdb;
@@ -507,9 +507,9 @@ class Customer_Portal {
 		);
 
 		if ( false !== $result ) {
-			wp_send_json_success( 'Subscription updated successfully' );
+			wp_send_json_success( __( 'Subscription updated successfully', 'recurio' ) );
 		} else {
-			wp_send_json_error( 'Failed to update subscription' );
+			wp_send_json_error( __( 'Failed to update subscription', 'recurio' ) );
 		}
 	}
 
@@ -522,18 +522,18 @@ class Customer_Portal {
 		check_ajax_referer( 'recurio_portal_nonce', 'nonce' );
 
 		if ( ! is_user_logged_in() ) {
-			wp_send_json_error( 'Not logged in' );
+			wp_send_json_error( __( 'Not logged in', 'recurio' ) );
 		}
 
 		$subscription_id = isset( $_POST['subscription_id'] ) ? intval( $_POST['subscription_id'] ) : 0;
-		// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.MissingUnslash -- Simple sanitization sufficient for dropdown value
-		$cancel_at = sanitize_text_field( $_POST['cancel_at'] ?? 'end_of_period' );
+		$cancel_at_raw = sanitize_text_field( wp_unslash( $_POST['cancel_at'] ?? 'end_of_period' ) );
+		$cancel_at     = in_array( $cancel_at_raw, array( 'immediately', 'end_of_period' ), true ) ? $cancel_at_raw : 'end_of_period';
 
 		$subscription = $this->get_subscription( $subscription_id );
 
 		if ( ! $subscription || get_current_user_id() != $subscription->customer_id ) {
 
-			wp_send_json_error( 'Invalid subscription' );
+			wp_send_json_error( __( 'Invalid subscription', 'recurio' ) );
 		}
 
 		/**
@@ -551,9 +551,9 @@ class Customer_Portal {
 		$result = $engine->cancel_subscription( $subscription_id, '', $cancel_at );
 
 		if ( $result && ! is_wp_error( $result ) ) {
-			wp_send_json_success( 'Subscription cancelled successfully' );
+			wp_send_json_success( __( 'Subscription cancelled successfully', 'recurio' ) );
 		} else {
-			$error_message = is_wp_error( $result ) ? $result->get_error_message() : 'Failed to cancel subscription';
+			$error_message = is_wp_error( $result ) ? $result->get_error_message() : __( 'Failed to cancel subscription', 'recurio' );
 			wp_send_json_error( $error_message );
 		}
 	}
@@ -567,23 +567,23 @@ class Customer_Portal {
 		check_ajax_referer( 'recurio_portal_nonce', 'nonce' );
 
 		if ( ! is_user_logged_in() ) {
-			wp_send_json_error( 'Not logged in' );
+			wp_send_json_error( __( 'Not logged in', 'recurio' ) );
 		}
 
 		$subscription_id = isset( $_POST['subscription_id'] ) ? intval( $_POST['subscription_id'] ) : 0;
 		$subscription    = $this->get_subscription( $subscription_id );
 
 		if ( ! $subscription || get_current_user_id() != $subscription->customer_id ) {
-			wp_send_json_error( 'Invalid subscription' );
+			wp_send_json_error( __( 'Invalid subscription', 'recurio' ) );
 		}
 
 		$engine = Recurio_Subscription_Engine::get_instance();
 		$result = $engine->pause_subscription( $subscription_id );
 
 		if ( $result && ! is_wp_error( $result ) ) {
-			wp_send_json_success( 'Subscription paused successfully' );
+			wp_send_json_success( __( 'Subscription paused successfully', 'recurio' ) );
 		} else {
-			$error_message = is_wp_error( $result ) ? $result->get_error_message() : 'Failed to pause subscription';
+			$error_message = is_wp_error( $result ) ? $result->get_error_message() : __( 'Failed to pause subscription', 'recurio' );
 			wp_send_json_error( $error_message );
 		}
 	}
@@ -597,7 +597,7 @@ class Customer_Portal {
 		check_ajax_referer( 'recurio_portal_nonce', 'nonce' );
 
 		if ( ! is_user_logged_in() ) {
-			wp_send_json_error( 'Not logged in' );
+			wp_send_json_error( __( 'Not logged in', 'recurio' ) );
 		}
 
 		$settings           = get_option( 'recurio_settings', array() );
@@ -611,7 +611,7 @@ class Customer_Portal {
 		$subscription    = $this->get_subscription( $subscription_id );
 
 		if ( ! $subscription || get_current_user_id() != $subscription->customer_id ) {
-			wp_send_json_error( 'Invalid subscription' );
+			wp_send_json_error( __( 'Invalid subscription', 'recurio' ) );
 		}
 
 		$engine = Recurio_Subscription_Engine::get_instance();
@@ -643,23 +643,23 @@ class Customer_Portal {
 		check_ajax_referer( 'recurio_portal_nonce', 'nonce' );
 
 		if ( ! is_user_logged_in() ) {
-			wp_send_json_error( 'Not logged in' );
+			wp_send_json_error( __( 'Not logged in', 'recurio' ) );
 		}
 
 		$subscription_id = isset( $_POST['subscription_id'] ) ? intval( $_POST['subscription_id'] ) : 0;
 		$subscription    = $this->get_subscription( $subscription_id );
 
 		if ( ! $subscription || get_current_user_id() != $subscription->customer_id ) {
-			wp_send_json_error( 'Invalid subscription' );
+			wp_send_json_error( __( 'Invalid subscription', 'recurio' ) );
 		}
 
 		$engine = Recurio_Subscription_Engine::get_instance();
 		$result = $engine->resume_subscription( $subscription_id );
 
 		if ( $result && ! is_wp_error( $result ) ) {
-			wp_send_json_success( 'Subscription resumed successfully' );
+			wp_send_json_success( __( 'Subscription resumed successfully', 'recurio' ) );
 		} else {
-			$error_message = is_wp_error( $result ) ? $result->get_error_message() : 'Failed to resume subscription';
+			$error_message = is_wp_error( $result ) ? $result->get_error_message() : __( 'Failed to resume subscription', 'recurio' );
 			wp_send_json_error( $error_message );
 		}
 	}
@@ -778,7 +778,7 @@ class Customer_Portal {
 		check_ajax_referer( 'recurio_portal_nonce', 'nonce' );
 
 		if ( ! is_user_logged_in() ) {
-			wp_send_json_error( 'Not logged in' );
+			wp_send_json_error( __( 'Not logged in', 'recurio' ) );
 		}
 
 		$subscription_id = isset( $_POST['subscription_id'] ) ? intval( $_POST['subscription_id'] ) : 0;
@@ -788,7 +788,7 @@ class Customer_Portal {
 		$subscription = $this->get_subscription( $subscription_id );
 
 		if ( ! $subscription || get_current_user_id() != $subscription->customer_id ) {
-			wp_send_json_error( 'Invalid subscription' );
+			wp_send_json_error( __( 'Invalid subscription', 'recurio' ) );
 		}
 
 		$payment_methods = Recurio_Payment_Methods::get_instance();
@@ -825,7 +825,7 @@ class Customer_Portal {
 			if ( is_wp_error( $result ) ) {
 				wp_send_json_error( $result->get_error_message() );
 			} else {
-				wp_send_json_success( 'Payment method updated successfully' );
+				wp_send_json_success( __( 'Payment method updated successfully', 'recurio' ) );
 			}
 		}
 	}

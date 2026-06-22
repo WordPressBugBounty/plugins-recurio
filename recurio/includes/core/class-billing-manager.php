@@ -270,7 +270,7 @@ class Recurio_Billing_Manager {
 
 		// Check if Stripe gateway is available
 		if ( ! class_exists( 'WC_Gateway_Stripe' ) ) {
-			return new WP_Error( 'gateway_not_available', 'Stripe gateway not available' );
+			return new WP_Error( 'gateway_not_available', __( 'Stripe gateway not available', 'recurio' ) );
 		}
 
 		try {
@@ -278,7 +278,7 @@ class Recurio_Billing_Manager {
 			$order = $this->create_renewal_order( $subscription );
 
 			if ( ! $order ) {
-				return new WP_Error( 'order_creation_failed', 'Failed to create renewal order' );
+				return new WP_Error( 'order_creation_failed', __( 'Failed to create renewal order', 'recurio' ) );
 			}
 
 			// Set payment method on the order
@@ -318,7 +318,7 @@ class Recurio_Billing_Manager {
 			$payment_gateways = WC()->payment_gateways->get_available_payment_gateways();
 
 			if ( ! isset( $payment_gateways['stripe'] ) ) {
-				return new WP_Error( 'gateway_not_available', 'Stripe gateway not found in available gateways' );
+				return new WP_Error( 'gateway_not_available', __( 'Stripe gateway not found in available gateways', 'recurio' ) );
 			}
 
 			$stripe_gateway = $payment_gateways['stripe'];
@@ -340,11 +340,13 @@ class Recurio_Billing_Manager {
 						'gateway'        => 'stripe',
 					);
 				} else {
-					$error_message = 'Payment failed - order status: ' . $order->get_status();
+					/* translators: %s: WooCommerce order status */
+				$error_message = sprintf( __( 'Payment failed - order status: %s', 'recurio' ), $order->get_status() );
 					return new WP_Error( 'payment_failed', $error_message );
 				}
 			} catch ( Exception $e ) {
-				$order->update_status( 'failed', 'Stripe error: ' . $e->getMessage() );
+				/* translators: %s: error message from Stripe */
+				$order->update_status( 'failed', sprintf( __( 'Stripe error: %s', 'recurio' ), $e->getMessage() ) );
 				return new WP_Error( 'stripe_error', $e->getMessage() );
 			}
 		}
@@ -366,7 +368,7 @@ class Recurio_Billing_Manager {
 				);
 			} else {
 				// Extract detailed error message
-				$error_message = 'Stripe payment failed';
+				$error_message = __( 'Stripe payment failed', 'recurio' );
 
 				if ( isset( $payment_result['messages'] ) ) {
 					$error_message = $payment_result['messages'];
@@ -381,7 +383,8 @@ class Recurio_Billing_Manager {
 			}
 		} catch ( Exception $e ) {
 			if ( isset( $order ) && $order ) {
-				$order->update_status( 'failed', 'Stripe error: ' . $e->getMessage() );
+				/* translators: %s: error message from Stripe */
+				$order->update_status( 'failed', sprintf( __( 'Stripe error: %s', 'recurio' ), $e->getMessage() ) );
 			}
 			return new WP_Error( 'stripe_error', $e->getMessage() );
 		}
@@ -402,7 +405,7 @@ class Recurio_Billing_Manager {
 		}
 
 		if ( ! $paypal_gateway ) {
-			return new WP_Error( 'gateway_not_available', 'PayPal gateway not available' );
+			return new WP_Error( 'gateway_not_available', __( 'PayPal gateway not available', 'recurio' ) );
 		}
 
 		try {
@@ -410,14 +413,14 @@ class Recurio_Billing_Manager {
 			$billing_agreement_id = isset( $payment_method['billing_agreement_id'] ) ? $payment_method['billing_agreement_id'] : '';
 
 			if ( ! $billing_agreement_id ) {
-				return new WP_Error( 'no_agreement', 'PayPal billing agreement not found' );
+				return new WP_Error( 'no_agreement', __( 'PayPal billing agreement not found', 'recurio' ) );
 			}
 
 			// Create renewal order
 			$order = $this->create_renewal_order( $subscription );
 
 			if ( ! $order ) {
-				return new WP_Error( 'order_creation_failed', 'Failed to create renewal order' );
+				return new WP_Error( 'order_creation_failed', __( 'Failed to create renewal order', 'recurio' ) );
 			}
 
 			// Process payment through PayPal
@@ -433,8 +436,8 @@ class Recurio_Billing_Manager {
 					'gateway'        => 'paypal',
 				);
 			} else {
-				$order->update_status( 'failed', 'PayPal payment failed' );
-				return new WP_Error( 'payment_failed', 'PayPal payment failed' );
+				$order->update_status( 'failed', __( 'PayPal payment failed', 'recurio' ) );
+				return new WP_Error( 'payment_failed', __( 'PayPal payment failed', 'recurio' ) );
 			}
 		} catch ( Exception $e ) {
 			return new WP_Error( 'paypal_error', $e->getMessage() );
@@ -451,7 +454,8 @@ class Recurio_Billing_Manager {
 		$gateway_id       = $payment_method['gateway'];
 
 		if ( ! isset( $payment_gateways[ $gateway_id ] ) ) {
-			return new WP_Error( 'gateway_not_found', 'Payment gateway not found: ' . $gateway_id );
+			/* translators: %s: payment gateway ID */
+			return new WP_Error( 'gateway_not_found', sprintf( __( 'Payment gateway not found: %s', 'recurio' ), $gateway_id ) );
 		}
 
 		$gateway = $payment_gateways[ $gateway_id ];
@@ -461,7 +465,8 @@ class Recurio_Billing_Manager {
 			return new WP_Error(
 				'gateway_not_supported',
 				sprintf(
-					'Gateway "%s" does not support automated recurring payments. The customer must use a payment method that supports tokenization (e.g. Stripe, PayPal).',
+					/* translators: %s: payment gateway ID */
+					__( 'Gateway "%s" does not support automated recurring payments. The customer must use a payment method that supports tokenization (e.g. Stripe, PayPal).', 'recurio' ),
 					$gateway_id
 				)
 			);
@@ -471,7 +476,7 @@ class Recurio_Billing_Manager {
 		$order = $this->create_renewal_order( $subscription );
 
 		if ( ! $order ) {
-			return new WP_Error( 'order_creation_failed', 'Failed to create renewal order' );
+			return new WP_Error( 'order_creation_failed', __( 'Failed to create renewal order', 'recurio' ) );
 		}
 
 		// Set payment method on order and save before calling the gateway.
@@ -501,10 +506,15 @@ class Recurio_Billing_Manager {
 			);
 		}
 
-		$order->update_status( 'failed', 'Payment not confirmed after gateway processing.' );
+		$order->update_status( 'failed', __( 'Payment not confirmed after gateway processing.', 'recurio' ) );
 		return new WP_Error(
 			'payment_failed',
-			sprintf( 'Gateway "%s" did not confirm payment. Order status: %s', $gateway_id, $order->get_status() )
+			sprintf(
+				/* translators: 1: payment gateway ID, 2: WooCommerce order status */
+				__( 'Gateway "%1$s" did not confirm payment. Order status: %2$s', 'recurio' ),
+				$gateway_id,
+				$order->get_status()
+			)
 		);
 	}
 

@@ -49,8 +49,8 @@ class Pro_Upsell {
 
 		if ( recurio_is_pro_licensed() ) {
 			return sprintf(
-				/* translators: %s: Recurio Pro version */
-				__( 'Thank you for using Recurio Pro %s | Need help? Visit our <a href="%s" target="_blank">documentation</a>', 'recurio' ),
+				/* translators: 1: Recurio Pro version number, 2: documentation URL */
+				__( 'Thank you for using Recurio Pro %1$s | Need help? Visit our <a href="%2$s" target="_blank">documentation</a>', 'recurio' ),
 				recurio_get_pro_version(),
 				'https://help.wprecurio.com'
 			);

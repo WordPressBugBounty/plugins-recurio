@@ -606,7 +606,7 @@ class Recurio_WooCommerce_Integration {
 
 		$item_data[] = array(
 			'key'   => esc_html__( 'Billing', 'recurio' ),
-			'value' => '<span class="subscription-details recurio-subscription-indicator" data-subscription="yes" data-recurio-subscription="yes">' . $billing_schedule . '</span>',
+			'value' => '<span class="subscription-details recurio-subscription-indicator" data-subscription="yes" data-recurio-subscription="yes">' . esc_html( $billing_schedule ) . '</span>',
 		);
 
 		// Subscribe & Save discount
@@ -628,7 +628,7 @@ class Recurio_WooCommerce_Integration {
 
 			$item_data[] = array(
 				'key'   => esc_html__( 'Trial', 'recurio' ),
-				'value' => $trial_string,
+				'value' => esc_html( $trial_string ),
 			);
 		}
 
@@ -651,7 +651,7 @@ class Recurio_WooCommerce_Integration {
 
 			$item_data[] = array(
 				'key'   => esc_html__( 'Length', 'recurio' ),
-				'value' => $length_string,
+				'value' => esc_html( $length_string ),
 			);
 		}
 
@@ -819,10 +819,10 @@ class Recurio_WooCommerce_Integration {
 
 		// Add order note if any subscriptions were activated
 		if ( $activated_count > 0 ) {
-			/* translators: %d: number of activated subscriptions */
 			$order->add_order_note(
 				sprintf(
-					esc_html__( 'Activated %d subscription(s) when order completed', 'recurio' ),
+					/* translators: %d: number of activated subscriptions */
+					esc_html( _n( 'Activated %d subscription when order completed', 'Activated %d subscriptions when order completed', $activated_count, 'recurio' ) ),
 					$activated_count
 				)
 			);
@@ -1206,20 +1206,20 @@ class Recurio_WooCommerce_Integration {
 			$remaining = max( 0, $subscription_limit - $active_subscriptions - $cart_quantity );
 
 			if ( $active_subscriptions >= $subscription_limit ) {
-				/* translators: %1$d: subscription limit, %2$s: product name */
 				wc_add_notice(
 					sprintf(
-						esc_html__( 'You have already reached the maximum limit of %1$d subscription(s) for "%2$s".', 'recurio' ),
+						/* translators: 1: subscription limit number, 2: product name */
+						esc_html( _n( 'You have already reached the maximum limit of %1$d subscription for "%2$s".', 'You have already reached the maximum limit of %1$d subscriptions for "%2$s".', $subscription_limit, 'recurio' ) ),
 						$subscription_limit,
 						$product->get_name()
 					),
 					'error'
 				);
 			} else {
-				/* translators: %1$d: remaining subscriptions allowed, %2$s: product name, %3$d: active subscription count */
 				wc_add_notice(
 					sprintf(
-						esc_html__( 'You can only add %1$d more subscription(s) for "%2$s". You currently have %3$d active subscription(s).', 'recurio' ),
+						/* translators: 1: remaining subscriptions allowed, 2: product name, 3: number of active subscriptions */
+						esc_html( _n( 'You can only add %1$d more subscription for "%2$s". You currently have %3$d active subscriptions.', 'You can only add %1$d more subscriptions for "%2$s". You currently have %3$d active subscriptions.', $remaining, 'recurio' ) ),
 						$remaining,
 						$product->get_name(),
 						$active_subscriptions
@@ -1282,10 +1282,10 @@ class Recurio_WooCommerce_Integration {
 
 			if ( $total > $subscription_limit ) {
 				$product = wc_get_product( $product_id );
-				/* translators: %1$d: quantity trying to purchase, %2$s: product name, %3$d: subscription limit, %4$d: active subscription count */
 				wc_add_notice(
 					sprintf(
-						esc_html__( 'Cannot proceed: You are trying to purchase %1$d subscription(s) for "%2$s" but the limit is %3$d and you already have %4$d active subscription(s).', 'recurio' ),
+						/* translators: 1: quantity trying to purchase, 2: product name, 3: subscription limit, 4: number of active subscriptions */
+						esc_html( _n( 'Cannot proceed: You are trying to purchase %1$d subscription for "%2$s" but the limit is %3$d and you already have %4$d active subscriptions.', 'Cannot proceed: You are trying to purchase %1$d subscriptions for "%2$s" but the limit is %3$d and you already have %4$d active subscriptions.', $quantity, 'recurio' ) ),
 						$quantity,
 						$product->get_name(),
 						$subscription_limit,
@@ -1961,7 +1961,7 @@ class Recurio_WooCommerce_Integration {
 		$product    = wc_get_product( $product_id );
 
 		if ( ! $product || $product->get_type() !== 'variable_subscription' ) {
-			wp_send_json_error( 'Invalid product' );
+			wp_send_json_error( __( 'Invalid product', 'recurio' ) );
 		}
 
 		$variations           = array();
@@ -2068,7 +2068,10 @@ class Recurio_WooCommerce_Integration {
 							<span class="recurio-value-badge"><?php echo esc_html( $badge_text ); ?></span>
 						<?php endif; ?>
 						<?php if ( $savings_amount > 0 && $show_savings ) : ?>
-							<span class="recurio-save-badge"><?php echo esc_html( sprintf( 'Save %s%%', round( $savings_percent ) ) ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?></span>
+							<span class="recurio-save-badge"><?php
+							/* translators: %s: savings percentage number */
+							echo esc_html( sprintf( __( 'Save %s%%', 'recurio' ), round( $savings_percent ) ) ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+						?></span>
 						<?php endif; ?>
 					</span>
 					<span class="recurio-option-price">
@@ -2082,7 +2085,7 @@ class Recurio_WooCommerce_Integration {
 						<span class="recurio-savings">
 							<?php
 								/* translators: %s: savings amount */
-								echo wp_kses_post( sprintf( 'You save %s', wc_price( $savings_amount ) ) ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+								echo wp_kses_post( sprintf( __( 'You save %s', 'recurio' ), wc_price( $savings_amount ) ) ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 							?>
 						</span>
 					<?php endif; ?>

@@ -32,13 +32,14 @@ $status_filter = $status_filter ?? 'all';
 			<?php
 			foreach ( $subscriptions as $subscription ) :
 				$product      = wc_get_product( $subscription->product_id );
-				$product_name = $product ? $product->get_name() : esc_html__( 'Product #', 'recurio' ) . $subscription->product_id;
+				/* translators: %d: product ID */
+				$product_name = $product ? $product->get_name() : sprintf( __( 'Product #%d', 'recurio' ), $subscription->product_id );
 				?>
 				<div class="recurio-subscription-card">
 					<div class="recurio-card-header">
 						<h3><?php echo esc_html( $product_name ); ?></h3>
 						<span class="recurio-status recurio-status-<?php echo esc_attr( $subscription->status ); ?>">
-							<?php echo esc_html( ucfirst( str_replace( '_', ' ', $subscription->status ) ) ); ?>
+							<?php echo esc_html( recurio_get_status_label( $subscription->status ) ); ?>
 						</span>
 					</div>
 					

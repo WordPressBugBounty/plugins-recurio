@@ -1616,8 +1616,8 @@ class Recurio_Subscription_Engine {
 			// Add order note
 			$order->add_order_note(
 				sprintf(
-				/* translators: %d: Number of subscriptions created */
-					__( 'Created %d subscription(s) from this order.', 'recurio' ),
+					/* translators: %d: number of subscriptions created */
+					_n( 'Created %d subscription from this order.', 'Created %d subscriptions from this order.', count( $subscriptions_created ), 'recurio' ),
 					count( $subscriptions_created )
 				)
 			);
@@ -1763,4 +1763,22 @@ class Recurio_Subscription_Engine {
 			wp_send_json_success( __( 'Subscription cancelled successfully', 'recurio' ) );
 		}
 	}
+}
+
+/**
+ * Return a translated label for a subscription status slug.
+ *
+ * @param string $status Raw status slug (e.g. 'active', 'pending_cancel').
+ * @return string Translated label.
+ */
+function recurio_get_status_label( $status ) {
+	$labels = array(
+		'active'         => __( 'Active', 'recurio' ),
+		'paused'         => __( 'Paused', 'recurio' ),
+		'cancelled'      => __( 'Cancelled', 'recurio' ),
+		'expired'        => __( 'Expired', 'recurio' ),
+		'pending'        => __( 'Pending', 'recurio' ),
+		'pending_cancel' => __( 'Pending Cancellation', 'recurio' ),
+	);
+	return isset( $labels[ $status ] ) ? $labels[ $status ] : ucfirst( str_replace( '_', ' ', $status ) );
 }

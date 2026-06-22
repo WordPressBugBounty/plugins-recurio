@@ -105,7 +105,7 @@ class Recurio_Email_Notifications {
 		}
 
 		$product      = wc_get_product( $subscription_data['product_id'] );
-		$product_name = $product ? $product->get_name() : 'Subscription';
+		$product_name = $product ? $product->get_name() : __( 'Subscription', 'recurio' );
 
 		/* translators: %s: Product name */
 		$subject = sprintf( __( 'Welcome! Your %s subscription has been created', 'recurio' ), $product_name );
@@ -124,9 +124,10 @@ class Recurio_Email_Notifications {
 
 		// Send admin notification
 		$this->send_admin_notification(
-			'New Subscription Created',
+			__( 'New Subscription Created', 'recurio' ),
 			sprintf(
-				'A new subscription (#%d) has been created for %s (%s) - Product: %s, Amount: %s',
+				/* translators: 1: subscription ID, 2: customer name, 3: customer email, 4: product name, 5: billing amount */
+				__( 'A new subscription (#%1$d) has been created for %2$s (%3$s) - Product: %4$s, Amount: %5$s', 'recurio' ),
 				$subscription_id,
 				$customer->display_name,
 				$customer->user_email,
@@ -151,7 +152,7 @@ class Recurio_Email_Notifications {
 		}
 
 		$product      = wc_get_product( $subscription_data['product_id'] );
-		$product_name = $product ? $product->get_name() : 'Subscription';
+		$product_name = $product ? $product->get_name() : __( 'Subscription', 'recurio' );
 
 		/* translators: %s: Product name */
 		$subject = sprintf( __( 'Your %s subscription is now active', 'recurio' ), $product_name );
@@ -185,7 +186,7 @@ class Recurio_Email_Notifications {
 		}
 
 		$product      = wc_get_product( $subscription_data['product_id'] );
-		$product_name = $product ? $product->get_name() : 'Subscription';
+		$product_name = $product ? $product->get_name() : __( 'Subscription', 'recurio' );
 
 		/* translators: %s: Product name */
 		$subject = sprintf( __( 'Your %s subscription has been paused', 'recurio' ), $product_name );
@@ -263,7 +264,7 @@ class Recurio_Email_Notifications {
 		}
 
 		$product      = wc_get_product( $subscription_data['product_id'] );
-		$product_name = $product ? $product->get_name() : 'Subscription';
+		$product_name = $product ? $product->get_name() : __( 'Subscription', 'recurio' );
 
 		/* translators: %s: Product name */
 		$subject = sprintf( __( 'Your %s subscription has been resumed', 'recurio' ), $product_name );
@@ -293,7 +294,7 @@ class Recurio_Email_Notifications {
 		}
 
 		$product      = wc_get_product( $subscription_data['product_id'] );
-		$product_name = $product ? $product->get_name() : 'Subscription';
+		$product_name = $product ? $product->get_name() : __( 'Subscription', 'recurio' );
 
 		/* translators: %s: Product name */
 		$subject = sprintf( __( 'Your %s subscription has been cancelled', 'recurio' ), $product_name );
@@ -303,7 +304,7 @@ class Recurio_Email_Notifications {
 		$variables = array(
 			'customer_name'     => $customer->display_name,
 			'product_name'      => $product_name,
-			'cancellation_date' => $cancellation_date === 'immediately' ? 'immediately' : date_i18n( get_option( 'date_format' ), strtotime( $cancellation_date ) ),
+			'cancellation_date' => $cancellation_date === 'immediately' ? __( 'immediately', 'recurio' ) : date_i18n( get_option( 'date_format' ), strtotime( $cancellation_date ) ),
 			'reason'            => $reason,
 			'subscription_id'   => $subscription_id,
 			'reactivate_url'    => $this->get_subscription_reactivate_url( $subscription_id ),
@@ -314,14 +315,16 @@ class Recurio_Email_Notifications {
 
 		// Send admin notification
 		$this->send_admin_notification(
-			'Subscription Cancelled',
+			__( 'Subscription Cancelled', 'recurio' ),
 			sprintf(
-				'Subscription #%d has been cancelled for %s (%s) - Product: %s%s',
+				/* translators: 1: subscription ID, 2: customer name, 3: customer email, 4: product name, 5: cancellation reason (may be empty) */
+				__( 'Subscription #%1$d has been cancelled for %2$s (%3$s) - Product: %4$s%5$s', 'recurio' ),
 				$subscription_id,
 				$customer->display_name,
 				$customer->user_email,
 				$product_name,
-				$reason ? ', Reason: ' . $reason : ''
+				/* translators: %s: cancellation reason */
+				$reason ? sprintf( __( ', Reason: %s', 'recurio' ), $reason ) : ''
 			)
 		);
 	}
@@ -340,7 +343,7 @@ class Recurio_Email_Notifications {
 		}
 
 		$product      = wc_get_product( $subscription_data['product_id'] );
-		$product_name = $product ? $product->get_name() : 'Subscription';
+		$product_name = $product ? $product->get_name() : __( 'Subscription', 'recurio' );
 
 		/* translators: %s: Product name */
 		$subject = sprintf( __( 'Your %s subscription has expired', 'recurio' ), $product_name );
@@ -370,7 +373,7 @@ class Recurio_Email_Notifications {
 		}
 
 		$product      = wc_get_product( $subscription_data['product_id'] );
-		$product_name = $product ? $product->get_name() : 'Subscription';
+		$product_name = $product ? $product->get_name() : __( 'Subscription', 'recurio' );
 
 		$subject = __( 'Payment received for your subscription', 'recurio' );
 		$next_payment_fmt = '';
@@ -420,14 +423,14 @@ class Recurio_Email_Notifications {
 		}
 
 		$product      = wc_get_product( $subscription_data['product_id'] );
-		$product_name = $product ? $product->get_name() : 'Subscription';
+		$product_name = $product ? $product->get_name() : __( 'Subscription', 'recurio' );
 
 		$subject = __( 'Payment failed for your subscription', 'recurio' );
 		$variables = array(
 			'customer_name'      => $customer->display_name,
 			'product_name'       => $product_name,
 			'payment_amount'     => wc_price( $payment_data['amount'] ),
-			'failure_reason'     => isset( $payment_data['failure_reason'] ) ? $payment_data['failure_reason'] : 'Payment method declined',
+			'failure_reason'     => isset( $payment_data['failure_reason'] ) ? $payment_data['failure_reason'] : __( 'Payment method declined', 'recurio' ),
 			'retry_date'         => date_i18n( get_option( 'date_format' ), strtotime( '+3 days' ) ),
 			'subscription_id'    => $subscription_id,
 			'update_payment_url' => $this->get_update_payment_url( $subscription_id ),
@@ -438,9 +441,10 @@ class Recurio_Email_Notifications {
 
 		// Send admin notification
 		$this->send_admin_notification(
-			'Payment Failed',
+			__( 'Payment Failed', 'recurio' ),
 			sprintf(
-				'Payment failed for subscription #%d - Customer: %s (%s), Amount: %s',
+				/* translators: 1: subscription ID, 2: customer name, 3: customer email, 4: payment amount */
+				__( 'Payment failed for subscription #%1$d - Customer: %2$s (%3$s), Amount: %4$s', 'recurio' ),
 				$subscription_id,
 				$customer->display_name,
 				$customer->user_email,
@@ -463,7 +467,7 @@ class Recurio_Email_Notifications {
 		}
 
 		$product      = wc_get_product( $subscription_data['product_id'] );
-		$product_name = $product ? $product->get_name() : 'Subscription';
+		$product_name = $product ? $product->get_name() : __( 'Subscription', 'recurio' );
 
 		/* translators: %s: Product name */
 		$subject = sprintf( __( 'Your trial for %s is ending soon', 'recurio' ), $product_name );
@@ -496,7 +500,7 @@ class Recurio_Email_Notifications {
 		}
 
 		$product      = wc_get_product( $subscription_data['product_id'] );
-		$product_name = $product ? $product->get_name() : 'Subscription';
+		$product_name = $product ? $product->get_name() : __( 'Subscription', 'recurio' );
 
 		/* translators: %s: Product name */
 		$subject = sprintf( __( 'Renewal reminder for your %s subscription', 'recurio' ), $product_name );

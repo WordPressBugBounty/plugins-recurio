@@ -140,14 +140,19 @@ $user = wp_get_current_user();
 							<tr>
 								<td>
 									<div class="recurio-product-info">
-<strong><?php echo esc_html( $subscription->product_name ? : ( __( 'Product #', 'recurio' ) . $subscription->product_id ) ); ?></strong>
+										<strong>
+											<?php
+												/* translators: %d: product ID */
+												echo esc_html( $subscription->product_name ? : sprintf( __( 'Product #%d', 'recurio' ), $subscription->product_id ) );
+											?>
+										</strong>
 										<span class="recurio-subscription-id">#<?php echo esc_html( $subscription->id ); ?></span>
 									</div>
 								</td>
 								<td>
 									<span class="recurio-status recurio-status-<?php echo esc_attr( $subscription->status ); ?>">
 										<span class="recurio-status-dot" aria-hidden="true"></span>
-										<?php echo esc_html( ucfirst( str_replace( '_', ' ', $subscription->status ) ) ); ?>
+										<?php echo esc_html( recurio_get_status_label( $subscription->status ) ); ?>
 									</span>
 								</td>
 								<td>
