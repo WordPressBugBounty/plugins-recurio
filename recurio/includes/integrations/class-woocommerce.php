@@ -604,6 +604,12 @@ class Recurio_WooCommerce_Integration {
 			);
 		}
 
+		// When Multiple Billing Frequencies is active, show the selected option's
+		// label (e.g. "Every 2 Weeks") instead of the computed period string.
+		if ( ! empty( $cart_item['recurio_selected_frequency']['label'] ) ) {
+			$billing_schedule = $cart_item['recurio_selected_frequency']['label'];
+		}
+
 		$item_data[] = array(
 			'key'   => esc_html__( 'Billing', 'recurio' ),
 			'value' => '<span class="subscription-details recurio-subscription-indicator" data-subscription="yes" data-recurio-subscription="yes">' . esc_html( $billing_schedule ) . '</span>',
@@ -1129,7 +1135,7 @@ class Recurio_WooCommerce_Integration {
 			);
 		}
 
-		return $price_string;
+		return '<span class="recurio-pricing-display">'.$price_string.'</span>';
 	}
 
 	/**
@@ -1456,6 +1462,16 @@ class Recurio_WooCommerce_Integration {
 			return $price;
 		}
 
+		// When Multiple Billing Frequencies is active, show the default option's price
+		// on the shop/archive page instead of the plan's single billing period.
+		$product_id = $product->get_id();
+		if ( get_post_meta( $product_id, '_recurio_plan_use_multiple_frequencies', true ) === 'yes' ) {
+			$freq_price = $this->get_default_frequency_price_html( $product );
+			if ( $freq_price !== null ) {
+				return $freq_price;
+			}
+		}
+
 		$subscription_data = $this->get_subscription_data_from_product( $product );
 
 		// Build subscription price string
@@ -1498,6 +1514,88 @@ class Recurio_WooCommerce_Integration {
 				wc_price( $subscription_data['sign_up_fee'] )
 			);
 			$price_string  .= $sign_up_string;
+		}
+
+		return $price_string;
+	}
+
+	/**
+	 * Build a price HTML string from the default billing frequency option.
+	 * Returns null when the feature is not active or no valid options exist.
+	 */
+	private function get_default_frequency_price_html( $product ) {
+		$product_id   = $product->get_id();
+		$options_json = get_post_meta( $product_id, '_recurio_plan_billing_options', true );
+		$options      = json_decode( $options_json, true );
+
+		if ( ! is_array( $options ) || empty( $options ) ) {
+			return null;
+		}
+
+		// Find the default option; fall back to the first one.
+		$default = null;
+		foreach ( $options as $opt ) {
+			if ( ! empty( $opt['is_default'] ) ) {
+				$default = $opt;
+				break;
+			}
+		}
+		if ( ! $default ) {
+			$default = $options[0];
+		}
+
+		$regular_price = floatval( $product->get_regular_price() ?: $product->get_price() );
+		$use_custom    = ! empty( $default['use_custom_price'] ) && isset( $default['custom_price'] ) && '' !== $default['custom_price'];
+		$base_price    = $use_custom ? max( 0.0, floatval( $default['custom_price'] ) ) : $regular_price;
+
+		$discount_type  = sanitize_key( $default['discount_type'] ?? '' );
+		$discount_value = max( 0.0, floatval( $default['discount_value'] ?? 0 ) );
+		$final_price    = $base_price;
+
+		if ( $discount_type && $discount_value > 0 ) {
+			if ( 'percentage' === $discount_type ) {
+				$final_price = max( 0, $base_price * ( 1 - $discount_value / 100 ) );
+			} else {
+				$final_price = max( 0, $base_price - $discount_value );
+			}
+		}
+
+		$period   = sanitize_key( $default['period'] ?? 'monthly' );
+		$interval = max( 1, intval( $default['interval'] ?? 1 ) );
+
+		// Map period + interval to a display string using the existing helper.
+		$period_map = array(
+			'daily'     => 'day',
+			'weekly'    => 'week',
+			'monthly'   => 'month',
+			'quarterly' => 'month',
+			'yearly'    => 'year',
+		);
+		$display_period   = $period_map[ $period ] ?? 'month';
+		$display_interval = ( 'quarterly' === $period ) ? $interval * 3 : $interval;
+
+		$period_string = $this->get_period_string( $display_period, $display_interval );
+
+		// When there's a discount, prefix with strikethrough original price.
+		$price_display = ( $final_price < $base_price )
+			? '<del>' . wc_price( $base_price ) . '</del> ' . wc_price( $final_price )
+			: wc_price( $final_price );
+
+		if ( $display_interval > 1 ) {
+			/* translators: %1$s: price (may include strikethrough original), %2$d: interval, %3$s: period */
+			$price_string = sprintf(
+				esc_html__( '%1$s every %2$d %3$s', 'recurio' ),
+				$price_display,
+				$display_interval,
+				$period_string
+			);
+		} else {
+			/* translators: %1$s: price (may include strikethrough original), %2$s: period */
+			$price_string = sprintf(
+				esc_html__( '%1$s / %2$s', 'recurio' ),
+				$price_display,
+				$period_string
+			);
 		}
 
 		return $price_string;
@@ -1999,6 +2097,7 @@ class Recurio_WooCommerce_Integration {
 
 		// Check if Subscribe & Save (one-time purchase option) is enabled
 		$allow_one_time = get_post_meta( $product_id, '_recurio_allow_one_time_purchase', true ) === 'yes';
+		$is_multiple_freq = get_post_meta( $product_id, '_recurio_plan_use_multiple_frequencies', true ) === 'yes';
 
 		if ( ! $allow_one_time ) {
 			return; // Only subscription mode, no options to show
@@ -2074,21 +2173,24 @@ class Recurio_WooCommerce_Integration {
 						?></span>
 						<?php endif; ?>
 					</span>
-					<span class="recurio-option-price">
-						<?php if ( $savings_amount > 0 ) : ?>
-							<del><?php echo wp_kses_post( wc_price( $regular_price ) ); ?></del>
-						<?php endif; ?>
-						<?php echo wp_kses_post( wc_price( $subscription_price ) ); ?>
-						<span class="recurio-billing-period"><?php echo esc_html( $billing_period_text ); ?></span>
-					</span>
-					<?php if ( $savings_amount > 0 && $show_savings ) : ?>
-						<span class="recurio-savings">
-							<?php
-								/* translators: %s: savings amount */
-								echo wp_kses_post( sprintf( __( 'You save %s', 'recurio' ), wc_price( $savings_amount ) ) ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
-							?>
+					<?php if( !$is_multiple_freq ): ?>
+						<span class="recurio-option-price">
+							<?php if ( $savings_amount > 0 ) : ?>
+								<del><?php echo wp_kses_post( wc_price( $regular_price ) ); ?></del>
+							<?php endif; ?>
+							<?php echo wp_kses_post( wc_price( $subscription_price ) ); ?>
+							<span class="recurio-billing-period"><?php echo esc_html( $billing_period_text ); ?></span>
 						</span>
+						<?php if ( $savings_amount > 0 && $show_savings ) : ?>
+							<span class="recurio-savings">
+								<?php
+									/* translators: %s: savings amount */
+									echo wp_kses_post( sprintf( __( 'You save %s', 'recurio' ), wc_price( $savings_amount ) ) ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+								?>
+							</span>
+						<?php endif; ?>
 					<?php endif; ?>
+					<?php do_action( 'recurio_pro_subscribe_and_save_widget', $product ); ?>
 				</span>
 			</label>
 		</div>

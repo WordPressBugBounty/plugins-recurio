@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Recurio – Ultimate Subscription for WooCommerce\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-06-22 10:37+0000\n"
+"POT-Creation-Date: 2026-06-29 04:34+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: \n"
@@ -13,29 +13,29 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "X-Generator: Loco https://localise.biz/\n"
-"X-Loco-Version: 2.8.5; wp-7.0.1-alpha-62466; php-8.2.31\n"
+"X-Loco-Version: 2.8.5; wp-7.0.1-alpha-62562; php-8.2.31\n"
 "X-Domain: recurio"
 
 #. %s: sign-up fee amount
-#: includes/integrations/class-woocommerce.php:1497
+#: includes/integrations/class-woocommerce.php:1513
 #, php-format
 msgid " and %s sign-up fee"
 msgstr ""
 
 #. %1$d: trial length (number), %2$s: trial period (days/weeks/months/years)
-#: includes/integrations/class-woocommerce.php:1486
+#: includes/integrations/class-woocommerce.php:1502
 #, php-format
 msgid " with %1$d %2$s free trial"
 msgstr ""
 
 #. %1$d: subscription length (number), %2$s: period string or 'renewals'
-#: includes/integrations/class-woocommerce.php:647
+#: includes/integrations/class-woocommerce.php:653
 #, php-format
 msgid "%1$d %2$s"
 msgstr ""
 
 #. %1$d: trial length (number), %2$s: trial period (days/weeks/months/years)
-#: includes/integrations/class-woocommerce.php:624
+#: includes/integrations/class-woocommerce.php:630
 #, php-format
 msgid "%1$d %2$s free trial"
 msgstr ""
@@ -47,21 +47,25 @@ msgid "%1$d of %2$d completed"
 msgstr ""
 
 #. %1$d: number of payments, %2$s: installment price
-#: includes/integrations/class-woocommerce.php:666
+#: includes/integrations/class-woocommerce.php:672
 #, php-format
 msgid "%1$d payments of %2$s"
 msgstr ""
 
 #. %1$s: price, %2$s: period (day/week/month/year)
-#: includes/integrations/class-woocommerce.php:1126
-#: includes/integrations/class-woocommerce.php:1476
+#. %1$s: price (may include strikethrough original), %2$s: period
+#: includes/integrations/class-woocommerce.php:1132
+#: includes/integrations/class-woocommerce.php:1492
+#: includes/integrations/class-woocommerce.php:1595
 #, php-format
 msgid "%1$s / %2$s"
 msgstr ""
 
 #. %1$s: price, %2$d: interval (number), %3$s: period (days/weeks/months/years)
-#: includes/integrations/class-woocommerce.php:1118
-#: includes/integrations/class-woocommerce.php:1468
+#. %1$s: price (may include strikethrough original), %2$d: interval, %3$s: period
+#: includes/integrations/class-woocommerce.php:1124
+#: includes/integrations/class-woocommerce.php:1484
+#: includes/integrations/class-woocommerce.php:1587
 #, php-format
 msgid "%1$s every %2$d %3$s"
 msgstr ""
@@ -107,7 +111,7 @@ msgstr ""
 
 #. %s: period name (month, year, etc.)
 #. %s: period (day, month, …)
-#: includes/integrations/class-woocommerce.php:2153
+#: includes/integrations/class-woocommerce.php:2255
 #: includes/integrations/class-variable-subscriptions.php:498
 #, php-format
 msgid "/ %s"
@@ -151,13 +155,13 @@ msgid "Activate WooCommerce"
 msgstr ""
 
 #. %d: number of activated subscriptions
-#: includes/integrations/class-woocommerce.php:825
+#: includes/integrations/class-woocommerce.php:831
 msgid "Activated %d subscription when order completed"
 msgid_plural "Activated %d subscriptions when order completed"
 msgstr[0] ""
 msgstr[1] ""
 
-#: includes/Assets.php:279 includes/core/class-subscription-engine.php:1776
+#: includes/Assets.php:279 includes/core/class-subscription-engine.php:1791
 msgid "Active"
 msgstr ""
 
@@ -171,7 +175,7 @@ msgstr ""
 msgid "Active Subscriptions"
 msgstr ""
 
-#: includes/integrations/class-woocommerce.php:2224
+#: includes/integrations/class-woocommerce.php:2326
 msgid "Add to cart"
 msgstr ""
 
@@ -297,8 +301,8 @@ msgstr ""
 msgid "Badge Text"
 msgstr ""
 
-#: includes/integrations/class-woocommerce.php:2046
-#: includes/integrations/class-woocommerce.php:2221
+#: includes/integrations/class-woocommerce.php:2145
+#: includes/integrations/class-woocommerce.php:2323
 #: includes/integrations/class-woocommerce-product.php:162
 #: includes/integrations/class-woocommerce-product.php:486
 msgid "Best Value"
@@ -309,7 +313,7 @@ msgstr ""
 msgid "Bill Every"
 msgstr ""
 
-#: includes/Assets.php:330 includes/integrations/class-woocommerce.php:608
+#: includes/Assets.php:330 includes/integrations/class-woocommerce.php:614
 #: includes/integrations/class-woocommerce-product.php:219
 msgid "Billing"
 msgstr ""
@@ -384,11 +388,11 @@ msgstr ""
 msgid "Cancellation Date:"
 msgstr ""
 
-#: includes/Assets.php:281 includes/core/class-subscription-engine.php:1778
+#: includes/Assets.php:281 includes/core/class-subscription-engine.php:1793
 msgid "Cancelled"
 msgstr ""
 
-#: includes/integrations/class-woocommerce.php:1823
+#: includes/integrations/class-woocommerce.php:1921
 msgid "cancelled"
 msgstr ""
 
@@ -397,7 +401,7 @@ msgid "Cancelled:"
 msgstr ""
 
 #. 1: quantity trying to purchase, 2: product name, 3: subscription limit, 4: number of active subscriptions
-#: includes/integrations/class-woocommerce.php:1288
+#: includes/integrations/class-woocommerce.php:1294
 #, php-format
 msgid ""
 "Cannot proceed: You are trying to purchase %1$d subscription for \"%2$s\" "
@@ -458,7 +462,7 @@ msgid "Could not save plan."
 msgstr ""
 
 #. %d: number of subscriptions created
-#: includes/core/class-subscription-engine.php:1620
+#: includes/core/class-subscription-engine.php:1635
 msgid "Created %d subscription from this order."
 msgid_plural "Created %d subscriptions from this order."
 msgstr[0] ""
@@ -539,8 +543,8 @@ msgstr ""
 msgid "Date"
 msgstr ""
 
-#: includes/integrations/class-woocommerce.php:1646
-#: includes/integrations/class-woocommerce.php:2128
+#: includes/integrations/class-woocommerce.php:1744
+#: includes/integrations/class-woocommerce.php:2230
 #: includes/integrations/class-variable-subscriptions.php:472
 msgid "day"
 msgid_plural "days"
@@ -553,7 +557,7 @@ msgstr[1] ""
 msgid "Day(s)"
 msgstr ""
 
-#: includes/integrations/class-woocommerce.php:2129
+#: includes/integrations/class-woocommerce.php:2231
 #: includes/integrations/class-variable-subscriptions.php:473
 msgid "days"
 msgstr ""
@@ -652,7 +656,7 @@ msgstr ""
 
 #. 1: interval number, 2: period name (months, years, etc.)
 #. 1: interval count, 2: period name (plural)
-#: includes/integrations/class-woocommerce.php:2156
+#: includes/integrations/class-woocommerce.php:2258
 #: includes/integrations/class-variable-subscriptions.php:505
 #, php-format
 msgid "every %1$d %2$s"
@@ -680,7 +684,7 @@ msgid ""
 "Example: A $120 product with 4 monthly payments = $30/month for 4 months."
 msgstr ""
 
-#: includes/Assets.php:283 includes/core/class-subscription-engine.php:1779
+#: includes/Assets.php:283 includes/core/class-subscription-engine.php:1794
 msgid "Expired"
 msgstr ""
 
@@ -740,7 +744,7 @@ msgid "Filter"
 msgstr ""
 
 #. %1$d: payment number, %2$d: total payments
-#: includes/integrations/class-woocommerce.php:1019
+#: includes/integrations/class-woocommerce.php:1025
 #, php-format
 msgid "Final installment (%1$d of %2$d) paid. Subscription completed."
 msgstr ""
@@ -753,7 +757,7 @@ msgstr ""
 msgid "Forecast"
 msgstr ""
 
-#: includes/integrations/class-woocommerce.php:1425
+#: includes/integrations/class-woocommerce.php:1431
 msgid "free trial"
 msgstr ""
 
@@ -849,7 +853,7 @@ msgid "Install WooCommerce"
 msgstr ""
 
 #. %1$d: payment number, %2$d: total payments
-#: includes/integrations/class-woocommerce.php:1044
+#: includes/integrations/class-woocommerce.php:1050
 #, php-format
 msgid "Installment %1$d of %2$d paid successfully."
 msgstr ""
@@ -870,9 +874,9 @@ msgid "Installments"
 msgstr ""
 
 #: includes/core/class-subscription-engine.php:1090
-#: includes/core/class-subscription-engine.php:1709
-#: includes/core/class-subscription-engine.php:1731
-#: includes/core/class-subscription-engine.php:1752
+#: includes/core/class-subscription-engine.php:1724
+#: includes/core/class-subscription-engine.php:1746
+#: includes/core/class-subscription-engine.php:1767
 msgid "Insufficient permissions"
 msgstr ""
 
@@ -884,7 +888,7 @@ msgstr ""
 msgid "Invalid payment method"
 msgstr ""
 
-#: includes/integrations/class-woocommerce.php:1964
+#: includes/integrations/class-woocommerce.php:2062
 msgid "Invalid product"
 msgstr ""
 
@@ -946,7 +950,7 @@ msgstr ""
 msgid "Learn More"
 msgstr ""
 
-#: includes/integrations/class-woocommerce.php:653
+#: includes/integrations/class-woocommerce.php:659
 msgid "Length"
 msgstr ""
 
@@ -1000,8 +1004,8 @@ msgstr ""
 msgid "Metrics"
 msgstr ""
 
-#: includes/integrations/class-woocommerce.php:1648
-#: includes/integrations/class-woocommerce.php:2136
+#: includes/integrations/class-woocommerce.php:1746
+#: includes/integrations/class-woocommerce.php:2238
 #: includes/integrations/class-variable-subscriptions.php:480
 msgid "month"
 msgid_plural "months"
@@ -1023,7 +1027,7 @@ msgstr ""
 msgid "Monthly Recurring Revenue"
 msgstr ""
 
-#: includes/integrations/class-woocommerce.php:2137
+#: includes/integrations/class-woocommerce.php:2239
 #: includes/integrations/class-variable-subscriptions.php:481
 msgid "months"
 msgstr ""
@@ -1098,7 +1102,7 @@ msgid ""
 "the store administrator."
 msgstr ""
 
-#: includes/integrations/class-woocommerce.php:830
+#: includes/integrations/class-woocommerce.php:836
 msgid "No subscriptions found to activate"
 msgstr ""
 
@@ -1155,7 +1159,7 @@ msgid "One-time fee charged when subscription starts"
 msgstr ""
 
 #: includes/integrations/class-woocommerce.php:576
-#: includes/integrations/class-woocommerce.php:2057
+#: includes/integrations/class-woocommerce.php:2156
 msgid "One-time purchase"
 msgstr ""
 
@@ -1175,7 +1179,7 @@ msgstr ""
 msgid "Only paused subscriptions can be resumed"
 msgstr ""
 
-#: includes/integrations/class-woocommerce.php:1824
+#: includes/integrations/class-woocommerce.php:1922
 msgid "Order moved to trash"
 msgstr ""
 
@@ -1204,7 +1208,7 @@ msgstr ""
 msgid "Pause Subscription"
 msgstr ""
 
-#: includes/Assets.php:280 includes/core/class-subscription-engine.php:1777
+#: includes/Assets.php:280 includes/core/class-subscription-engine.php:1792
 msgid "Paused"
 msgstr ""
 
@@ -1323,11 +1327,11 @@ msgstr ""
 msgid "PayPal payment failed"
 msgstr ""
 
-#: includes/Assets.php:282 includes/core/class-subscription-engine.php:1780
+#: includes/Assets.php:282 includes/core/class-subscription-engine.php:1795
 msgid "Pending"
 msgstr ""
 
-#: includes/core/class-subscription-engine.php:1781
+#: includes/core/class-subscription-engine.php:1796
 msgid "Pending Cancellation"
 msgstr ""
 
@@ -1357,7 +1361,7 @@ msgstr ""
 msgid "Plan has no category or tag scope configured."
 msgstr ""
 
-#: includes/api/Plans.php:1039
+#: includes/api/Plans.php:1043
 msgid "Plan name is required."
 msgstr ""
 
@@ -1491,7 +1495,7 @@ msgstr ""
 msgid "Recurring total"
 msgstr ""
 
-#: includes/integrations/class-woocommerce.php:1413
+#: includes/integrations/class-woocommerce.php:1419
 msgid "Recurring:"
 msgstr ""
 
@@ -1524,7 +1528,7 @@ msgstr ""
 msgid "Renewal reminder for your %s subscription"
 msgstr ""
 
-#: includes/integrations/class-woocommerce.php:649
+#: includes/integrations/class-woocommerce.php:655
 msgid "renewals"
 msgstr ""
 
@@ -1561,12 +1565,12 @@ msgstr ""
 msgid "Revenue Trend"
 msgstr ""
 
-#: includes/Assets.php:257 includes/integrations/class-woocommerce.php:2225
+#: includes/Assets.php:257 includes/integrations/class-woocommerce.php:2327
 msgid "Save"
 msgstr ""
 
 #. %s: savings percentage number
-#: includes/integrations/class-woocommerce.php:2073
+#: includes/integrations/class-woocommerce.php:2172
 #, php-format
 msgid "Save %s%%"
 msgstr ""
@@ -1667,7 +1671,7 @@ msgstr ""
 msgid "Sign-up Fee"
 msgstr ""
 
-#: includes/integrations/class-woocommerce.php:638
+#: includes/integrations/class-woocommerce.php:644
 msgid "Sign-up fee"
 msgstr ""
 
@@ -1677,7 +1681,7 @@ msgstr ""
 msgid "Sign-up Fee (%s)"
 msgstr ""
 
-#: includes/integrations/class-woocommerce.php:1434
+#: includes/integrations/class-woocommerce.php:1440
 msgid "Sign-up fee:"
 msgstr ""
 
@@ -1704,7 +1708,7 @@ msgstr ""
 msgid "Split"
 msgstr ""
 
-#: includes/integrations/class-woocommerce.php:672
+#: includes/integrations/class-woocommerce.php:678
 msgid "Split Payment"
 msgstr ""
 
@@ -1749,11 +1753,11 @@ msgstr ""
 msgid "Stripe payment failed"
 msgstr ""
 
-#: includes/integrations/class-woocommerce.php:2066
+#: includes/integrations/class-woocommerce.php:2165
 msgid "Subscribe"
 msgstr ""
 
-#: includes/integrations/class-woocommerce.php:615
+#: includes/integrations/class-woocommerce.php:621
 msgid "Subscribe & Save"
 msgstr ""
 
@@ -1761,8 +1765,8 @@ msgstr ""
 msgid "Subscribe &amp; Save"
 msgstr ""
 
-#: includes/integrations/class-woocommerce.php:1146
-#: includes/integrations/class-woocommerce.php:2223
+#: includes/integrations/class-woocommerce.php:1152
+#: includes/integrations/class-woocommerce.php:2325
 msgid "Subscribe Now"
 msgstr ""
 
@@ -1782,7 +1786,7 @@ msgstr ""
 #: includes/core/class-email-notifications.php:470
 #: includes/core/class-email-notifications.php:503
 #: includes/integrations/class-woocommerce.php:113
-#: includes/integrations/class-woocommerce.php:1923
+#: includes/integrations/class-woocommerce.php:2021
 #: includes/integrations/class-woocommerce-product.php:117
 #: includes/integrations/class-woocommerce-product.php:705
 #: includes/integrations/class-woocommerce-product.php:730
@@ -1797,7 +1801,7 @@ msgid ""
 msgstr ""
 
 #. %d: subscription ID
-#: includes/integrations/class-woocommerce.php:1720
+#: includes/integrations/class-woocommerce.php:1818
 msgid "Subscription #%d cancelled"
 msgstr ""
 
@@ -1805,7 +1809,7 @@ msgstr ""
 msgid "Subscription Cancelled"
 msgstr ""
 
-#: includes/core/class-subscription-engine.php:1763
+#: includes/core/class-subscription-engine.php:1778
 #: includes/frontend/Customer_Portal.php:554
 msgid "Subscription cancelled successfully"
 msgstr ""
@@ -1860,7 +1864,7 @@ msgstr ""
 msgid "Subscription Overview"
 msgstr ""
 
-#: includes/core/class-subscription-engine.php:1720
+#: includes/core/class-subscription-engine.php:1735
 #: includes/frontend/Customer_Portal.php:584
 msgid "Subscription paused successfully"
 msgstr ""
@@ -1875,7 +1879,7 @@ msgstr ""
 msgid "Subscription product"
 msgstr ""
 
-#: includes/integrations/class-woocommerce.php:1738
+#: includes/integrations/class-woocommerce.php:1836
 msgid "Subscription refund processed"
 msgstr ""
 
@@ -1883,7 +1887,7 @@ msgstr ""
 msgid "Subscription Renewal"
 msgstr ""
 
-#: includes/core/class-subscription-engine.php:1741
+#: includes/core/class-subscription-engine.php:1756
 #: includes/frontend/Customer_Portal.php:660
 msgid "Subscription resumed successfully"
 msgstr ""
@@ -1974,7 +1978,7 @@ msgid "This subscription has reached its maximum number of renewals"
 msgstr ""
 
 #. %s: total price
-#: includes/integrations/class-woocommerce.php:679
+#: includes/integrations/class-woocommerce.php:685
 msgid "Total"
 msgstr ""
 
@@ -2014,7 +2018,7 @@ msgstr ""
 msgid "Transaction ID"
 msgstr ""
 
-#: includes/integrations/class-woocommerce.php:630
+#: includes/integrations/class-woocommerce.php:636
 msgid "Trial"
 msgstr ""
 
@@ -2111,8 +2115,8 @@ msgstr ""
 msgid "Webhooks"
 msgstr ""
 
-#: includes/integrations/class-woocommerce.php:1647
-#: includes/integrations/class-woocommerce.php:2132
+#: includes/integrations/class-woocommerce.php:1745
+#: includes/integrations/class-woocommerce.php:2234
 #: includes/integrations/class-variable-subscriptions.php:476
 msgid "week"
 msgid_plural "weeks"
@@ -2130,7 +2134,7 @@ msgstr ""
 msgid "Weekly"
 msgstr ""
 
-#: includes/integrations/class-woocommerce.php:2133
+#: includes/integrations/class-woocommerce.php:2235
 #: includes/integrations/class-variable-subscriptions.php:477
 msgid "weeks"
 msgstr ""
@@ -2179,8 +2183,8 @@ msgstr ""
 msgid "Would you like to renew this subscription now?"
 msgstr ""
 
-#: includes/integrations/class-woocommerce.php:1649
-#: includes/integrations/class-woocommerce.php:2140
+#: includes/integrations/class-woocommerce.php:1747
+#: includes/integrations/class-woocommerce.php:2242
 #: includes/integrations/class-variable-subscriptions.php:484
 msgid "year"
 msgid_plural "years"
@@ -2198,13 +2202,13 @@ msgstr ""
 msgid "Yearly"
 msgstr ""
 
-#: includes/integrations/class-woocommerce.php:2141
+#: includes/integrations/class-woocommerce.php:2243
 #: includes/integrations/class-variable-subscriptions.php:485
 msgid "years"
 msgstr ""
 
 #. 1: remaining subscriptions allowed, 2: product name, 3: number of active subscriptions
-#: includes/integrations/class-woocommerce.php:1222
+#: includes/integrations/class-woocommerce.php:1228
 #, php-format
 msgid ""
 "You can only add %1$d more subscription for \"%2$s\". You currently have "
@@ -2225,7 +2229,7 @@ msgid "You don't have any subscriptions yet."
 msgstr ""
 
 #. 1: subscription limit number, 2: product name
-#: includes/integrations/class-woocommerce.php:1212
+#: includes/integrations/class-woocommerce.php:1218
 #, php-format
 msgid ""
 "You have already reached the maximum limit of %1$d subscription for \"%2$s\"."
@@ -2236,7 +2240,7 @@ msgstr[0] ""
 msgstr[1] ""
 
 #. %s: savings amount
-#: includes/integrations/class-woocommerce.php:2088
+#: includes/integrations/class-woocommerce.php:2188
 #, php-format
 msgid "You save %s"
 msgstr ""

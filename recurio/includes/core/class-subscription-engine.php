@@ -1232,71 +1232,86 @@ class Recurio_Subscription_Engine {
 			// Determine which ID to use for settings (variation or parent)
 			$settings_id = ( $variation_override && $variation_id ) ? $variation_id : $product_id;
 
-			// First check for custom billing period (Pro feature)
-			$is_pro = Recurio_Pro_Manager::get_instance()->is_license_valid();
+			// Priority 0: order item meta set by Pro's Multiple Billing Frequencies feature.
+			// inject_frequency_cart_data overrides subscription.period / .interval in the
+			// cart session; add_subscription_order_item_meta persists them as
+			// _subscription_period / _subscription_interval on the order item.
+			// Read them here before falling through to product meta.
+			$freq_period   = wc_get_order_item_meta( $item_id, '_subscription_period', true );
+			$freq_interval = wc_get_order_item_meta( $item_id, '_subscription_interval', true );
 
-			// For variations with override, check variation's custom period setting first
-			$use_custom_period = false;
-			if ( $variation_override && $variation_id ) {
-				$use_custom_period = get_post_meta( $variation_id, '_recurio_use_custom_period', true ) === 'yes';
-			}
-			// Fall back to parent's custom period if not overridden
-			if ( ! $use_custom_period && ! $variation_override ) {
-				$use_custom_period = $is_pro && get_post_meta( $product_id, '_recurio_use_custom_period', true ) === 'yes';
-			}
-
-			if ( $use_custom_period ) {
-				// Use custom billing period settings from the appropriate source
-				$interval = intval( get_post_meta( $settings_id, '_recurio_subscription_billing_interval', true ) ) ?: 1;
-				$period   = get_post_meta( $settings_id, '_recurio_subscription_billing_unit', true ) ?: 'month';
+			if ( ! empty( $freq_period ) && in_array( $freq_period, array( 'day', 'week', 'month', 'year' ), true ) ) {
+				$period   = sanitize_key( $freq_period );
+				$interval = max( 1, intval( $freq_interval ) ?: 1 );
 			} else {
-				// Check standard billing period
-				$billing_period = null;
 
-				// For variations with override, check variation's billing period first
+				// First check for custom billing period (Pro feature)
+				$is_pro = Recurio_Pro_Manager::get_instance()->is_license_valid();
+
+				// For variations with override, check variation's custom period setting first
+				$use_custom_period = false;
 				if ( $variation_override && $variation_id ) {
-					$billing_period = get_post_meta( $variation_id, '_recurio_subscription_billing_period', true );
+					$use_custom_period = get_post_meta( $variation_id, '_recurio_use_custom_period', true ) === 'yes';
+				}
+				// Fall back to parent's custom period if not overridden
+				if ( ! $use_custom_period && ! $variation_override ) {
+					$use_custom_period = $is_pro && get_post_meta( $product_id, '_recurio_use_custom_period', true ) === 'yes';
 				}
 
-				// Fall back to parent's billing period
-				if ( ! $billing_period ) {
-					$billing_period = get_post_meta( $product_id, '_recurio_subscription_billing_period', true );
-				}
-
-				if ( ! $billing_period ) {
-					// Fallback to legacy fields
-					$period   = get_post_meta( $product_id, '_subscription_period', true ) ?: 'month';
-					$interval = get_post_meta( $product_id, '_subscription_interval', true ) ?: 1;
+				if ( $use_custom_period ) {
+					// Use custom billing period settings from the appropriate source
+					$interval = intval( get_post_meta( $settings_id, '_recurio_subscription_billing_interval', true ) ) ?: 1;
+					$period   = get_post_meta( $settings_id, '_recurio_subscription_billing_unit', true ) ?: 'month';
 				} else {
-					// Convert our billing period to period/interval
-					$period_map = array(
-						'daily'     => array(
-							'period'   => 'day',
-							'interval' => 1,
-						),
-						'weekly'    => array(
-							'period'   => 'week',
-							'interval' => 1,
-						),
-						'monthly'   => array(
-							'period'   => 'month',
-							'interval' => 1,
-						),
-						'quarterly' => array(
-							'period'   => 'month',
-							'interval' => 3,
-						),
-						'yearly'    => array(
-							'period'   => 'year',
-							'interval' => 1,
-						),
-					);
+					// Check standard billing period
+					$billing_period = null;
 
-					$period_data = isset( $period_map[ $billing_period ] ) ? $period_map[ $billing_period ] : $period_map['monthly'];
-					$period      = $period_data['period'];
-					$interval    = $period_data['interval'];
+					// For variations with override, check variation's billing period first
+					if ( $variation_override && $variation_id ) {
+						$billing_period = get_post_meta( $variation_id, '_recurio_subscription_billing_period', true );
+					}
+
+					// Fall back to parent's billing period
+					if ( ! $billing_period ) {
+						$billing_period = get_post_meta( $product_id, '_recurio_subscription_billing_period', true );
+					}
+
+					if ( ! $billing_period ) {
+						// Fallback to legacy fields
+						$period   = get_post_meta( $product_id, '_subscription_period', true ) ?: 'month';
+						$interval = get_post_meta( $product_id, '_subscription_interval', true ) ?: 1;
+					} else {
+						// Convert our billing period to period/interval
+						$period_map = array(
+							'daily'     => array(
+								'period'   => 'day',
+								'interval' => 1,
+							),
+							'weekly'    => array(
+								'period'   => 'week',
+								'interval' => 1,
+							),
+							'monthly'   => array(
+								'period'   => 'month',
+								'interval' => 1,
+							),
+							'quarterly' => array(
+								'period'   => 'month',
+								'interval' => 3,
+							),
+							'yearly'    => array(
+								'period'   => 'year',
+								'interval' => 1,
+							),
+						);
+
+						$period_data = isset( $period_map[ $billing_period ] ) ? $period_map[ $billing_period ] : $period_map['monthly'];
+						$period      = $period_data['period'];
+						$interval    = $period_data['interval'];
+					}
 				}
-			}
+
+			} // end else: no frequency override on order item
 
 			// Get the recurring price (excluding sign-up fee)
 			// First check if there's a discounted subscription price from Subscribe & Save

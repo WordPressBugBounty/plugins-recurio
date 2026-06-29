@@ -812,6 +812,10 @@ class Plans {
 			'_recurio_include_renewal_shipping',
 			'_recurio_plan_pricing_breakdown',
 			'_recurio_plan_additional_description',
+			// Multiple Billing Frequencies (Pro).
+			'_recurio_plan_use_multiple_frequencies',
+			'_recurio_plan_freq_dropdown_title',
+			'_recurio_plan_billing_options',
 		);
 
 		foreach ( $stamped_keys as $key ) {
@@ -1094,8 +1098,9 @@ class Plans {
 			'access_duration_value'  => 'absint',
 			'access_duration_unit'   => 'sanitize_text_field',
 			'subscription_length'    => 'absint',
-			'pricing_breakdown'      => 'sanitize_textarea_field',
-			'additional_description' => 'sanitize_textarea_field',
+			'pricing_breakdown'        => 'sanitize_textarea_field',
+			'additional_description'   => 'sanitize_textarea_field',
+			'freq_dropdown_title'      => 'sanitize_text_field',
 		);
 
 		$clean = array();
@@ -1106,7 +1111,7 @@ class Plans {
 		}
 
 		// Boolean meta stored as 'yes'/'no' to match WooCommerce product meta convention.
-		foreach ( array( 'allow_one_time_purchase', 'use_custom_period', 'include_renewal_shipping' ) as $bool_key ) {
+		foreach ( array( 'allow_one_time_purchase', 'use_custom_period', 'include_renewal_shipping', 'use_multiple_frequencies' ) as $bool_key ) {
 			if ( isset( $raw[ $bool_key ] ) ) {
 				$clean[ $bool_key ] = $raw[ $bool_key ] ? 'yes' : 'no';
 			}
@@ -1117,6 +1122,77 @@ class Plans {
 			if ( isset( $raw[ $key ] ) && is_array( $raw[ $key ] ) ) {
 				$clean[ $key ] = array_values( array_filter( array_map( 'absint', $raw[ $key ] ) ) );
 			}
+		}
+
+		// Billing options array (Multiple Frequencies feature — Pro).
+		if ( isset( $raw['billing_options'] ) && is_array( $raw['billing_options'] ) ) {
+			$clean['billing_options'] = $this->sanitize_billing_options( $raw['billing_options'] );
+		}
+
+		return $clean;
+	}
+
+	/**
+	 * Sanitize the billing_options array sent from PlanWizard when
+	 * use_multiple_frequencies is enabled.
+	 *
+	 * Each option stores its own period, price override, and discount so
+	 * customers can choose their preferred billing frequency at checkout.
+	 *
+	 * @param  array $raw_options Raw array from the REST request.
+	 * @return array              Sanitized array safe for JSON storage.
+	 */
+	private function sanitize_billing_options( array $raw_options ) {
+		$allowed_periods  = array( 'daily', 'weekly', 'monthly', 'quarterly', 'yearly' );
+		$allowed_discount = array( '', 'percentage', 'fixed' );
+		$clean            = array();
+		$has_default      = false;
+
+		foreach ( $raw_options as $opt ) {
+			if ( ! is_array( $opt ) ) {
+				continue;
+			}
+
+			// Period — fall back to 'monthly' for unknown values.
+			$period = sanitize_text_field( $opt['period'] ?? 'monthly' );
+			if ( ! in_array( $period, $allowed_periods, true ) ) {
+				$period = 'monthly';
+			}
+
+			// Discount type — allow empty string (= none).
+			$discount_type = sanitize_text_field( $opt['discount_type'] ?? '' );
+			if ( ! in_array( $discount_type, $allowed_discount, true ) ) {
+				$discount_type = '';
+			}
+
+			// Custom price — only kept when use_custom_price is explicitly true.
+			$use_custom_price = ! empty( $opt['use_custom_price'] );
+			$custom_price     = null;
+			if ( $use_custom_price && isset( $opt['custom_price'] ) && '' !== $opt['custom_price'] ) {
+				$custom_price = round( max( 0.0, (float) $opt['custom_price'] ), 2 );
+			}
+
+			$is_default = ! empty( $opt['is_default'] );
+			if ( $is_default ) {
+				$has_default = true;
+			}
+
+			$clean[] = array(
+				'label'            => sanitize_text_field( $opt['label'] ?? '' ),
+				'period'           => $period,
+				'interval'         => max( 1, absint( $opt['interval'] ?? 1 ) ),
+				'use_custom_price' => $use_custom_price,
+				'custom_price'     => $custom_price,
+				'discount_type'    => $discount_type,
+				'discount_value'   => $discount_type ? round( max( 0.0, (float) ( $opt['discount_value'] ?? 0 ) ), 2 ) : 0.0,
+				'is_default'       => $is_default,
+				'description'      => wp_kses( trim( $opt['description'] ?? '' ), array() ),
+			);
+		}
+
+		// Guarantee exactly one default — promote the first option if none were flagged.
+		if ( ! $has_default && ! empty( $clean ) ) {
+			$clean[0]['is_default'] = true;
 		}
 
 		return $clean;
@@ -1136,29 +1212,42 @@ class Plans {
 		update_post_meta( $product_id, '_recurio_subscription_enabled', 'yes' );
 
 		$meta_map = array(
-			'billing_period'          => '_recurio_subscription_billing_period',
-			'billing_interval'        => '_recurio_subscription_billing_interval',
-			'use_custom_period'       => '_recurio_use_custom_period',
-			'trial_days'              => '_recurio_subscription_trial_days',
-			'signup_fee'              => '_recurio_subscription_signup_fee',
-			'discount_type'           => '_recurio_subscription_discount_type',
-			'discount_value'          => '_recurio_subscription_discount_value',
-			'payment_type'            => '_recurio_payment_type',
-			'max_payments'            => '_recurio_max_payments',
-			'access_timing'           => '_recurio_access_timing',
-			'access_duration_value'   => '_recurio_access_duration_value',
-			'access_duration_unit'    => '_recurio_access_duration_unit',
-			'subscription_length'     => '_recurio_subscription_length',
+			'billing_period'           => '_recurio_subscription_billing_period',
+			'billing_interval'         => '_recurio_subscription_billing_interval',
+			'use_custom_period'        => '_recurio_use_custom_period',
+			'trial_days'               => '_recurio_subscription_trial_days',
+			'signup_fee'               => '_recurio_subscription_signup_fee',
+			'discount_type'            => '_recurio_subscription_discount_type',
+			'discount_value'           => '_recurio_subscription_discount_value',
+			'payment_type'             => '_recurio_payment_type',
+			'max_payments'             => '_recurio_max_payments',
+			'access_timing'            => '_recurio_access_timing',
+			'access_duration_value'    => '_recurio_access_duration_value',
+			'access_duration_unit'     => '_recurio_access_duration_unit',
+			'subscription_length'      => '_recurio_subscription_length',
 			'allow_one_time_purchase'  => '_recurio_allow_one_time_purchase',
 			'include_renewal_shipping' => '_recurio_include_renewal_shipping',
 			'pricing_breakdown'        => '_recurio_plan_pricing_breakdown',
 			'additional_description'   => '_recurio_plan_additional_description',
+			// Multiple Billing Frequencies flag + dropdown title (stored as 'yes'/'no' and string).
+			'use_multiple_frequencies' => '_recurio_plan_use_multiple_frequencies',
+			'freq_dropdown_title'      => '_recurio_plan_freq_dropdown_title',
 		);
 
 		foreach ( $meta_map as $setting_key => $meta_key ) {
 			if ( isset( $settings[ $setting_key ] ) ) {
 				update_post_meta( $product_id, $meta_key, $settings[ $setting_key ] );
 			}
+		}
+
+		// billing_options is an array — store as JSON so the Pro frontend can read it.
+		// wp_slash() is required because update_post_meta() calls wp_unslash() internally,
+		// which would otherwise strip the backslashes from JSON escape sequences (e.g. \n → n).
+		if ( isset( $settings['billing_options'] ) && is_array( $settings['billing_options'] ) ) {
+			update_post_meta( $product_id, '_recurio_plan_billing_options', wp_slash( wp_json_encode( $settings['billing_options'] ) ) );
+		} elseif ( 'yes' !== ( $settings['use_multiple_frequencies'] ?? '' ) ) {
+			// If multiple frequencies is off, clear any stale options meta.
+			delete_post_meta( $product_id, '_recurio_plan_billing_options' );
 		}
 	}
 

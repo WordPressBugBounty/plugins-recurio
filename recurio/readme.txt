@@ -4,7 +4,7 @@ Tags: subscriptions, recurring payments, woocommerce subscriptions, recurring bi
 Requires at least: 5.8
 Tested up to: 7.0
 Requires PHP: 7.4
-Stable tag: 1.1.2
+Stable tag: 1.1.3
 License: GPL v2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -166,6 +166,10 @@ Recurio is designed to work seamlessly with most WooCommerce extensions. If you 
 10. Reduce churn with a smart cancellation retention flow
 
 == Changelog ==
+
+= 1.1.3 - 2026-06-30 =
+* Solved: Product mapping issue with plan.
+* Compatible: WooCommerce and WordPress latest version.
 
 = 1.1.2 - 2026-06-22 =
 * Solved: Few string transalation issues.

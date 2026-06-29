@@ -120,6 +120,8 @@
 
 .recurio-variation-subscription-options .recurio-custom-period-wrapper select {
 	flex: 1;
+	height: inherit !important;
+	line-height: 1;
 }
 
 /* Standard Period Selection */
