@@ -544,8 +544,12 @@ class Subscriptions {
 		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- All placeholders collected above; single prepare() call below.
 		$where_clause = implode( ' AND ', $where_sql );
 
-		// Get total count.
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+		// Get total count and subscriptions.
+		// $where_clause is a raw placeholder template (built above from hardcoded %s/%d
+		// fragments); args are spread from $where_args and match the placeholder count
+		// exactly at runtime. Table names are $wpdb->prefix-derived, not user input.
+		// The static analyzer can't trace a runtime-built placeholder string, hence:
+		// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare, WordPress.DB.PreparedSQLPlaceholders.ReplacementsWrongNumber
 		$total = $wpdb->get_var(
 			$wpdb->prepare(
 				"SELECT COUNT(*) FROM {$wpdb->prefix}recurio_subscriptions s LEFT JOIN {$wpdb->users} u ON s.customer_id = u.ID WHERE {$where_clause}",
@@ -553,8 +557,6 @@ class Subscriptions {
 			)
 		);
 
-		// Get subscriptions.
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 		$subscriptions = $wpdb->get_results(
 			$wpdb->prepare(
 				"SELECT s.*, u.display_name as customer_name, u.user_email as customer_email
@@ -566,6 +568,7 @@ class Subscriptions {
 				...array_merge( $where_args, array( $per_page, $offset ) )
 			)
 		);
+		// phpcs:enable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare, WordPress.DB.PreparedSQLPlaceholders.ReplacementsWrongNumber
 
 		// Format subscriptions.
 		foreach ( $subscriptions as &$subscription ) {
@@ -1003,7 +1006,8 @@ class Subscriptions {
         // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery -- Direct query needed for REST API analytics
         // phpcs:ignore WordPress.DB.DirectDatabaseQuery.NoCaching -- Caching not appropriate for real-time analytics
 		$stats['average_ltv'] = $wpdb->get_var(
-			"SELECT AVG(customer_ltv) FROM {$wpdb->prefix}recurio_subscriptions WHERE customer_ltv > 0"
+			// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name is safe, no user input
+			$wpdb->prepare( "SELECT AVG(customer_ltv) FROM {$wpdb->prefix}recurio_subscriptions WHERE customer_ltv > %d", 0 )
 		) ?: 0;
 
 		// Growth rate (last 30 days)
@@ -1035,17 +1039,19 @@ class Subscriptions {
 		$segment             = isset( $params['segment'] ) ? sanitize_text_field( $params['segment'] ) : '';
 		$subscription_status = isset( $params['subscription_status'] ) ? sanitize_text_field( $params['subscription_status'] ) : '';
 
-		// Build WHERE clause
-		$where = 'WHERE 1=1';
+		// Build WHERE clause -- kept as a raw placeholder template (never pre-prepared)
+		// so it can be safely embedded into more than one $wpdb->prepare() call below
+		// without double-processing an already-substituted LIKE wildcard.
+		$where      = 'WHERE 1=1';
+		$where_args = array();
 		if ( $search ) {
-			$where .= $wpdb->prepare(
-				' AND (u.display_name LIKE %s OR u.user_email LIKE %s)',
-				'%' . $wpdb->esc_like( $search ) . '%',
-				'%' . $wpdb->esc_like( $search ) . '%'
-			);
+			$where       .= ' AND (u.display_name LIKE %s OR u.user_email LIKE %s)';
+			$like_value   = '%' . $wpdb->esc_like( $search ) . '%';
+			$where_args[] = $like_value;
+			$where_args[] = $like_value;
 		}
 
-		// Build HAVING clause for filters
+		// Build HAVING clause for filters -- fully hardcoded per enum branch, no dynamic values.
 		$having = '';
 		if ( $subscription_status === 'active' ) {
 			$having = ' HAVING active_subscriptions > 0';
@@ -1058,7 +1064,9 @@ class Subscriptions {
 		// Get customers with subscription data
         // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery -- Direct query needed for REST API
         // phpcs:ignore WordPress.DB.DirectDatabaseQuery.NoCaching -- Caching not appropriate for real-time customer data
-        // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- WHERE and HAVING clauses safely constructed with placeholders
+        // WHERE/HAVING are raw placeholder templates (built above), resolved by this single
+        // prepare() call; the static analyzer can't trace a runtime-built placeholder string.
+        // phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare, WordPress.DB.PreparedSQLPlaceholders.ReplacementsWrongNumber
 		$customers = $wpdb->get_results(
 			$wpdb->prepare(
 				"SELECT
@@ -1078,24 +1086,27 @@ class Subscriptions {
                 END as segment
             FROM {$wpdb->users} u
             LEFT JOIN {$wpdb->prefix}recurio_subscriptions s ON u.ID = s.customer_id
-            {$where} /* phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared */
+            {$where}
             GROUP BY u.ID
-            {$having} /* phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared */
+            {$having}
             ORDER BY total_revenue DESC
             LIMIT %d OFFSET %d",
-				$per_page,
-				$offset
+				array_merge( $where_args, array( $per_page, $offset ) )
 			)
 		);
 
-		// Get total count
-		$total_query = "SELECT COUNT(DISTINCT u.ID) FROM {$wpdb->users} u
-                       LEFT JOIN {$wpdb->prefix}recurio_subscriptions s ON u.ID = s.customer_id
-                       {$where}";
+		// Get total count -- reuses the same raw WHERE template + args, prepared independently.
         // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery -- Direct query needed for REST API customer count
         // phpcs:ignore WordPress.DB.DirectDatabaseQuery.NoCaching -- Caching not appropriate for real-time customer data
-        // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- Query is safely constructed with prepared WHERE clause
-		$total = $wpdb->get_var( $total_query );
+		$total = $wpdb->get_var(
+			$wpdb->prepare(
+				"SELECT COUNT(DISTINCT u.ID) FROM {$wpdb->users} u
+                       LEFT JOIN {$wpdb->prefix}recurio_subscriptions s ON u.ID = s.customer_id
+                       {$where}",
+				$where_args
+			)
+		);
+		// phpcs:enable WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare, WordPress.DB.PreparedSQLPlaceholders.ReplacementsWrongNumber
 
 		// Add segment filtering if needed
 		if ( $segment ) {
@@ -1179,6 +1190,7 @@ class Subscriptions {
         // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery -- Direct query needed for REST API customer statistics
         // phpcs:ignore WordPress.DB.DirectDatabaseQuery.NoCaching -- Caching not appropriate for real-time customer data
 		$total_customers = $wpdb->get_var(
+			// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table names are safe, no user input
 			"SELECT COUNT(DISTINCT u.ID)
             FROM {$wpdb->users} u
             LEFT JOIN {$wpdb->prefix}recurio_subscriptions s ON u.ID = s.customer_id"
@@ -1188,29 +1200,38 @@ class Subscriptions {
         // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery -- Direct query needed for REST API customer statistics
         // phpcs:ignore WordPress.DB.DirectDatabaseQuery.NoCaching -- Caching not appropriate for real-time customer data
 		$active_customers = $wpdb->get_var(
-			"SELECT COUNT(DISTINCT customer_id)
+			// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name is safe, no user input
+			$wpdb->prepare(
+				"SELECT COUNT(DISTINCT customer_id)
             FROM {$wpdb->prefix}recurio_subscriptions
-            WHERE status = 'active'"
+            WHERE status = %s",
+				'active'
+			)
 		);
 
 		// Inactive customers (customers with subscriptions but none active)
         // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery -- Direct query needed for REST API customer statistics
         // phpcs:ignore WordPress.DB.DirectDatabaseQuery.NoCaching -- Caching not appropriate for real-time customer data
 		$inactive_customers = $wpdb->get_var(
-			"SELECT COUNT(DISTINCT u.ID)
+			// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table names are safe, no user input
+			$wpdb->prepare(
+				"SELECT COUNT(DISTINCT u.ID)
             FROM {$wpdb->users} u
             INNER JOIN {$wpdb->prefix}recurio_subscriptions s ON u.ID = s.customer_id
             WHERE u.ID NOT IN (
                 SELECT DISTINCT customer_id
                 FROM {$wpdb->prefix}recurio_subscriptions
-                WHERE status = 'active'
-            )"
+                WHERE status = %s
+            )",
+				'active'
+			)
 		);
 
 		// Average customer value
         // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery -- Direct query needed for REST API customer statistics
         // phpcs:ignore WordPress.DB.DirectDatabaseQuery.NoCaching -- Caching not appropriate for real-time customer data
 		$avg_customer_value = $wpdb->get_var(
+			// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name is safe, no user input
 			"SELECT AVG(customer_revenue) FROM (
                 SELECT SUM(billing_amount) as customer_revenue
                 FROM {$wpdb->prefix}recurio_subscriptions
@@ -1544,19 +1565,23 @@ class Subscriptions {
 		// Calculate retention rate
         // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery -- Direct query needed for REST API analytics
         // phpcs:ignore WordPress.DB.DirectDatabaseQuery.NoCaching -- Caching not appropriate for real-time analytics data
+		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name is safe, no user input
 		$total_customers = $wpdb->get_var( "SELECT COUNT(DISTINCT customer_id) FROM {$wpdb->prefix}recurio_subscriptions" );
         // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery -- Direct query needed for REST API analytics
         // phpcs:ignore WordPress.DB.DirectDatabaseQuery.NoCaching -- Caching not appropriate for real-time analytics data
-		$active_customers = $wpdb->get_var( "SELECT COUNT(DISTINCT customer_id) FROM {$wpdb->prefix}recurio_subscriptions WHERE status = 'active'" );
+		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name is safe, no user input
+		$active_customers = $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(DISTINCT customer_id) FROM {$wpdb->prefix}recurio_subscriptions WHERE status = %s", 'active' ) );
 		$retention_rate   = $total_customers > 0 ? round( ( $active_customers / $total_customers ) * 100, 1 ) : 0;
 
 		// Calculate conversion rate: active subscriptions / total unique customers who tried (including cancelled)
         // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery -- Direct query needed for REST API analytics
         // phpcs:ignore WordPress.DB.DirectDatabaseQuery.NoCaching -- Caching not appropriate for real-time analytics data
+		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name is safe, no user input
 		$total_unique_customers = $wpdb->get_var( "SELECT COUNT(DISTINCT customer_id) FROM {$wpdb->prefix}recurio_subscriptions" );
         // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery -- Direct query needed for REST API analytics
         // phpcs:ignore WordPress.DB.DirectDatabaseQuery.NoCaching -- Caching not appropriate for real-time analytics data
-		$active_subscriptions_count = $wpdb->get_var( "SELECT COUNT(*) FROM {$wpdb->prefix}recurio_subscriptions WHERE status = 'active'" );
+		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name is safe, no user input
+		$active_subscriptions_count = $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(*) FROM {$wpdb->prefix}recurio_subscriptions WHERE status = %s", 'active' ) );
 		$conversion_rate            = $total_unique_customers > 0 ? round( ( $active_subscriptions_count / $total_unique_customers ) * 100, 1 ) : 0;
 
 		// Calculate conversion trend (compare current month vs last month)
@@ -1595,12 +1620,14 @@ class Subscriptions {
         // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery -- Direct query needed for REST API analytics
         // phpcs:ignore WordPress.DB.DirectDatabaseQuery.NoCaching -- Caching not appropriate for real-time analytics data
 		$avg_ltv_analytics = $wpdb->get_var(
-			"SELECT AVG(customer_lifetime_value) FROM {$wpdb->prefix}recurio_customer_analytics WHERE customer_lifetime_value > 0"
+			// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name is safe, no user input
+			$wpdb->prepare( "SELECT AVG(customer_lifetime_value) FROM {$wpdb->prefix}recurio_customer_analytics WHERE customer_lifetime_value > %d", 0 )
 		);
         // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery -- Direct query needed for REST API analytics
         // phpcs:ignore WordPress.DB.DirectDatabaseQuery.NoCaching -- Caching not appropriate for real-time analytics data
 		$avg_ltv_subscriptions = $wpdb->get_var(
-			"SELECT AVG(customer_ltv) FROM {$wpdb->prefix}recurio_subscriptions WHERE customer_ltv > 0"
+			// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name is safe, no user input
+			$wpdb->prepare( "SELECT AVG(customer_ltv) FROM {$wpdb->prefix}recurio_subscriptions WHERE customer_ltv > %d", 0 )
 		);
 		$avg_ltv               = $avg_ltv_analytics ?: ( $avg_ltv_subscriptions ?: 0 );
 
@@ -1706,7 +1733,8 @@ class Subscriptions {
 			'pausedSubscriptions'    => $stats['paused'],
 			'cancelledSubscriptions' => $stats['cancelled'],
             // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Direct query needed for analytics
-			'expiredSubscriptions'   => $wpdb->get_var( "SELECT COUNT(*) FROM {$wpdb->prefix}recurio_subscriptions WHERE status = 'expired'" ),
+			// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name is safe, no user input
+			'expiredSubscriptions'   => $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(*) FROM {$wpdb->prefix}recurio_subscriptions WHERE status = %s", 'expired' ) ),
 			'mrr'                    => $stats['mrr'],
 			'churnRate'              => $stats['churn_rate'] ?? 0,
 			'growthRate'             => $growth_rate,
@@ -1725,14 +1753,17 @@ class Subscriptions {
 			'paused'    => $stats['paused'],
 			'cancelled' => $stats['cancelled'],
             // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Direct query needed for analytics
-			'pending'   => $wpdb->get_var( "SELECT COUNT(*) FROM {$wpdb->prefix}recurio_subscriptions WHERE status = 'pending'" ),
+			// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name is safe, no user input
+			'pending'   => $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(*) FROM {$wpdb->prefix}recurio_subscriptions WHERE status = %s", 'pending' ) ),
 		);
 
 		// Get product performance (top 10 products)
         // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery -- Direct query needed for REST API analytics
         // phpcs:ignore WordPress.DB.DirectDatabaseQuery.NoCaching -- Caching not appropriate for real-time analytics data
 		$product_performance = $wpdb->get_results(
-			"SELECT 
+			// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table names are safe, no user input
+			$wpdb->prepare(
+				"SELECT
                 COALESCE(p.post_title, 'Unknown Product') as product,
                 COUNT(s.id) as subscriptions,
                 COALESCE(SUM(s.billing_amount), 0) as revenue,
@@ -1743,7 +1774,9 @@ class Subscriptions {
             WHERE s.product_id IS NOT NULL
             GROUP BY s.product_id
             ORDER BY revenue DESC
-            LIMIT 10"
+            LIMIT %d",
+				10
+			)
 		);
 
 		// Calculate churn rate for each product
@@ -1944,17 +1977,22 @@ class Subscriptions {
 
 		// Get top churn reasons (if stored in metadata)
 		$churn_reasons = $wpdb->get_results(
-			"SELECT 
-                CASE 
+			// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name is safe, no user input
+			$wpdb->prepare(
+				"SELECT
+                CASE
                     WHEN cancellation_reason IS NULL OR cancellation_reason = '' THEN 'Not specified'
                     ELSE cancellation_reason
                 END as reason,
                 COUNT(*) as count
-            FROM {$wpdb->prefix}recurio_subscriptions 
-            WHERE status = 'cancelled'
+            FROM {$wpdb->prefix}recurio_subscriptions
+            WHERE status = %s
             GROUP BY cancellation_reason
             ORDER BY count DESC
-            LIMIT 5"
+            LIMIT %d",
+				'cancelled',
+				5
+			)
 		);
 
 		$total_cancellations = array_sum( array_column( $churn_reasons, 'count' ) );
@@ -1998,8 +2036,12 @@ class Subscriptions {
 	private function calculate_revenue_forecast( $wpdb ) {
 		// Get current MRR first
 		$current_mrr = $wpdb->get_var(
-			"SELECT SUM(billing_amount) FROM {$wpdb->prefix}recurio_subscriptions 
-            WHERE status = 'active'"
+			// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name is safe, no user input
+			$wpdb->prepare(
+				"SELECT SUM(billing_amount) FROM {$wpdb->prefix}recurio_subscriptions
+            WHERE status = %s",
+				'active'
+			)
 		) ?: 0;
 
 		// Get historical revenue data for last 12 months
@@ -2190,20 +2232,25 @@ class Subscriptions {
 
 		// Get product revenue breakdown
 		$revenue['productRevenue'] = $wpdb->get_results(
-			"SELECT 
+			// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table names are safe, no user input
+			$wpdb->prepare(
+				"SELECT
                 p.post_title as product,
                 SUM(s.billing_amount) as revenue,
                 COUNT(s.id) as count
             FROM {$wpdb->prefix}recurio_subscriptions s
             LEFT JOIN {$wpdb->posts} p ON s.product_id = p.ID
-            WHERE s.status = 'active'
+            WHERE s.status = %s
             GROUP BY s.product_id
-            ORDER BY revenue DESC"
+            ORDER BY revenue DESC",
+				'active'
+			)
 		);
 
 		// Get payment methods distribution from revenue table
 		$payment_methods = $wpdb->get_results(
-			"SELECT 
+			// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name is safe, no user input
+			"SELECT
                 payment_method,
                 SUM(amount) as total,
                 COUNT(*) as count
@@ -2415,15 +2462,23 @@ class Subscriptions {
 		$start_date = isset( $params['start_date'] ) ? sanitize_text_field( $params['start_date'] ) : '';
 		$end_date   = isset( $params['end_date'] ) ? sanitize_text_field( $params['end_date'] ) : '';
 
-		// Build WHERE clause
-		$where = 'WHERE 1=1';
+		// Build WHERE clause -- kept as a raw placeholder template (never pre-prepared)
+		// so it can be safely embedded into more than one $wpdb->prepare() call below.
+		$where      = 'WHERE 1=1';
+		$where_args = array();
 		if ( $start_date && $end_date ) {
-			$where .= $wpdb->prepare( ' AND r.created_at BETWEEN %s AND %s', $start_date, $end_date );
+			$where       .= ' AND r.created_at BETWEEN %s AND %s';
+			$where_args[] = $start_date;
+			$where_args[] = $end_date;
 		}
 
+		// $where is a raw placeholder template (built above); args are merged and match the
+		// placeholder count exactly at runtime. Table names are $wpdb->prefix-derived, not
+		// user input. The static analyzer can't trace a runtime-built placeholder string:
+		// phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare, WordPress.DB.PreparedSQLPlaceholders.ReplacementsWrongNumber
 		$transactions = $wpdb->get_results(
 			$wpdb->prepare(
-				"SELECT 
+				"SELECT
                 r.id,
                 r.subscription_id,
                 r.amount,
@@ -2440,13 +2495,13 @@ class Subscriptions {
             LEFT JOIN {$wpdb->prefix}recurio_subscriptions s ON r.subscription_id = s.id
             LEFT JOIN {$wpdb->users} u ON s.customer_id = u.ID
             LEFT JOIN {$wpdb->posts} p ON s.product_id = p.ID
-            {$where} /* phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared */
+            {$where}
             ORDER BY r.created_at DESC
             LIMIT %d OFFSET %d",
-				$per_page,
-				$offset
+				array_merge( $where_args, array( $per_page, $offset ) )
 			)
 		);
+		// phpcs:enable WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare, WordPress.DB.PreparedSQLPlaceholders.ReplacementsWrongNumber
 
 		// Format transactions for display
 		foreach ( $transactions as &$transaction ) {
@@ -2459,11 +2514,14 @@ class Subscriptions {
 			$transaction->method = $transaction->payment_method ?: 'Credit Card';
 		}
 
+		// phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare -- Table name is safe, no user input; WHERE is a raw placeholder template resolved by this prepare() call
 		$total = $wpdb->get_var(
 			$wpdb->prepare(
-				"SELECT COUNT(*) FROM {$wpdb->prefix}recurio_subscription_revenue r {$where}"
+				"SELECT COUNT(*) FROM {$wpdb->prefix}recurio_subscription_revenue r {$where}",
+				$where_args
 			)
 		);
+		// phpcs:enable WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare
 
 		return new WP_REST_Response(
 			array(
@@ -2490,10 +2548,9 @@ class Subscriptions {
 		// Get active goals from database
         // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery -- Direct query needed for REST API
         // phpcs:ignore WordPress.DB.DirectDatabaseQuery.NoCaching -- Caching not appropriate for real-time goal data
-        // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name safely constructed
-        // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- Simple query with safe table name
 		$goals = $wpdb->get_results(
-			"SELECT * FROM $table_name WHERE status = 'active' ORDER BY end_date ASC", /* phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared */
+			// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name is safe, no user input
+			$wpdb->prepare( "SELECT * FROM $table_name WHERE status = %s ORDER BY end_date ASC", 'active' ),
 			ARRAY_A
 		);
 
@@ -2648,8 +2705,8 @@ class Subscriptions {
 		// Return the newly created goal
         // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery -- Direct query needed for REST API
         // phpcs:ignore WordPress.DB.DirectDatabaseQuery.NoCaching -- Caching not appropriate for real-time goal data
-        // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name safely constructed
 		$new_goal = $wpdb->get_row(
+			// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name safely constructed
 			$wpdb->prepare(
 				"SELECT * FROM $table_name WHERE id = %d", /* phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared */
 				$new_goal_id
@@ -2698,8 +2755,8 @@ class Subscriptions {
 		// Check if goal exists
         // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery -- Direct query needed for REST API
         // phpcs:ignore WordPress.DB.DirectDatabaseQuery.NoCaching -- Caching not appropriate for real-time goal data
-        // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name safely constructed
 		$existing = $wpdb->get_row(
+			// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name safely constructed
 			$wpdb->prepare(
 				"SELECT * FROM $table_name WHERE id = %d", /* phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared */
 				$goal_id
@@ -2757,8 +2814,8 @@ class Subscriptions {
 		// Get updated goal
         // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery -- Direct query needed for REST API
         // phpcs:ignore WordPress.DB.DirectDatabaseQuery.NoCaching -- Caching not appropriate for real-time goal data
-        // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name safely constructed
 		$updated_goal = $wpdb->get_row(
+			// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name safely constructed
 			$wpdb->prepare(
 				"SELECT * FROM $table_name WHERE id = %d", /* phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared */
 				$goal_id
@@ -2807,8 +2864,8 @@ class Subscriptions {
 		// Check if goal exists
         // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery -- Direct query needed for REST API
         // phpcs:ignore WordPress.DB.DirectDatabaseQuery.NoCaching -- Caching not appropriate for real-time goal data
-        // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name safely constructed
 		$existing = $wpdb->get_row(
+			// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name safely constructed
 			$wpdb->prepare(
 				"SELECT * FROM $table_name WHERE id = %d", /* phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared */
 				$goal_id
@@ -2844,8 +2901,12 @@ class Subscriptions {
 
 		// Get recent activity count
 		$recent_activity = $wpdb->get_var(
-			"SELECT COUNT(*) FROM {$wpdb->prefix}recurio_subscription_events
-            WHERE created_at >= DATE_SUB(NOW(), INTERVAL 24 HOUR)"
+			// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name is safe, no user input
+			$wpdb->prepare(
+				"SELECT COUNT(*) FROM {$wpdb->prefix}recurio_subscription_events
+            WHERE created_at >= DATE_SUB(NOW(), INTERVAL %d HOUR)",
+				24
+			)
 		);
 
 		// Get today's revenue
@@ -2879,6 +2940,7 @@ class Subscriptions {
 				'today' => floatval( $today_revenue ),
 			),
 			'customers'     => array(
+				// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name is safe, no user input
 				'total'     => $wpdb->get_var( "SELECT COUNT(DISTINCT customer_id) FROM {$wpdb->prefix}recurio_subscriptions" ),
 				'new_today' => $wpdb->get_var(
 					$wpdb->prepare(
@@ -2921,7 +2983,9 @@ class Subscriptions {
 		global $wpdb;
 
 		$activities = $wpdb->get_results(
-			"SELECT 
+			// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table names are safe, no user input
+			$wpdb->prepare(
+				"SELECT
                 e.*,
                 s.customer_id,
                 u.display_name as customer_name,
@@ -2931,7 +2995,9 @@ class Subscriptions {
             LEFT JOIN {$wpdb->users} u ON s.customer_id = u.ID
             LEFT JOIN {$wpdb->posts} p ON s.product_id = p.ID
             ORDER BY e.created_at DESC
-            LIMIT 20"
+            LIMIT %d",
+				20
+			)
 		);
 
 		return new WP_REST_Response( $activities, 200 );

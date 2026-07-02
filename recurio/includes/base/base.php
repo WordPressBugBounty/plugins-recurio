@@ -72,7 +72,7 @@ class Recurio {
 
 		?>
 			<div class="notice notice-error is-dismissible">
-				<p><?php echo $message; ?><?php if( !empty($button['url']) ): ?><a class="button" style="margin-left: 5px;" href="<?php echo esc_url($button['url']); ?>"><?php echo esc_html($button['text']); ?></a><?php endif; ?></p>
+				<p><?php echo wp_kses_post( $message ); ?><?php if( !empty($button['url']) ): ?><a class="button" style="margin-left: 5px;" href="<?php echo esc_url($button['url']); ?>"><?php echo esc_html($button['text']); ?></a><?php endif; ?></p>
 			</div>
 		<?php
 	}

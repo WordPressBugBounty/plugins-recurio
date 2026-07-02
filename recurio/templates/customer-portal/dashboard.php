@@ -185,7 +185,7 @@ $user = wp_get_current_user();
 											$interval = isset( $subscription->billing_interval ) ? intval( $subscription->billing_interval ) : 1;
 											if ( $interval > 1 ) {
 												/* translators: %1$d: interval number, %2$s: period */
-												printf( esc_html__( 'every %1$d %2$ss', 'recurio' ), $interval, esc_html( $subscription->billing_period ) );
+												printf( esc_html__( 'every %1$d %2$ss', 'recurio' ), absint( $interval ), esc_html( $subscription->billing_period ) );
 											} else {
 												echo esc_html( $subscription->billing_period );
 											}

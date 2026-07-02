@@ -102,7 +102,8 @@ class Admin {
         if ( false === $has_sub ) {
             global $wpdb;
             $has_sub = $wpdb->get_var( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery
-                "SELECT post_id FROM {$wpdb->postmeta} WHERE meta_key = '_recurio_subscription_enabled' AND meta_value = 'yes' LIMIT 1"
+                // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name is safe, no user input
+                $wpdb->prepare( "SELECT post_id FROM {$wpdb->postmeta} WHERE meta_key = %s AND meta_value = %s LIMIT %d", '_recurio_subscription_enabled', 'yes', 1 )
             );
             set_transient( 'recurio_has_subscription_products', $has_sub ?: '0', 12 * HOUR_IN_SECONDS );
         }

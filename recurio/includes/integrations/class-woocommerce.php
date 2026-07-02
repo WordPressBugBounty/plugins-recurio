@@ -589,16 +589,16 @@ class Recurio_WooCommerce_Integration {
 
 		// Billing schedule
 		if ( $interval > 1 ) {
-			/* translators: %1$d: billing interval (number), %2$s: billing period (days/weeks/months/years) */
 			$billing_schedule = sprintf(
+				/* translators: %1$d: billing interval (number), %2$s: billing period (days/weeks/months/years) */
 				esc_html__( 'Every %1$d %2$s', 'recurio' ),
 				$interval,
 				$this->get_period_string( $subscription['period'], $interval )
 			);
 		} else {
 			// For interval of 1, just show "Every month" or "Every year" etc.
-			/* translators: %s: billing period (month/year/week/day) */
 			$billing_schedule = sprintf(
+				/* translators: %s: billing period (month/year/week/day) */
 				esc_html__( 'Every %s', 'recurio' ),
 				$this->get_period_string( $subscription['period'], 1 )
 			);
@@ -625,8 +625,8 @@ class Recurio_WooCommerce_Integration {
 
 		// Trial period
 		if ( ! empty( $subscription['trial_length'] ) && $subscription['trial_length'] > 0 ) {
-			/* translators: %1$d: trial length (number), %2$s: trial period (days/weeks/months/years) */
 			$trial_string = sprintf(
+				/* translators: %1$d: trial length (number), %2$s: trial period (days/weeks/months/years) */
 				esc_html__( '%1$d %2$s free trial', 'recurio' ),
 				$subscription['trial_length'],
 				$this->get_period_string( $subscription['trial_period'], $subscription['trial_length'] )
@@ -648,8 +648,8 @@ class Recurio_WooCommerce_Integration {
 
 		// Subscription length (max renewals)
 		if ( ! empty( $subscription['length'] ) && $subscription['length'] > 0 ) {
-			/* translators: %1$d: subscription length (number), %2$s: period string or 'renewals' */
 			$length_string = sprintf(
+				/* translators: %1$d: subscription length (number), %2$s: period string or 'renewals' */
 				esc_html__( '%1$d %2$s', 'recurio' ),
 				$subscription['length'],
 				$interval == 1 ? $this->get_period_string( $subscription['period'], $subscription['length'] ) : esc_html__( 'renewals', 'recurio' )
@@ -667,8 +667,8 @@ class Recurio_WooCommerce_Integration {
 			$total_price      = floatval( $subscription['price'] );
 			$installment      = $total_price / $max_payments;
 
-			/* translators: %1$d: number of payments, %2$s: installment price */
 			$split_string = sprintf(
+				/* translators: %1$d: number of payments, %2$s: installment price */
 				esc_html__( '%1$d payments of %2$s', 'recurio' ),
 				$max_payments,
 				wc_price( $installment )
@@ -680,7 +680,6 @@ class Recurio_WooCommerce_Integration {
 			);
 
 			// Show total price
-			/* translators: %s: total price */
 			$item_data[] = array(
 				'key'   => esc_html__( 'Total', 'recurio' ),
 				'value' => wc_price( $total_price ),
@@ -1119,16 +1118,16 @@ class Recurio_WooCommerce_Integration {
 		$billing_period_string = $this->get_period_string( $subscription['period'], $subscription['interval'] );
 
 		if ( $subscription['interval'] > 1 ) {
-			/* translators: %1$s: price, %2$d: interval (number), %3$s: period (days/weeks/months/years) */
 			$price_string = sprintf(
+				/* translators: %1$s: price, %2$d: interval (number), %3$s: period (days/weeks/months/years) */
 				esc_html__( '%1$s every %2$d %3$s', 'recurio' ),
 				$subscription_price,
 				$subscription['interval'],
 				$billing_period_string
 			);
 		} else {
-			/* translators: %1$s: price, %2$s: period (day/week/month/year) */
 			$price_string = sprintf(
+				/* translators: %1$s: price, %2$s: period (day/week/month/year) */
 				esc_html__( '%1$s / %2$s', 'recurio' ),
 				$subscription_price,
 				$billing_period_string
@@ -1479,16 +1478,16 @@ class Recurio_WooCommerce_Integration {
 		$billing_period_string = $this->get_period_string( $subscription_data['period'], $subscription_data['interval'] );
 
 		if ( $subscription_data['interval'] > 1 ) {
-			/* translators: %1$s: price, %2$d: interval (number), %3$s: period (days/weeks/months/years) */
 			$price_string = sprintf(
+				/* translators: %1$s: price, %2$d: interval (number), %3$s: period (days/weeks/months/years) */
 				esc_html__( '%1$s every %2$d %3$s', 'recurio' ),
 				$subscription_price,
 				$subscription_data['interval'],
 				$billing_period_string
 			);
 		} else {
-			/* translators: %1$s: price, %2$s: period (day/week/month/year) */
 			$price_string = sprintf(
+				/* translators: %1$s: price, %2$s: period (day/week/month/year) */
 				esc_html__( '%1$s / %2$s', 'recurio' ),
 				$subscription_price,
 				$billing_period_string
@@ -1497,8 +1496,8 @@ class Recurio_WooCommerce_Integration {
 
 		// Add trial period if exists
 		if ( ! empty( $subscription_data['trial_length'] ) && $subscription_data['trial_length'] > 0 ) {
-			/* translators: %1$d: trial length (number), %2$s: trial period (days/weeks/months/years) */
 			$trial_string  = sprintf(
+				/* translators: %1$d: trial length (number), %2$s: trial period (days/weeks/months/years) */
 				esc_html__( ' with %1$d %2$s free trial', 'recurio' ),
 				$subscription_data['trial_length'],
 				$this->get_period_string( $subscription_data['trial_period'], $subscription_data['trial_length'] )
@@ -1508,8 +1507,8 @@ class Recurio_WooCommerce_Integration {
 
 		// Add sign-up fee if exists
 		if ( ! empty( $subscription_data['sign_up_fee'] ) && $subscription_data['sign_up_fee'] > 0 ) {
-			/* translators: %s: sign-up fee amount */
 			$sign_up_string = sprintf(
+				/* translators: %s: sign-up fee amount */
 				esc_html__( ' and %s sign-up fee', 'recurio' ),
 				wc_price( $subscription_data['sign_up_fee'] )
 			);
@@ -1582,16 +1581,16 @@ class Recurio_WooCommerce_Integration {
 			: wc_price( $final_price );
 
 		if ( $display_interval > 1 ) {
-			/* translators: %1$s: price (may include strikethrough original), %2$d: interval, %3$s: period */
 			$price_string = sprintf(
+				/* translators: %1$s: price (may include strikethrough original), %2$d: interval, %3$s: period */
 				esc_html__( '%1$s every %2$d %3$s', 'recurio' ),
 				$price_display,
 				$display_interval,
 				$period_string
 			);
 		} else {
-			/* translators: %1$s: price (may include strikethrough original), %2$s: period */
 			$price_string = sprintf(
+				/* translators: %1$s: price (may include strikethrough original), %2$s: period */
 				esc_html__( '%1$s / %2$s', 'recurio' ),
 				$price_display,
 				$period_string
@@ -1812,9 +1811,9 @@ class Recurio_WooCommerce_Integration {
 			$subscription_engine->cancel_subscription( $subscription_id, 'Order cancelled' );
 
 			// Add order note
-			/* translators: %d: subscription ID */
 			$order->add_order_note(
 				sprintf(
+					/* translators: %d: subscription ID */
 					esc_html__( 'Subscription #%d cancelled', 'recurio' ),
 					$subscription_id
 				)

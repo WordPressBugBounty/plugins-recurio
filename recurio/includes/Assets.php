@@ -23,14 +23,8 @@ class Assets {
     /** Base URL for assets/admin/ */
     private $admin_assets_url;
 
-    /** Whether the Vite dev server appears to be running */
-    private $is_dev;
-
-    const DEV_SERVER = 'http://localhost:5173';
-
     private function __construct() {
         $this->admin_assets_url = RECURIO_PLUGIN_URL . 'assets/admin';
-        $this->is_dev           = $this->is_vite_running();
 
         if ( is_admin() ) {
             add_action( 'admin_init', [ $this, 'register_assets' ] );
@@ -47,23 +41,6 @@ class Assets {
      * @return array
      */
     private function get_scripts() {
-        if ( $this->is_dev ) {
-            return array(
-                'recurio-vite-client' => array(
-                    'src'       => self::DEV_SERVER . '/@vite/client',
-                    'deps'      => array(),
-                    'version'   => null,
-                    'in_footer' => true,
-                ),
-                'recurio-vue-app' => array(
-                    'src'       => self::DEV_SERVER . '/src/main.js',
-                    'deps'      => array( 'recurio-vite-client' ),
-                    'version'   => null,
-                    'in_footer' => true,
-                ),
-            );
-        }
-
         return array(
             'recurio-element-plus' => array(
                 'src'       => $this->admin_assets_url . '/js/element-plus.js',
@@ -92,16 +69,6 @@ class Assets {
      * @return array
      */
     private function get_styles() {
-        if ( $this->is_dev ) {
-            return array(
-                'recurio-admin' => array(
-                    'src'     => $this->admin_assets_url . '/css/admin.css',
-                    'deps'    => array(),
-                    'version' => RECURIO_VERSION,
-                ),
-            ); 
-        }
-
         return array(
             'recurio-vue-app-style' => array(
                 'src'     => $this->admin_assets_url . '/css/main.css',
@@ -224,28 +191,11 @@ class Assets {
      * Add type="module" to Vue / Vite script tags.
      */
     public function add_type_module( $tag, $handle, $src ) {
-        $module_handles = array( 'recurio-vue-app', 'recurio-vite-client' );
+        $module_handles = array( 'recurio-vue-app', 'recurio-vite-client','recurio-vendor','recurio-element-plus' );
         if ( in_array( $handle, $module_handles, true ) ) {
             $tag = str_replace( '<script ', '<script type="module" ', $tag );
         }
         return $tag;
-    }
-
-    /**
-     * Check whether the Vite dev server is running on localhost:5173.
-     */
-    private function is_vite_running() {
-        if ( ! function_exists( 'curl_init' ) ) {
-            return false;
-        }
-        $handle = curl_init( self::DEV_SERVER );
-        curl_setopt( $handle, CURLOPT_RETURNTRANSFER, true );
-        curl_setopt( $handle, CURLOPT_NOBODY, true );
-        curl_setopt( $handle, CURLOPT_TIMEOUT, 1 );
-        curl_exec( $handle );
-        $error = curl_errno( $handle );
-        curl_close( $handle );
-        return ! $error;
     }
 
     /**

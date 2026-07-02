@@ -138,7 +138,7 @@ if (
 			$interval = isset( $subscription->billing_interval ) ? intval( $subscription->billing_interval ) : 1;
 			if ( $interval > 1 ) {
 				/* translators: %1$d: interval, %2$s: period */
-				printf( esc_html__( 'every %1$d %2$ss', 'recurio' ), $interval, esc_html( $subscription->billing_period ) );
+				printf( esc_html__( 'every %1$d %2$ss', 'recurio' ), absint( $interval ), esc_html( $subscription->billing_period ) );
 			} else {
 				/* translators: %s: billing period (month, year…) */
 				printf( esc_html__( 'per %s', 'recurio' ), esc_html( $subscription->billing_period ) );
@@ -177,11 +177,11 @@ if (
 						<span class="recurio-detail-label"><?php echo esc_html__( 'Installment:', 'recurio' ); ?></span>
 						<span class="recurio-detail-value">
 							<?php
-							/* translators: %1$s: installment amount, %2$d: number of payments, %3$s: total amount */
 							printf(
+								/* translators: %1$s: installment amount, %2$d: number of payments, %3$s: total amount */
 								esc_html__( '%1$s × %2$d = %3$s total', 'recurio' ),
 								wp_kses_post( wc_price( $subscription->billing_amount ) ),
-								$max_payments_check,
+								absint( $max_payments_check ),
 								wp_kses_post( wc_price( $total_price ) )
 							);
 							?>
@@ -195,7 +195,7 @@ if (
 							$interval = isset( $subscription->billing_interval ) ? intval( $subscription->billing_interval ) : 1;
 							if ( $interval > 1 ) {
 								/* translators: %1$d: interval number, %2$s: period (day/week/month/year) */
-								printf( esc_html__( 'every %1$d %2$ss', 'recurio' ), $interval, esc_html( $subscription->billing_period ) );
+								printf( esc_html__( 'every %1$d %2$ss', 'recurio' ), absint( $interval ), esc_html( $subscription->billing_period ) );
 							} else {
 								echo esc_html( $subscription->billing_period );
 							}
@@ -240,7 +240,7 @@ if (
 						<span class="recurio-detail-value">
 							<?php
 							/* translators: %1$d: payments made, %2$d: total payments */
-							printf( esc_html__( '%1$d of %2$d completed', 'recurio' ), $payments_made, $max_payments );
+							printf( esc_html__( '%1$d of %2$d completed', 'recurio' ), absint( $payments_made ), absint( $max_payments ) );
 							?>
 						</span>
 					</div>
@@ -330,7 +330,7 @@ if (
 					<button type="button" class="button recurio-action-btn recurio-action-primary recurio-pay-installment" data-subscription-id="<?php echo esc_attr( $subscription->id ); ?>">
 						<?php
 						/* translators: %1$d: next installment number, %2$d: total installments */
-						printf( esc_html__( 'Pay Installment %1$d of %2$d', 'recurio' ), $payments_made + 1, $max_payments );
+						printf( esc_html__( 'Pay Installment %1$d of %2$d', 'recurio' ), absint( $payments_made + 1 ), absint( $max_payments ) );
 						?>
 					</button>
 				<?php endif; ?>

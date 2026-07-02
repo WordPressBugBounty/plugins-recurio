@@ -341,7 +341,7 @@ class Recurio_Billing_Manager {
 					);
 				} else {
 					/* translators: %s: WooCommerce order status */
-				$error_message = sprintf( __( 'Payment failed - order status: %s', 'recurio' ), $order->get_status() );
+					$error_message = sprintf( __( 'Payment failed - order status: %s', 'recurio' ), $order->get_status() );
 					return new WP_Error( 'payment_failed', $error_message );
 				}
 			} catch ( Exception $e ) {
@@ -375,7 +375,7 @@ class Recurio_Billing_Manager {
 				} elseif ( isset( $payment_result['message'] ) ) {
 					$error_message = $payment_result['message'];
 				} elseif ( isset( $payment_result['error'] ) ) {
-					$error_message = is_string( $payment_result['error'] ) ? $payment_result['error'] : print_r( $payment_result['error'], true );
+					$error_message = is_string( $payment_result['error'] ) ? $payment_result['error'] : wp_json_encode( $payment_result['error'] );
 				}
 
 				$order->update_status( 'failed', $error_message );

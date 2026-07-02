@@ -15,6 +15,50 @@ class Recurio_Subscription_Engine {
 	private static $instance = null;
 	private $table_name;
 
+	/**
+	 * Column whitelist for update_subscription(). Prevents attacker-controlled
+	 * array keys from reaching $wpdb->update(), whose identifier quoting does
+	 * not escape backticks embedded in column names.
+	 */
+	private static $updatable_columns = array(
+		'wc_subscription_id',
+		'customer_id',
+		'product_id',
+		'status',
+		'billing_period',
+		'billing_interval',
+		'billing_amount',
+		'payment_method',
+		'payment_token_id',
+		'billing_address',
+		'shipping_address',
+		'shipping_amount',
+		'shipping_method',
+		'trial_end_date',
+		'next_payment_date',
+		'pause_start_date',
+		'pause_end_date',
+		'cancellation_date',
+		'cancellation_reason',
+		'failed_payment_count',
+		'renewal_count',
+		'skip_count',
+		'max_renewals',
+		'payment_type',
+		'max_payments',
+		'access_timing',
+		'access_duration_value',
+		'access_duration_unit',
+		'access_end_date',
+		'switched_from_id',
+		'switched_to_id',
+		'switch_type',
+		'churn_risk_score',
+		'customer_ltv',
+		'subscription_metadata',
+		'updated_at',
+	);
+
 	public static function get_instance() {
 		if ( null === self::$instance ) {
 			self::$instance = new self();
@@ -292,6 +336,16 @@ class Recurio_Subscription_Engine {
 		// Serialize metadata if array
 		if ( isset( $data['subscription_metadata'] ) && is_array( $data['subscription_metadata'] ) ) {
 			$data['subscription_metadata'] = json_encode( $data['subscription_metadata'] );
+		}
+
+		// Restrict to known columns so array keys can never reach $wpdb->update()
+		$data = array_intersect_key( $data, array_flip( self::$updatable_columns ) );
+
+		if ( empty( $data ) ) {
+			return new WP_Error(
+				'no_valid_fields',
+				__( 'No valid fields supplied for subscription update.', 'recurio' )
+			);
 		}
 
 		// Log the data being updated for debugging
@@ -952,6 +1006,7 @@ class Recurio_Subscription_Engine {
         // phpcs:ignore WordPress.DB.DirectDatabaseQuery.NoCaching -- Caching not appropriate for real-time revenue goals
 		$active_goals = $wpdb->get_results(
 			$wpdb->prepare(
+				// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name is safe, no user input
 				"SELECT id, current_amount FROM {$table_name}
             WHERE status = 'active'
             AND %s BETWEEN start_date AND end_date",
@@ -1032,46 +1087,50 @@ class Recurio_Subscription_Engine {
 		global $wpdb;
 
 		$stats = array();
+		$table = $wpdb->prefix . 'recurio_subscriptions';
 
 		// Total subscriptions
-        // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- Table name is safe, no user input
         // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery -- Direct query needed for subscription management
         // phpcs:ignore WordPress.DB.DirectDatabaseQuery.NoCaching -- Caching not appropriate for real-time statistics
 		$stats['total'] = $wpdb->get_var(
-			"SELECT COUNT(*) FROM {$wpdb->prefix}recurio_subscriptions"
+			// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name is safe, no user input; no dynamic values in this query.
+			"SELECT COUNT(*) FROM {$table}"
 		);
 
 		// Active subscriptions
-        // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- Table name is safe, no user input
         // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery -- Direct query needed for subscription management
         // phpcs:ignore WordPress.DB.DirectDatabaseQuery.NoCaching -- Caching not appropriate for real-time statistics
 		$stats['active'] = $wpdb->get_var(
-			"SELECT COUNT(*) FROM {$wpdb->prefix}recurio_subscriptions WHERE status = 'active'"
+			// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name is safe, no user input
+			$wpdb->prepare( "SELECT COUNT(*) FROM {$table} WHERE status = %s", 'active' )
 		);
 
 		// Paused subscriptions
-        // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- Table name is safe, no user input
         // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery -- Direct query needed for subscription management
         // phpcs:ignore WordPress.DB.DirectDatabaseQuery.NoCaching -- Caching not appropriate for real-time statistics
 		$stats['paused'] = $wpdb->get_var(
-			"SELECT COUNT(*) FROM {$wpdb->prefix}recurio_subscriptions WHERE status = 'paused'"
+			// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name is safe, no user input
+			$wpdb->prepare( "SELECT COUNT(*) FROM {$table} WHERE status = %s", 'paused' )
 		);
 
 		// Cancelled subscriptions
-        // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- Table name is safe, no user input
         // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery -- Direct query needed for subscription management
         // phpcs:ignore WordPress.DB.DirectDatabaseQuery.NoCaching -- Caching not appropriate for real-time statistics
 		$stats['cancelled'] = $wpdb->get_var(
-			"SELECT COUNT(*) FROM {$wpdb->prefix}recurio_subscriptions WHERE status = 'cancelled'"
+			// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name is safe, no user input
+			$wpdb->prepare( "SELECT COUNT(*) FROM {$table} WHERE status = %s", 'cancelled' )
 		);
 
 		// Monthly recurring revenue (MRR)
-        // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name is safe, no user input
         // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery -- Direct query needed for subscription management
         // phpcs:ignore WordPress.DB.DirectDatabaseQuery.NoCaching -- Caching not appropriate for real-time statistics
 		$stats['mrr'] = $wpdb->get_var(
-			"SELECT SUM(billing_amount) FROM {$wpdb->prefix}recurio_subscriptions
-            WHERE status = 'active' AND billing_period = 'month'"
+			$wpdb->prepare(
+				// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name is safe, no user input
+				"SELECT SUM(billing_amount) FROM {$table} WHERE status = %s AND billing_period = %s",
+				'active',
+				'month'
+			)
 		);
 
 		// Annual recurring revenue (ARR)
@@ -1091,8 +1150,16 @@ class Recurio_Subscription_Engine {
 		}
 
 		$subscription_id = isset( $_POST['subscription_id'] ) ? intval( $_POST['subscription_id'] ) : 0;
-        // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- Data is sanitized in update_subscription method
-		$data = isset( $_POST['data'] ) ? wp_unslash( $_POST['data'] ) : array();
+        // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- Keys are validated below; values are sanitized/whitelisted in update_subscription().
+		$data = isset( $_POST['data'] ) && is_array( $_POST['data'] ) ? wp_unslash( $_POST['data'] ) : array();
+
+		// Reject any field name that isn't a plain column identifier before it goes
+		// anywhere near a query -- see update_subscription() for the authoritative
+		foreach ( array_keys( $data ) as $key ) {
+			if ( ! is_string( $key ) || ! preg_match( '/^[a-zA-Z0-9_]+$/', $key ) ) {
+				unset( $data[ $key ] );
+			}
+		}
 
 		$result = $this->update_subscription( $subscription_id, $data );
 

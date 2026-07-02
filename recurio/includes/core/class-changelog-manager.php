@@ -1,7 +1,8 @@
 <?php
 /**
  * Changelog Manager Class
- * Handles version updates, notifications, and changelog display
+ * Handles version updates, notifications, and changelog display.
+ * Read state is stored in user meta (no custom table), same idea as Woolentor settings changelog API.
  *
  * @package Recurio
  * @since 1.0.0
@@ -13,8 +14,12 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 class Recurio_Changelog_Manager {
 
+	/**
+	 * User meta key for last changelog version the user has read through.
+	 */
+	const USER_META_READ_VERSION = 'recurio_changelog_read';
+
 	private static $instance = null;
-	private $table_name;
 
 	public static function get_instance() {
 		if ( null === self::$instance ) {
@@ -24,37 +29,63 @@ class Recurio_Changelog_Manager {
 	}
 
 	private function __construct() {
-		global $wpdb;
-		$this->table_name = $wpdb->prefix . 'recurio_changelog_views';
-
-		// Hook for database creation
-		add_action( 'init', array( $this, 'maybe_create_table' ) );
-
-		// Check for updates on admin init
+		add_action( 'plugins_loaded', array( $this, 'maybe_migrate_legacy_changelog_table' ), 20 );
 		add_action( 'admin_init', array( $this, 'check_for_updates' ) );
 	}
 
 	/**
-	 * Create database table for tracking changelog views
+	 * One-time move from recurio_changelog_views table to user meta, then drop table.
+	 *
+	 * @return void
 	 */
-	public function maybe_create_table() {
+	public function maybe_migrate_legacy_changelog_table() {
 		global $wpdb;
 
-		$charset_collate = $wpdb->get_charset_collate();
+		$legacy = $wpdb->prefix . 'recurio_changelog_views';
 
-		$sql = "CREATE TABLE IF NOT EXISTS {$this->table_name} (
-            id bigint(20) NOT NULL AUTO_INCREMENT,
-            user_id bigint(20) NOT NULL,
-            version varchar(20) NOT NULL,
-            viewed_at datetime DEFAULT CURRENT_TIMESTAMP,
-            PRIMARY KEY (id),
-            UNIQUE KEY user_version (user_id, version),
-            KEY user_id (user_id),
-            KEY version (version)
-        ) $charset_collate;";
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Migration-only schema check.
+		$table_exists = $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $legacy ) );
+		if ( $legacy !== $table_exists ) {
+			return;
+		}
 
-		require_once ABSPATH . 'wp-admin/includes/upgrade.php';
-		dbDelta( $sql );
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Migration-only full table read.
+		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name is safe, no user input; no dynamic values in this query
+		$rows = $wpdb->get_results( "SELECT user_id, version FROM {$legacy}", ARRAY_A );
+		if ( ! empty( $rows ) ) {
+			$by_user = array();
+			foreach ( $rows as $row ) {
+				$uid = isset( $row['user_id'] ) ? (int) $row['user_id'] : 0;
+				$ver = isset( $row['version'] ) ? (string) $row['version'] : '';
+				if ( $uid < 1 || '' === $ver ) {
+					continue;
+				}
+				if ( ! isset( $by_user[ $uid ] ) || version_compare( $by_user[ $uid ], $ver, '<' ) ) {
+					$by_user[ $uid ] = $ver;
+				}
+			}
+			foreach ( $by_user as $uid => $ver ) {
+				$existing = get_user_meta( $uid, self::USER_META_READ_VERSION, true );
+				if ( ! $existing || version_compare( (string) $existing, $ver, '<' ) ) {
+					update_user_meta( $uid, self::USER_META_READ_VERSION, $ver );
+				}
+			}
+		}
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Migration: drop replaced table.
+		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name is safe, no user input; DDL has no value to prepare
+		$wpdb->query( "DROP TABLE IF EXISTS `{$legacy}`" );
+	}
+
+	/**
+	 * Last changelog version string stored for the user (empty if never marked read).
+	 *
+	 * @param int $user_id User ID.
+	 * @return string
+	 */
+	private function get_user_last_read( $user_id ) {
+		$v = get_user_meta( $user_id, self::USER_META_READ_VERSION, true );
+		return $v ? (string) $v : '';
 	}
 
 	/**
@@ -103,11 +134,13 @@ class Recurio_Changelog_Manager {
 	}
 
 	/**
-	 * Mark version as viewed by user
+	 * Mark changelog as read through a version (or latest if no version).
+	 *
+	 * @param string|null $version Version string or null = latest.
+	 * @param int|null    $user_id User ID; defaults to current user.
+	 * @return bool
 	 */
 	public function mark_as_viewed( $version = null, $user_id = null ) {
-		global $wpdb;
-
 		if ( ! $user_id ) {
 			$user_id = get_current_user_id();
 		}
@@ -116,40 +149,24 @@ class Recurio_Changelog_Manager {
 			return false;
 		}
 
-		// If no version specified, mark all current changelog as viewed
-		if ( ! $version ) {
-			$changelog = $this->get_changelog_data();
-			foreach ( $changelog as $log ) {
-                // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery -- Direct query needed for changelog management
-				$wpdb->insert(
-					$this->table_name,
-					array(
-						'user_id' => $user_id,
-						'version' => $log['version'],
-					),
-					array( '%d', '%s' )
-				);
-			}
+		$target  = $version ? sanitize_text_field( $version ) : $this->get_latest_version();
+		$current = $this->get_user_last_read( $user_id );
+
+		if ( $current && version_compare( $target, $current, '<' ) ) {
 			return true;
 		}
 
-        // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery -- Direct query needed for changelog management
-		return $wpdb->insert(
-			$this->table_name,
-			array(
-				'user_id' => $user_id,
-				'version' => $version,
-			),
-			array( '%d', '%s' )
-		);
+		update_user_meta( $user_id, self::USER_META_READ_VERSION, $target );
+		return true;
 	}
 
 	/**
-	 * Get unread versions for user
+	 * Changelog entries newer than the user's last-read pointer.
+	 *
+	 * @param int|null $user_id User ID.
+	 * @return array<int, array<string, mixed>>
 	 */
 	public function get_unread_versions( $user_id = null ) {
-		global $wpdb;
-
 		if ( ! $user_id ) {
 			$user_id = get_current_user_id();
 		}
@@ -158,31 +175,17 @@ class Recurio_Changelog_Manager {
 			return array();
 		}
 
-		$changelog    = $this->get_changelog_data();
-		$all_versions = array_column( $changelog, 'version' );
+		$changelog   = $this->get_changelog_data();
+		$last_read   = $this->get_user_last_read( $user_id );
+		$unread_logs = array();
 
-		// Get viewed versions
-        // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery -- Direct query needed for changelog management
-        // phpcs:ignore WordPress.DB.DirectDatabaseQuery.NoCaching -- Caching not appropriate for real-time changelog data
-		$viewed_versions = $wpdb->get_col(
-			$wpdb->prepare(
-				"SELECT version FROM {$wpdb->prefix}recurio_changelog_views WHERE user_id = %d",
-				$user_id
-			)
-		);
-
-		// Return unread versions
-		$unread = array_diff( $all_versions, $viewed_versions );
-
-		// Return full changelog data for unread versions
-		$unread_changelog = array();
 		foreach ( $changelog as $log ) {
-			if ( in_array( $log['version'], $unread ) ) {
-				$unread_changelog[] = $log;
+			if ( ! $last_read || version_compare( $last_read, $log['version'], '<' ) ) {
+				$unread_logs[] = $log;
 			}
 		}
 
-		return $unread_changelog;
+		return $unread_logs;
 	}
 
 	/**
@@ -207,10 +210,8 @@ class Recurio_Changelog_Manager {
 		$latest_version       = $this->get_latest_version();
 
 		if ( version_compare( $latest_version, $last_checked_version, '>' ) ) {
-			// New version available, update the option
 			update_option( 'recurio_last_changelog_version', $latest_version );
 
-			// Optionally trigger an action for other components
 			do_action( 'recurio_new_version_available', $latest_version );
 		}
 	}
@@ -226,23 +227,23 @@ class Recurio_Changelog_Manager {
 			$changelog = array_slice( $changelog, 0, $limit );
 		}
 
-		// Add 'is_new' flag for unread versions
 		$unread_versions        = $this->get_unread_versions( $user_id );
 		$unread_version_numbers = array_column( $unread_versions, 'version' );
 
 		foreach ( $changelog as &$log ) {
-			$log['is_new'] = in_array( $log['version'], $unread_version_numbers );
+			$log['is_new'] = in_array( $log['version'], $unread_version_numbers, true );
 		}
 
 		return $changelog;
 	}
 
 	/**
-	 * Clear all viewed records for a user
+	 * Reset read state for a user (show all entries as unread again).
+	 *
+	 * @param int|null $user_id User ID.
+	 * @return bool
 	 */
 	public function clear_user_views( $user_id = null ) {
-		global $wpdb;
-
 		if ( ! $user_id ) {
 			$user_id = get_current_user_id();
 		}
@@ -251,13 +252,7 @@ class Recurio_Changelog_Manager {
 			return false;
 		}
 
-        // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery -- Direct query needed for changelog management
-        // phpcs:ignore WordPress.DB.DirectDatabaseQuery.NoCaching -- Caching not appropriate for real-time changelog data
-		return $wpdb->delete(
-			$this->table_name,
-			array( 'user_id' => $user_id ),
-			array( '%d' )
-		);
+		return (bool) delete_user_meta( $user_id, self::USER_META_READ_VERSION );
 	}
 }
 

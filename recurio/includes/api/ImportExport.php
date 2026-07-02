@@ -167,15 +167,16 @@ class ImportExport {
 
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 		$subscriptions = $wpdb->get_results(
+			// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table names are safe, no user input
 			"SELECT
-				s.*,
-				u.display_name AS customer_name,
-				u.user_email   AS customer_email,
-				p.post_title   AS product_name
-			FROM {$wpdb->prefix}recurio_subscriptions s
-			LEFT JOIN {$wpdb->users} u ON s.customer_id = u.ID
-			LEFT JOIN {$wpdb->posts} p ON s.product_id  = p.ID
-			ORDER BY s.created_at DESC"
+					s.*,
+					u.display_name AS customer_name,
+					u.user_email   AS customer_email,
+					p.post_title   AS product_name
+				FROM {$wpdb->prefix}recurio_subscriptions s
+				LEFT JOIN {$wpdb->users} u ON s.customer_id = u.ID
+				LEFT JOIN {$wpdb->posts} p ON s.product_id  = p.ID
+				ORDER BY s.created_at DESC"
 		);
 
 		$csv_lines   = array();
@@ -226,18 +227,22 @@ class ImportExport {
 
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 		$customers = $wpdb->get_results(
-			"SELECT
-				u.ID,
-				u.display_name  AS name,
-				u.user_email    AS email,
-				u.user_registered AS join_date,
-				COUNT(DISTINCT s.id)                                          AS total_subscriptions,
-				COUNT(DISTINCT CASE WHEN s.status = 'active' THEN s.id END)  AS active_subscriptions,
-				COALESCE(SUM(s.billing_amount), 0)                            AS total_revenue
-			FROM {$wpdb->users} u
-			LEFT JOIN {$wpdb->prefix}recurio_subscriptions s ON u.ID = s.customer_id
-			GROUP BY u.ID
-			ORDER BY total_revenue DESC"
+			// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table names are safe, no user input
+			$wpdb->prepare(
+				"SELECT
+					u.ID,
+					u.display_name  AS name,
+					u.user_email    AS email,
+					u.user_registered AS join_date,
+					COUNT(DISTINCT s.id)                                          AS total_subscriptions,
+					COUNT(DISTINCT CASE WHEN s.status = %s THEN s.id END)  AS active_subscriptions,
+					COALESCE(SUM(s.billing_amount), 0)                            AS total_revenue
+				FROM {$wpdb->users} u
+				LEFT JOIN {$wpdb->prefix}recurio_subscriptions s ON u.ID = s.customer_id
+				GROUP BY u.ID
+				ORDER BY total_revenue DESC",
+				'active'
+			)
 		);
 
 		$csv_lines   = array();
@@ -288,16 +293,17 @@ class ImportExport {
 
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 		$revenue_data = $wpdb->get_results(
+			// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table names are safe, no user input
 			"SELECT
-				r.*,
-				s.customer_id,
-				u.display_name AS customer_name,
-				p.post_title   AS product_name
-			FROM {$wpdb->prefix}recurio_subscription_revenue r
-			LEFT JOIN {$wpdb->prefix}recurio_subscriptions s ON r.subscription_id = s.id
-			LEFT JOIN {$wpdb->users} u ON s.customer_id = u.ID
-			LEFT JOIN {$wpdb->posts} p ON s.product_id  = p.ID
-			ORDER BY r.created_at DESC"
+					r.*,
+					s.customer_id,
+					u.display_name AS customer_name,
+					p.post_title   AS product_name
+				FROM {$wpdb->prefix}recurio_subscription_revenue r
+				LEFT JOIN {$wpdb->prefix}recurio_subscriptions s ON r.subscription_id = s.id
+				LEFT JOIN {$wpdb->users} u ON s.customer_id = u.ID
+				LEFT JOIN {$wpdb->posts} p ON s.product_id  = p.ID
+				ORDER BY r.created_at DESC"
 		);
 
 		// phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fopen
@@ -532,7 +538,7 @@ class ImportExport {
 		} else {
 			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 			$count = $wpdb->get_var(
-				"SELECT COUNT(*) FROM {$wpdb->posts} WHERE post_type = 'shop_subscription'"
+				$wpdb->prepare( "SELECT COUNT(*) FROM {$wpdb->posts} WHERE post_type = %s", 'shop_subscription' )
 			);
 		}
 

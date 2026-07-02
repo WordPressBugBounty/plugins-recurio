@@ -215,24 +215,22 @@ class Plans {
 
 		$where_sql = implode( ' AND ', $where );
 
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+		// $where_sql is a raw placeholder template (built above); $values matches its
+		// placeholder count exactly at runtime. Table name is $wpdb->prefix-derived, not
+		// user input. The static analyzer can't trace a runtime-built placeholder string:
+		// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare, WordPress.DB.PreparedSQLPlaceholders.ReplacementsWrongNumber
 		$total = (int) $wpdb->get_var(
-			$values
-				// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
-				? $wpdb->prepare( "SELECT COUNT(*) FROM {$table} WHERE {$where_sql}", ...$values )
-				// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
-				: "SELECT COUNT(*) FROM {$table} WHERE {$where_sql}"
+			$wpdb->prepare( "SELECT COUNT(*) FROM {$table} WHERE {$where_sql}", $values )
 		);
 
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 		$rows = $wpdb->get_results(
-			$values
-				// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
-				? $wpdb->prepare( "SELECT * FROM {$table} WHERE {$where_sql} ORDER BY created_at DESC LIMIT %d OFFSET %d", ...array_merge( $values, array( $per_page, $offset ) ) )
-				// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
-				: $wpdb->prepare( "SELECT * FROM {$table} WHERE {$where_sql} ORDER BY created_at DESC LIMIT %d OFFSET %d", $per_page, $offset ),
+			$wpdb->prepare(
+				"SELECT * FROM {$table} WHERE {$where_sql} ORDER BY created_at DESC LIMIT %d OFFSET %d",
+				array_merge( $values, array( $per_page, $offset ) )
+			),
 			ARRAY_A
 		);
+		// phpcs:enable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare, WordPress.DB.PreparedSQLPlaceholders.ReplacementsWrongNumber
 
 		$plans = array_map( array( $this, 'enrich_row' ), $rows );
 
@@ -571,7 +569,11 @@ class Plans {
 
 		$id_placeholders = implode( ',', array_fill( 0, count( $product_ids ), '%d' ) );
 
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+		// $id_placeholders is a dynamically-generated %d list (one per product ID); args are
+		// spread from $product_ids and match the placeholder count exactly at runtime. Table
+		// names are $wpdb->prefix-derived, not user input. The static analyzer can't trace a
+		// runtime-built placeholder string:
+		// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare, WordPress.DB.PreparedSQLPlaceholders.ReplacementsWrongNumber
 		$stats = $wpdb->get_row(
 			$wpdb->prepare(
 				"SELECT
@@ -587,7 +589,6 @@ class Plans {
 			ARRAY_A
 		);
 
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 		$revenue_total = (float) $wpdb->get_var(
 			$wpdb->prepare(
 				"SELECT SUM(amount) FROM {$revenue_table}
@@ -597,6 +598,7 @@ class Plans {
 				...$product_ids
 			)
 		);
+		// phpcs:enable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare, WordPress.DB.PreparedSQLPlaceholders.ReplacementsWrongNumber
 
 		$total = max( 1, (int) $stats['total_subscriptions'] );
 
@@ -925,7 +927,8 @@ class Plans {
 		global $wpdb;
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 		$rows = $wpdb->get_results(
-			"SELECT id, settings FROM {$wpdb->prefix}recurio_plans WHERE status = 'active'",
+			// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name is safe, no user input
+			$wpdb->prepare( "SELECT id, settings FROM {$wpdb->prefix}recurio_plans WHERE status = %s", 'active' ),
 			ARRAY_A
 		);
 

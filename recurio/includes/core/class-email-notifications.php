@@ -521,14 +521,13 @@ class Recurio_Email_Notifications {
 	 * Get email template
 	 */
 	private function get_email_template( $template_name, $variables = array() ) {
-		// Extract variables for use in template
-		extract( $variables );
-
 		// Start output buffering
 		ob_start();
 
-		// Load template file if it exists, otherwise use default
-		$template_file = RECURIO_PLUGIN_DIR . 'templates/emails/' . $template_name . '.php';
+		// Load template file if it exists, otherwise use default.
+		// Custom template files receive $variables directly (no extract()) --
+		// reference fields as $variables['key'] rather than bare variable names.
+		$template_file = RECURIO_PLUGIN_DIR . 'templates/emails/' . basename( $template_name ) . '.php';
 		if ( file_exists( $template_file ) ) {
 			include $template_file;
 		} else {

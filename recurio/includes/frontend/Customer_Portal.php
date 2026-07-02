@@ -502,7 +502,7 @@ class Customer_Portal {
 			"{$wpdb->prefix}recurio_subscriptions",
 			$update_data,
 			array( 'id' => $subscription_id ),
-			array( '%s' ),
+			array_fill( 0, count( $update_data ), '%s' ),
 			array( '%d' )
 		);
 
@@ -623,8 +623,8 @@ class Customer_Portal {
 
 		wp_send_json_success(
 			array(
-				/* translators: %s: localized new next payment date */
 				'message'               => isset( $result['new_next_payment'] )
+					/* translators: %s: localized new next payment date */
 					? sprintf( __( 'Your next billing date is now %s.', 'recurio' ), date_i18n( get_option( 'date_format' ), strtotime( $result['new_next_payment'] ) ) )
 					: __( 'Billing cycle skipped successfully.', 'recurio' ),
 				'new_next_payment'      => $result['new_next_payment'] ?? '',

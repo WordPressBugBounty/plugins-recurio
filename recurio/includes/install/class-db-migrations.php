@@ -69,35 +69,42 @@ class Recurio_DB_Migrations {
 		}
 
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- One-time migration
+		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name is safe, no user input; DDL has no value to prepare
 		$columns = $wpdb->get_col( "SHOW COLUMNS FROM {$table_name}" );
 
 		if ( ! in_array( 'access_duration_value', $columns, true ) ) {
 			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.SchemaChange -- One-time ALTER
+			// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name is safe, no user input; DDL has no value to prepare
 			$wpdb->query( "ALTER TABLE {$table_name} ADD COLUMN access_duration_value INT DEFAULT 1 AFTER access_timing" );
 		}
 
 		if ( ! in_array( 'access_duration_unit', $columns, true ) ) {
 			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.SchemaChange -- One-time ALTER
+			// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name is safe, no user input; DDL has no value to prepare
 			$wpdb->query( "ALTER TABLE {$table_name} ADD COLUMN access_duration_unit VARCHAR(20) DEFAULT 'month' AFTER access_duration_value" );
 		}
 
 		if ( ! in_array( 'access_end_date', $columns, true ) ) {
 			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.SchemaChange -- One-time ALTER
+			// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name is safe, no user input; DDL has no value to prepare
 			$wpdb->query( "ALTER TABLE {$table_name} ADD COLUMN access_end_date DATETIME DEFAULT NULL AFTER access_duration_unit" );
 		}
 
 		if ( ! in_array( 'switched_from_id', $columns, true ) ) {
 			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.SchemaChange -- One-time ALTER
+			// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name is safe, no user input; DDL has no value to prepare
 			$wpdb->query( "ALTER TABLE {$table_name} ADD COLUMN switched_from_id BIGINT DEFAULT NULL AFTER access_end_date" );
 		}
 
 		if ( ! in_array( 'switched_to_id', $columns, true ) ) {
 			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.SchemaChange -- One-time ALTER
+			// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name is safe, no user input; DDL has no value to prepare
 			$wpdb->query( "ALTER TABLE {$table_name} ADD COLUMN switched_to_id BIGINT DEFAULT NULL AFTER switched_from_id" );
 		}
 
 		if ( ! in_array( 'switch_type', $columns, true ) ) {
 			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.SchemaChange -- One-time ALTER
+			// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name is safe, no user input; DDL has no value to prepare
 			$wpdb->query( "ALTER TABLE {$table_name} ADD COLUMN switch_type VARCHAR(20) DEFAULT NULL AFTER switched_to_id" );
 		}
 	}
@@ -131,21 +138,25 @@ class Recurio_DB_Migrations {
 
 			// Fetch all columns once for the three subscriptions-table checks below.
 			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- One-time migration
+			// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name is safe, no user input; DDL has no value to prepare
 			$columns = $wpdb->get_col( "SHOW COLUMNS FROM {$subscriptions_table}" );
 
 			// 1. skip_count — tracks how many billing cycles a customer has skipped.
 			if ( ! in_array( 'skip_count', $columns, true ) ) {
 				// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.SchemaChange -- One-time ALTER
+				// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name is safe, no user input; DDL has no value to prepare
 				$wpdb->query( "ALTER TABLE {$subscriptions_table} ADD COLUMN skip_count INT NOT NULL DEFAULT 0 AFTER renewal_count" );
 			}
 
 			// 3. shipping_amount and shipping_method for shipping address changes.
 			if ( ! in_array( 'shipping_amount', $columns, true ) ) {
 				// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.SchemaChange -- One-time ALTER
+				// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name is safe, no user input; DDL has no value to prepare
 				$wpdb->query( "ALTER TABLE {$subscriptions_table} ADD COLUMN shipping_amount DECIMAL(10,2) NOT NULL DEFAULT 0.00 AFTER shipping_address" );
 			}
 			if ( ! in_array( 'shipping_method', $columns, true ) ) {
 				// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.SchemaChange -- One-time ALTER
+				// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name is safe, no user input; DDL has no value to prepare
 				$wpdb->query( "ALTER TABLE {$subscriptions_table} ADD COLUMN shipping_method VARCHAR(100) NOT NULL DEFAULT '' AFTER shipping_amount" );
 			}
 		}
@@ -155,9 +166,11 @@ class Recurio_DB_Migrations {
 		$events_table_exists = $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $events_table ) );
 		if ( $events_table === $events_table_exists ) {
 			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- One-time migration
-			$col = $wpdb->get_row( "SHOW COLUMNS FROM `{$events_table}` LIKE 'event_metadata'" );
+			// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name is safe, no user input
+			$col = $wpdb->get_row( $wpdb->prepare( "SHOW COLUMNS FROM `{$events_table}` LIKE %s", 'event_metadata' ) );
 			if ( $col && ! empty( $col->Type ) && stripos( $col->Type, 'longtext' ) === false ) {
 				// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.SchemaChange -- One-time ALTER
+				// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name is safe, no user input; DDL has no value to prepare
 				$wpdb->query( "ALTER TABLE `{$events_table}` MODIFY COLUMN event_metadata LONGTEXT" );
 			}
 		}

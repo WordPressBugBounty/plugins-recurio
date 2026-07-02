@@ -241,6 +241,7 @@ class Recurio_Variable_Subscriptions {
 		}
 
 		if ( isset( $_POST['_recurio_subscription_price'][ $loop_key ] ) ) {
+			// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- wc_format_decimal() sanitizes to a numeric string.
 			$price = wc_format_decimal( wp_unslash( $_POST['_recurio_subscription_price'][ $loop_key ] ) );
 			update_post_meta( $variation_id, '_recurio_subscription_price', $price );
 		}
@@ -251,6 +252,7 @@ class Recurio_Variable_Subscriptions {
 		}
 
 		if ( isset( $_POST['_recurio_subscription_signup_fee'][ $loop_key ] ) ) {
+			// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- wc_format_decimal() sanitizes to a numeric string.
 			$fee = wc_format_decimal( wp_unslash( $_POST['_recurio_subscription_signup_fee'][ $loop_key ] ) );
 			update_post_meta( $variation_id, '_recurio_subscription_signup_fee', $fee );
 		}

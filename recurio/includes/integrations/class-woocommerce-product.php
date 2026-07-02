@@ -520,6 +520,7 @@ class Recurio_WooCommerce_Product {
 
 			// phpcs:ignore WordPress.Security.NonceVerification.Missing -- This is a WooCommerce product save hook callback
 			if ( isset( $_POST['_recurio_subscription_discount_value'] ) ) {
+				// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- wc_format_decimal() sanitizes to a numeric string.
 				$discount_value = wc_format_decimal( wp_unslash( $_POST['_recurio_subscription_discount_value'] ) );
 				update_post_meta( $post_id, '_recurio_subscription_discount_value', $discount_value );
 			}

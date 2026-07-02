@@ -342,6 +342,7 @@ class ChangeLog
         }
 
         // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- One-time migration.
+        // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name is safe, no user input; no dynamic values in this query
         $rows = $wpdb->get_results("SELECT user_id, version FROM `{$table}`", ARRAY_A);
 
         if (is_array($rows)) {
@@ -363,6 +364,7 @@ class ChangeLog
         }
 
         // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.SchemaChange -- One-time migration.
+        // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name is safe, no user input; DDL has no value to prepare
         $wpdb->query("DROP TABLE IF EXISTS `{$table}`");
     }
 
