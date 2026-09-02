@@ -168,17 +168,40 @@ class ChangeLog
         return [
 
             [
+                'version' => '1.1.5',
+                'date'    => '2026-09-02',
+                'changes' => [
+                    'New Features' => [
+                        __('Recommended Plugins page — discover, install, and activate useful companion plugins right from your Recurio dashboard.', 'recurio'),
+                    ],
+                    'Fixes'        => [
+                        __('The "Portal Location" setting wouldn\'t save properly — choosing "Standalone Page" would revert back to "WooCommerce My Account" after saving.', 'recurio'),
+                        __('The "Enable Customer Portal" toggle in Settings now works correctly — turning it off fully hides the customer portal.', 'recurio'),
+                        __('A technical warning no longer appears on customers\' subscription list when an installment plan is fully paid off.', 'recurio'),
+                        __('A PHP warning and a broken "View Full Dashboard" link in the Recurio widget on your WordPress Dashboard.', 'recurio'),
+                        __('Save confirmations and pop-up messages no longer appear hidden behind the WordPress toolbar.', 'recurio'),
+                    ],
+                    'Improvements' => [
+                        __('Cleaner spacing and alignment across the Settings, Upgrade to Pro, and Customers pages.', 'recurio'),
+                        __('The top menu now adapts better on smaller screens, keeping your license status and notifications always visible.', 'recurio'),
+                    ],
+                    'Compatibility' => [
+                        __('Latest version of WordPress and WooCommerce.', 'recurio'),
+                    ],
+                ],
+            ],
+            [
                 'version' => '1.1.1',
                 'date'    => '2026-05-23',
                 'changes' => [
                     'Fixes'        => [
-                        esc_html__('Payment method filter caused persistent checkout error notices that prevented orders from completing.', 'recurio'),
-                        esc_html__('Payment gateway allowlist logic was duplicated across two code paths; consolidated into a single static helper.', 'recurio'),
-                        esc_html__('Admin notice warning for missing subscription-compatible gateways was being stripped by the Recurio admin notice cleanup.', 'recurio'),
+                        __('Payment method filter caused persistent checkout error notices that prevented orders from completing.', 'recurio'),
+                        __('Payment gateway allowlist logic was duplicated across two code paths; consolidated into a single static helper.', 'recurio'),
+                        __('Admin notice warning for missing subscription-compatible gateways was being stripped by the Recurio admin notice cleanup.', 'recurio'),
                     ],
                     'Improvements' => [
-                        esc_html__('Admin gateway warning now only displays when at least one subscription product exists, is restricted to users with manage_options capability, and is dismissible.', 'recurio'),
-                        esc_html__('Subscription-product existence check behind the gateway warning is now cached with a 12-hour transient.', 'recurio'),
+                        __('Admin gateway warning now only displays when at least one subscription product exists, is restricted to users with manage_options capability, and is dismissible.', 'recurio'),
+                        __('Subscription-product existence check behind the gateway warning is now cached with a 12-hour transient.', 'recurio'),
                     ],
                 ],
             ],
@@ -187,13 +210,13 @@ class ChangeLog
                 'date'    => '2026-04-15',
                 'changes' => [
                     'Fixes'         => [
-                        esc_html__('Offer text showing issue in product page.', 'recurio'),
-                        esc_html__('Checkout page order summary showing issue with subscription product.', 'recurio'),
-                        esc_html__('Subscribe status showing issue with non subscription product.', 'recurio'),
-                        esc_html__('Email template wrong billing periods showing issue with custom billing type.', 'recurio'),
+                        __('Offer text showing issue in product page.', 'recurio'),
+                        __('Checkout page order summary showing issue with subscription product.', 'recurio'),
+                        __('Subscribe status showing issue with non subscription product.', 'recurio'),
+                        __('Email template wrong billing periods showing issue with custom billing type.', 'recurio'),
                     ],
                     'Compatibility' => [
-                        esc_html__('Latest WordPress and WooCommerce version', 'recurio'),
+                        __('Latest WordPress and WooCommerce version', 'recurio'),
                     ],
                 ],
             ],
@@ -202,12 +225,12 @@ class ChangeLog
                 'date'    => '2025-09-18',
                 'changes' => [
                     'New Features'  => [
-                        esc_html__('Initial release', 'recurio'),
+                        __('Initial release', 'recurio'),
                     ],
                     'Fixes'         => [],
                     'Improvements'  => [],
                     'Compatibility' => [
-                        esc_html__('Latest WordPress and WooCommerce version', 'recurio'),
+                        __('Latest WordPress and WooCommerce version', 'recurio'),
                     ],
                 ],
             ],

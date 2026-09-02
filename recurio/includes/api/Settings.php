@@ -325,7 +325,7 @@ class Settings {
 
 		// Sanitize general settings fields.
 		if ( isset( $settings['general'] ) && is_array( $settings['general'] ) ) {
-			$allowed_locations = array( 'myaccount', 'shortcode' );
+			$allowed_locations = array( 'myaccount', 'standalone' );
 			if ( isset( $settings['general']['portalLocation'] ) ) {
 				$settings['general']['portalLocation'] = in_array( $settings['general']['portalLocation'], $allowed_locations, true )
 					? $settings['general']['portalLocation']

@@ -56,7 +56,7 @@ class Dashboard_Widget{
                 </div>
             </div>
             <p class="recurio-dashboard-link">
-                <a href="<?php echo esc_url(admin_url('admin.php?page=' . $this->menu_slug)); ?>" class="button button-primary">
+                <a href="<?php echo esc_url(admin_url('admin.php?page=' . Menu::MENU_PAGE_SLUG)); ?>" class="button button-primary">
                     <?php echo esc_html__('View Full Dashboard', 'recurio'); ?>
                 </a>
             </p>

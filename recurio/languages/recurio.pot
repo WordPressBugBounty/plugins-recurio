@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Recurio – Ultimate Subscription for WooCommerce\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-06-29 04:34+0000\n"
+"POT-Creation-Date: 2026-09-02 03:41+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: \n"
@@ -13,19 +13,26 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "X-Generator: Loco https://localise.biz/\n"
-"X-Loco-Version: 2.8.5; wp-7.0.1-alpha-62562; php-8.2.31\n"
+"X-Loco-Version: 2.8.8; wp-7.1; php-8.4.18\n"
 "X-Domain: recurio"
 
 #. %s: sign-up fee amount
-#: includes/integrations/class-woocommerce.php:1513
+#: includes/integrations/class-woocommerce.php:1512
 #, php-format
 msgid " and %s sign-up fee"
 msgstr ""
 
 #. %1$d: trial length (number), %2$s: trial period (days/weeks/months/years)
-#: includes/integrations/class-woocommerce.php:1502
+#: includes/integrations/class-woocommerce.php:1501
 #, php-format
 msgid " with %1$d %2$s free trial"
+msgstr ""
+
+#: includes/api/ChangeLog.php:179
+msgid ""
+"\"Enable Customer Portal\" toggle in Settings had no effect — the My Account "
+"tab, standalone shortcode, and subscription-management AJAX actions now "
+"correctly stop registering when the portal is disabled."
 msgstr ""
 
 #. %1$d: subscription length (number), %2$s: period string or 'renewals'
@@ -54,18 +61,18 @@ msgstr ""
 
 #. %1$s: price, %2$s: period (day/week/month/year)
 #. %1$s: price (may include strikethrough original), %2$s: period
-#: includes/integrations/class-woocommerce.php:1132
-#: includes/integrations/class-woocommerce.php:1492
-#: includes/integrations/class-woocommerce.php:1595
+#: includes/integrations/class-woocommerce.php:1131
+#: includes/integrations/class-woocommerce.php:1491
+#: includes/integrations/class-woocommerce.php:1594
 #, php-format
 msgid "%1$s / %2$s"
 msgstr ""
 
 #. %1$s: price, %2$d: interval (number), %3$s: period (days/weeks/months/years)
 #. %1$s: price (may include strikethrough original), %2$d: interval, %3$s: period
-#: includes/integrations/class-woocommerce.php:1124
-#: includes/integrations/class-woocommerce.php:1484
-#: includes/integrations/class-woocommerce.php:1587
+#: includes/integrations/class-woocommerce.php:1123
+#: includes/integrations/class-woocommerce.php:1483
+#: includes/integrations/class-woocommerce.php:1586
 #, php-format
 msgid "%1$s every %2$d %3$s"
 msgstr ""
@@ -93,12 +100,12 @@ msgid ""
 msgstr ""
 
 #. %d: trial days
-#: includes/integrations/class-variable-subscriptions.php:444
+#: includes/integrations/class-variable-subscriptions.php:446
 msgid "(%d days free trial)"
 msgstr ""
 
 #. %s: signup fee
-#: includes/integrations/class-variable-subscriptions.php:452
+#: includes/integrations/class-variable-subscriptions.php:454
 #, php-format
 msgid "+ %s sign-up fee"
 msgstr ""
@@ -111,8 +118,8 @@ msgstr ""
 
 #. %s: period name (month, year, etc.)
 #. %s: period (day, month, …)
-#: includes/integrations/class-woocommerce.php:2255
-#: includes/integrations/class-variable-subscriptions.php:498
+#: includes/integrations/class-woocommerce.php:2254
+#: includes/integrations/class-variable-subscriptions.php:500
 #, php-format
 msgid "/ %s"
 msgstr ""
@@ -145,7 +152,7 @@ msgstr ""
 msgid "Access Until:"
 msgstr ""
 
-#: includes/Assets.php:289 templates/customer-portal/dashboard.php:135
+#: includes/Assets.php:239 templates/customer-portal/dashboard.php:135
 #: templates/customer-portal/subscription-detail.php:302
 msgid "Actions"
 msgstr ""
@@ -155,13 +162,13 @@ msgid "Activate WooCommerce"
 msgstr ""
 
 #. %d: number of activated subscriptions
-#: includes/integrations/class-woocommerce.php:831
+#: includes/integrations/class-woocommerce.php:830
 msgid "Activated %d subscription when order completed"
 msgid_plural "Activated %d subscriptions when order completed"
 msgstr[0] ""
 msgstr[1] ""
 
-#: includes/Assets.php:279 includes/core/class-subscription-engine.php:1791
+#: includes/Assets.php:229 includes/core/class-subscription-engine.php:1858
 msgid "Active"
 msgstr ""
 
@@ -169,30 +176,30 @@ msgstr ""
 msgid "Active Plan"
 msgstr ""
 
-#: includes/Assets.php:298 includes/admin/Dashboard_Widget.php:42
-#: includes/api/ImportExport.php:250
+#: includes/Assets.php:248 includes/admin/Dashboard_Widget.php:42
+#: includes/api/ImportExport.php:255
 #: templates/customer-portal/dashboard.php:100
 msgid "Active Subscriptions"
 msgstr ""
 
-#: includes/integrations/class-woocommerce.php:2326
+#: includes/integrations/class-woocommerce.php:2325
 msgid "Add to cart"
 msgstr ""
 
-#: includes/api/ChangeLog.php:180
+#: includes/api/ChangeLog.php:206
 msgid ""
 "Admin gateway warning now only displays when at least one subscription "
 "product exists, is restricted to users with manage_options capability, and "
 "is dismissible."
 msgstr ""
 
-#: includes/api/ChangeLog.php:177
+#: includes/api/ChangeLog.php:203
 msgid ""
 "Admin notice warning for missing subscription-compatible gateways was being "
 "stripped by the Recurio admin notice cleanup."
 msgstr ""
 
-#: includes/Assets.php:333
+#: includes/Assets.php:283
 msgid "Advanced"
 msgstr ""
 
@@ -212,7 +219,7 @@ msgstr ""
 msgid "AI-powered revenue predictions and trend analysis"
 msgstr ""
 
-#: includes/frontend/Customer_Portal.php:741
+#: includes/frontend/Customer_Portal.php:746
 msgid "All installments have been paid"
 msgstr ""
 
@@ -228,12 +235,12 @@ msgstr ""
 msgid "Allow this product to be purchased as a subscription"
 msgstr ""
 
-#: includes/api/ImportExport.php:680
+#: includes/api/ImportExport.php:686
 msgid "Already imported"
 msgstr ""
 
-#: includes/Assets.php:288 includes/api/ImportExport.php:188
-#: includes/api/ImportExport.php:314
+#: includes/Assets.php:238 includes/api/ImportExport.php:189
+#: includes/api/ImportExport.php:320
 #: templates/customer-portal/subscription-detail.php:429
 msgid "Amount"
 msgstr ""
@@ -242,16 +249,16 @@ msgstr ""
 msgid "Amount Due Today:"
 msgstr ""
 
-#: includes/frontend/Customer_Portal.php:101
-#: includes/frontend/Customer_Portal.php:1043
+#: includes/frontend/Customer_Portal.php:106
+#: includes/frontend/Customer_Portal.php:1048
 msgid "An error occurred. Please try again."
 msgstr ""
 
-#: includes/Assets.php:319
+#: includes/Assets.php:269
 msgid "Analytics"
 msgstr ""
 
-#: includes/Assets.php:300 includes/admin/Dashboard_Widget.php:54
+#: includes/Assets.php:250 includes/admin/Dashboard_Widget.php:54
 msgid "Annual Recurring Revenue"
 msgstr ""
 
@@ -265,11 +272,11 @@ msgstr ""
 msgid "Are you sure you want to resume this subscription?"
 msgstr ""
 
-#: includes/Assets.php:268
+#: includes/Assets.php:218
 msgid "Are you sure?"
 msgstr ""
 
-#: includes/Assets.php:306
+#: includes/Assets.php:256
 msgid "At-Risk Subscriptions"
 msgstr ""
 
@@ -301,8 +308,8 @@ msgstr ""
 msgid "Badge Text"
 msgstr ""
 
-#: includes/integrations/class-woocommerce.php:2145
-#: includes/integrations/class-woocommerce.php:2323
+#: includes/integrations/class-woocommerce.php:2144
+#: includes/integrations/class-woocommerce.php:2322
 #: includes/integrations/class-woocommerce-product.php:162
 #: includes/integrations/class-woocommerce-product.php:486
 msgid "Best Value"
@@ -313,7 +320,7 @@ msgstr ""
 msgid "Bill Every"
 msgstr ""
 
-#: includes/Assets.php:330 includes/integrations/class-woocommerce.php:614
+#: includes/Assets.php:280 includes/integrations/class-woocommerce.php:614
 #: includes/integrations/class-woocommerce-product.php:219
 msgid "Billing"
 msgstr ""
@@ -322,19 +329,23 @@ msgstr ""
 msgid "Billing Address"
 msgstr ""
 
-#: includes/frontend/Customer_Portal.php:629
+#: includes/frontend/Customer_Portal.php:634
 msgid "Billing cycle skipped successfully."
 msgstr ""
 
-#: includes/api/ImportExport.php:190
+#: includes/api/ImportExport.php:191
 msgid "Billing Interval"
 msgstr ""
 
-#: includes/Assets.php:287
+#: includes/Assets.php:237
 #: includes/integrations/class-variable-subscriptions.php:163
 #: includes/integrations/class-woocommerce-product.php:252
-#: includes/api/ImportExport.php:189
+#: includes/api/ImportExport.php:190
 msgid "Billing Period"
+msgstr ""
+
+#: includes/admin/HasThemes_Stories_Widget.php:152
+msgid "Blog"
 msgstr ""
 
 #: includes/integrations/class-woocommerce-product.php:474
@@ -348,7 +359,13 @@ msgstr ""
 msgid "Browse Products"
 msgstr ""
 
-#: includes/Assets.php:293
+#: includes/api/ChangeLog.php:183
+msgid ""
+"Browser console warnings from deprecated Element UI component APIs across "
+"the dashboard."
+msgstr ""
+
+#: includes/Assets.php:243
 msgid "Bulk Actions"
 msgstr ""
 
@@ -360,7 +377,7 @@ msgstr ""
 msgid "Cache cleared successfully"
 msgstr ""
 
-#: includes/Assets.php:258 includes/Assets.php:292
+#: includes/Assets.php:208 includes/Assets.php:242
 #: templates/customer-portal/dashboard.php:223
 #: templates/customer-portal/subscription-list.php:104
 #: templates/customer-portal/subscription-detail.php:562
@@ -388,11 +405,11 @@ msgstr ""
 msgid "Cancellation Date:"
 msgstr ""
 
-#: includes/Assets.php:281 includes/core/class-subscription-engine.php:1793
+#: includes/Assets.php:231 includes/core/class-subscription-engine.php:1860
 msgid "Cancelled"
 msgstr ""
 
-#: includes/integrations/class-woocommerce.php:1921
+#: includes/integrations/class-woocommerce.php:1920
 msgid "cancelled"
 msgstr ""
 
@@ -401,7 +418,7 @@ msgid "Cancelled:"
 msgstr ""
 
 #. 1: quantity trying to purchase, 2: product name, 3: subscription limit, 4: number of active subscriptions
-#: includes/integrations/class-woocommerce.php:1294
+#: includes/integrations/class-woocommerce.php:1293
 #, php-format
 msgid ""
 "Cannot proceed: You are trying to purchase %1$d subscription for \"%2$s\" "
@@ -416,7 +433,7 @@ msgstr[1] ""
 msgid "Card (boxed)"
 msgstr ""
 
-#: includes/api/ChangeLog.php:191
+#: includes/core/class-changelog-manager.php:102 includes/api/ChangeLog.php:217
 msgid "Checkout page order summary showing issue with subscription product."
 msgstr ""
 
@@ -430,7 +447,7 @@ msgstr ""
 msgid "Churn Prediction"
 msgstr ""
 
-#: includes/Assets.php:301
+#: includes/Assets.php:251
 msgid "Churn Rate"
 msgstr ""
 
@@ -439,7 +456,7 @@ msgstr ""
 msgid "Close"
 msgstr ""
 
-#: includes/Assets.php:322 includes/core/class-pro-manager.php:363
+#: includes/Assets.php:272 includes/core/class-pro-manager.php:363
 msgid "Cohort Analysis"
 msgstr ""
 
@@ -457,22 +474,35 @@ msgid ""
 "Controls the visual style of the subscription widget on the product page."
 msgstr ""
 
-#: includes/api/Plans.php:272
+#: includes/api/RecommendedPlugins.php:76
+#: includes/api/RecommendedPlugins.php:128
+msgid "CookieRay – Cookie Banner for Cookie Consent (GDPR/CCPA Compliant)"
+msgstr ""
+
+#: includes/api/RecommendedPlugins.php:359
+msgid "Could not determine installed plugin file."
+msgstr ""
+
+#: includes/api/Plans.php:270
 msgid "Could not save plan."
 msgstr ""
 
+#: includes/api/RecommendedPlugins.php:143
+msgid "CourseGlade LMS – Online Course & eLearning Platform"
+msgstr ""
+
 #. %d: number of subscriptions created
-#: includes/core/class-subscription-engine.php:1635
+#: includes/core/class-subscription-engine.php:1702
 msgid "Created %d subscription from this order."
 msgid_plural "Created %d subscriptions from this order."
 msgstr[0] ""
 msgstr[1] ""
 
-#: includes/api/ImportExport.php:191
+#: includes/api/ImportExport.php:192
 msgid "Created Date"
 msgstr ""
 
-#: includes/api/ImportExport.php:315
+#: includes/api/ImportExport.php:321
 msgid "Currency"
 msgstr ""
 
@@ -509,23 +539,23 @@ msgstr ""
 msgid "Custom report builder with scheduled delivery"
 msgstr ""
 
-#: includes/Assets.php:284 includes/api/ImportExport.php:312
+#: includes/Assets.php:234 includes/api/ImportExport.php:318
 msgid "Customer"
 msgstr ""
 
-#: includes/core/class-subscription-engine.php:76
+#: includes/core/class-subscription-engine.php:120
 msgid "Customer ID and Product ID are required"
 msgstr ""
 
-#: includes/Assets.php:302
+#: includes/Assets.php:252
 msgid "Customer Lifetime Value"
 msgstr ""
 
-#: includes/api/ImportExport.php:184
+#: includes/api/ImportExport.php:185
 msgid "Customer Name"
 msgstr ""
 
-#: includes/Assets.php:309 includes/admin/Menu.php:49
+#: includes/Assets.php:259 includes/admin/Menu.php:49
 msgid "Customers"
 msgstr ""
 
@@ -534,18 +564,18 @@ msgstr ""
 msgid "Daily"
 msgstr ""
 
-#: includes/Assets.php:296 includes/admin/Menu.php:47
+#: includes/Assets.php:246 includes/admin/Menu.php:47
 msgid "Dashboard"
 msgstr ""
 
-#: includes/api/ImportExport.php:311
+#: includes/api/ImportExport.php:317
 #: templates/customer-portal/subscription-detail.php:428
 msgid "Date"
 msgstr ""
 
-#: includes/integrations/class-woocommerce.php:1744
-#: includes/integrations/class-woocommerce.php:2230
-#: includes/integrations/class-variable-subscriptions.php:472
+#: includes/integrations/class-woocommerce.php:1743
+#: includes/integrations/class-woocommerce.php:2229
+#: includes/integrations/class-variable-subscriptions.php:474
 msgid "day"
 msgid_plural "days"
 msgstr[0] ""
@@ -557,8 +587,8 @@ msgstr[1] ""
 msgid "Day(s)"
 msgstr ""
 
-#: includes/integrations/class-woocommerce.php:2231
-#: includes/integrations/class-variable-subscriptions.php:473
+#: includes/integrations/class-woocommerce.php:2230
+#: includes/integrations/class-variable-subscriptions.php:475
 msgid "days"
 msgstr ""
 
@@ -567,7 +597,7 @@ msgid ""
 "Define how long access should continue after the first payment is completed."
 msgstr ""
 
-#: includes/Assets.php:259
+#: includes/Assets.php:209
 msgid "Delete"
 msgstr ""
 
@@ -579,7 +609,7 @@ msgstr ""
 msgid "Direct link"
 msgstr ""
 
-#: includes/integrations/class-woocommerce-product.php:735
+#: includes/integrations/class-woocommerce-product.php:736
 msgid "Disable"
 msgstr ""
 
@@ -599,11 +629,15 @@ msgstr ""
 msgid "Display savings amount to customers on product page"
 msgstr ""
 
-#: includes/frontend/Customer_Portal.php:691
+#: includes/admin/HasThemes_Stories_Widget.php:158
+msgid "Documentation"
+msgstr ""
+
+#: includes/frontend/Customer_Portal.php:696
 msgid "Early renewal is not available"
 msgstr ""
 
-#: includes/Assets.php:260
+#: includes/Assets.php:210
 #: templates/customer-portal/subscription-detail.php:397
 #: templates/customer-portal/subscription-detail.php:412
 msgid "Edit"
@@ -613,25 +647,30 @@ msgstr ""
 msgid "Edit Address"
 msgstr ""
 
-#: includes/Assets.php:277
+#: includes/Assets.php:227
 msgid "Edit Subscription"
 msgstr ""
 
-#: includes/Assets.php:311 includes/api/ImportExport.php:185
-#: includes/api/ImportExport.php:247
+#: includes/Assets.php:261 includes/api/ImportExport.php:186
+#: includes/api/ImportExport.php:252
 msgid "Email"
 msgstr ""
 
-#: includes/api/ChangeLog.php:193
+#: includes/core/class-changelog-manager.php:104
+msgid ""
+"Email template worng billing periods showing issue with custom billing type."
+msgstr ""
+
+#: includes/api/ChangeLog.php:219
 msgid ""
 "Email template wrong billing periods showing issue with custom billing type."
 msgstr ""
 
-#: includes/Assets.php:331
+#: includes/Assets.php:281
 msgid "Emails"
 msgstr ""
 
-#: includes/integrations/class-woocommerce-product.php:734
+#: includes/integrations/class-woocommerce-product.php:735
 msgid "Enable"
 msgstr ""
 
@@ -644,7 +683,7 @@ msgstr ""
 msgid "Enable Subscription"
 msgstr ""
 
-#: includes/Assets.php:270
+#: includes/Assets.php:220
 msgid "Error!"
 msgstr ""
 
@@ -656,8 +695,8 @@ msgstr ""
 
 #. 1: interval number, 2: period name (months, years, etc.)
 #. 1: interval count, 2: period name (plural)
-#: includes/integrations/class-woocommerce.php:2258
-#: includes/integrations/class-variable-subscriptions.php:505
+#: includes/integrations/class-woocommerce.php:2257
+#: includes/integrations/class-variable-subscriptions.php:507
 #, php-format
 msgid "every %1$d %2$s"
 msgstr ""
@@ -684,23 +723,23 @@ msgid ""
 "Example: A $120 product with 4 monthly payments = $30/month for 4 months."
 msgstr ""
 
-#: includes/Assets.php:283 includes/core/class-subscription-engine.php:1794
+#: includes/Assets.php:233 includes/core/class-subscription-engine.php:1861
 msgid "Expired"
 msgstr ""
 
-#: includes/Assets.php:264
+#: includes/Assets.php:214
 msgid "Export"
 msgstr ""
 
-#: includes/frontend/Customer_Portal.php:556
+#: includes/frontend/Customer_Portal.php:561
 msgid "Failed to cancel subscription"
 msgstr ""
 
-#: includes/frontend/Customer_Portal.php:749
+#: includes/frontend/Customer_Portal.php:754
 msgid "Failed to create payment order"
 msgstr ""
 
-#: includes/core/class-subscription-engine.php:754
+#: includes/core/class-subscription-engine.php:808
 #: includes/core/class-billing-manager.php:281
 #: includes/core/class-billing-manager.php:423
 #: includes/core/class-billing-manager.php:479
@@ -708,20 +747,20 @@ msgid "Failed to create renewal order"
 msgstr ""
 
 #. %s: Database error message
-#: includes/core/class-subscription-engine.php:224
+#: includes/core/class-subscription-engine.php:268
 #, php-format
 msgid "Failed to create subscription. Database error: %s"
 msgstr ""
 
-#: includes/frontend/Customer_Portal.php:586
+#: includes/frontend/Customer_Portal.php:591
 msgid "Failed to pause subscription"
 msgstr ""
 
-#: includes/core/class-subscription-engine.php:1025
+#: includes/core/class-subscription-engine.php:1080
 msgid "Failed to record payment"
 msgstr ""
 
-#: includes/frontend/Customer_Portal.php:662
+#: includes/frontend/Customer_Portal.php:667
 msgid "Failed to resume subscription"
 msgstr ""
 
@@ -729,22 +768,22 @@ msgstr ""
 msgid "Failed to update payment method"
 msgstr ""
 
-#: includes/frontend/Customer_Portal.php:512
+#: includes/frontend/Customer_Portal.php:517
 msgid "Failed to update subscription"
 msgstr ""
 
 #. %s: Database error message
-#: includes/core/class-subscription-engine.php:312
+#: includes/core/class-subscription-engine.php:366
 #, php-format
 msgid "Failed to update subscription. Database error: %s"
 msgstr ""
 
-#: includes/Assets.php:263
+#: includes/Assets.php:213
 msgid "Filter"
 msgstr ""
 
 #. %1$d: payment number, %2$d: total payments
-#: includes/integrations/class-woocommerce.php:1025
+#: includes/integrations/class-woocommerce.php:1024
 #, php-format
 msgid "Final installment (%1$d of %2$d) paid. Subscription completed."
 msgstr ""
@@ -753,11 +792,11 @@ msgstr ""
 msgid "Fixed Amount"
 msgstr ""
 
-#: includes/Assets.php:325
+#: includes/Assets.php:275
 msgid "Forecast"
 msgstr ""
 
-#: includes/integrations/class-woocommerce.php:1431
+#: includes/integrations/class-woocommerce.php:1430
 msgid "free trial"
 msgstr ""
 
@@ -775,16 +814,32 @@ msgid ""
 "must use a payment method that supports tokenization (e.g. Stripe, PayPal)."
 msgstr ""
 
-#: includes/Assets.php:329
+#: includes/Assets.php:279
 msgid "General"
 msgstr ""
 
-#: includes/Assets.php:324
+#: includes/Assets.php:274
 msgid "Growth Rate"
+msgstr ""
+
+#: includes/admin/HasThemes_Stories_Widget.php:53
+msgid "HasThemes Stories"
 msgstr ""
 
 #: includes/integrations/class-woocommerce-product.php:466
 msgid "Highlighted (accented)"
+msgstr ""
+
+#: includes/api/RecommendedPlugins.php:71
+msgid "HT Contact Form – Drag & Drop Form Builder for WordPress"
+msgstr ""
+
+#: includes/api/RecommendedPlugins.php:123
+msgid "HT Easy GA4 ( Google Analytics 4 )"
+msgstr ""
+
+#: includes/api/RecommendedPlugins.php:108
+msgid "HT Mega Addons for Elementor – Elementor Widgets & Template Builder"
 msgstr ""
 
 #. Author URI of the plugin
@@ -795,7 +850,7 @@ msgstr ""
 msgid "https://wprecurio.com"
 msgstr ""
 
-#: includes/api/ImportExport.php:183 includes/api/ImportExport.php:245
+#: includes/api/ImportExport.php:184 includes/api/ImportExport.php:250
 msgid "ID"
 msgstr ""
 
@@ -822,11 +877,11 @@ msgstr ""
 msgid "immediately"
 msgstr ""
 
-#: includes/Assets.php:265
+#: includes/Assets.php:215
 msgid "Import"
 msgstr ""
 
-#: includes/api/ImportExport.php:426
+#: includes/api/ImportExport.php:432
 msgid "Import not started"
 msgstr ""
 
@@ -834,18 +889,22 @@ msgstr ""
 msgid "Include Shipping on Renewals"
 msgstr ""
 
-#: includes/Assets.php:272
+#: includes/Assets.php:222
 msgid "Info"
 msgstr ""
 
 #: includes/integrations/class-variable-subscriptions.php:137
 #: includes/integrations/class-variable-subscriptions.php:152
-#: includes/integrations/class-variable-subscriptions.php:540
+#: includes/integrations/class-variable-subscriptions.php:542
 msgid "Inherit from parent"
 msgstr ""
 
-#: includes/api/ChangeLog.php:205
+#: includes/core/class-changelog-manager.php:116 includes/api/ChangeLog.php:231
 msgid "Initial release"
+msgstr ""
+
+#: includes/api/RecommendedPlugins.php:133
+msgid "Insert Headers and Footers Code"
 msgstr ""
 
 #: includes/base/base.php:68
@@ -853,13 +912,13 @@ msgid "Install WooCommerce"
 msgstr ""
 
 #. %1$d: payment number, %2$d: total payments
-#: includes/integrations/class-woocommerce.php:1050
+#: includes/integrations/class-woocommerce.php:1049
 #, php-format
 msgid "Installment %1$d of %2$d paid successfully."
 msgstr ""
 
 #. %1$d: current installment number, %2$d: total installments
-#: includes/frontend/Customer_Portal.php:762
+#: includes/frontend/Customer_Portal.php:767
 #, php-format
 msgid ""
 "Installment %1$d of %2$d payment order created. Redirecting to payment..."
@@ -873,14 +932,14 @@ msgstr ""
 msgid "Installments"
 msgstr ""
 
-#: includes/core/class-subscription-engine.php:1090
-#: includes/core/class-subscription-engine.php:1724
-#: includes/core/class-subscription-engine.php:1746
-#: includes/core/class-subscription-engine.php:1767
+#: includes/core/class-subscription-engine.php:1149
+#: includes/core/class-subscription-engine.php:1791
+#: includes/core/class-subscription-engine.php:1813
+#: includes/core/class-subscription-engine.php:1834
 msgid "Insufficient permissions"
 msgstr ""
 
-#: includes/Assets.php:332
+#: includes/Assets.php:282
 msgid "Integrations"
 msgstr ""
 
@@ -888,7 +947,7 @@ msgstr ""
 msgid "Invalid payment method"
 msgstr ""
 
-#: includes/integrations/class-woocommerce.php:2062
+#: includes/integrations/class-woocommerce.php:2061
 msgid "Invalid product"
 msgstr ""
 
@@ -896,14 +955,14 @@ msgstr ""
 msgid "Invalid settings payload."
 msgstr ""
 
-#: includes/frontend/Customer_Portal.php:482
-#: includes/frontend/Customer_Portal.php:536
-#: includes/frontend/Customer_Portal.php:577
-#: includes/frontend/Customer_Portal.php:614
-#: includes/frontend/Customer_Portal.php:653
-#: includes/frontend/Customer_Portal.php:683
-#: includes/frontend/Customer_Portal.php:727
-#: includes/frontend/Customer_Portal.php:791
+#: includes/frontend/Customer_Portal.php:487
+#: includes/frontend/Customer_Portal.php:541
+#: includes/frontend/Customer_Portal.php:582
+#: includes/frontend/Customer_Portal.php:619
+#: includes/frontend/Customer_Portal.php:658
+#: includes/frontend/Customer_Portal.php:688
+#: includes/frontend/Customer_Portal.php:732
+#: includes/frontend/Customer_Portal.php:796
 msgid "Invalid subscription"
 msgstr ""
 
@@ -911,11 +970,11 @@ msgstr ""
 msgid "Invalid subscription ID"
 msgstr ""
 
-#: includes/api/Plans.php:671
+#: includes/api/Plans.php:673
 msgid "Invalid taxonomy."
 msgstr ""
 
-#: includes/Assets.php:314 includes/api/ImportExport.php:248
+#: includes/Assets.php:264 includes/api/ImportExport.php:253
 msgid "Join Date"
 msgstr ""
 
@@ -938,11 +997,19 @@ msgstr ""
 msgid "Keep Subscription"
 msgstr ""
 
-#: includes/Assets.php:315
+#: includes/api/RecommendedPlugins.php:113
+msgid ""
+"Kelune CRM – Contact Management, Email Marketing, Newsletter & Marketing "
+"Automation"
+msgstr ""
+
+#: includes/Assets.php:265
 msgid "Last Activity"
 msgstr ""
 
-#: includes/api/ChangeLog.php:196 includes/api/ChangeLog.php:210
+#: includes/core/class-changelog-manager.php:107
+#: includes/core/class-changelog-manager.php:121 includes/api/ChangeLog.php:192
+#: includes/api/ChangeLog.php:222 includes/api/ChangeLog.php:236
 msgid "Latest WordPress and WooCommerce version"
 msgstr ""
 
@@ -972,11 +1039,11 @@ msgstr ""
 msgid "Loading available plans..."
 msgstr ""
 
-#: includes/admin/Menu.php:101
+#: includes/admin/Menu.php:102
 msgid "Loading Dashboard..."
 msgstr ""
 
-#: includes/Assets.php:266
+#: includes/Assets.php:216
 msgid "Loading..."
 msgstr ""
 
@@ -988,7 +1055,7 @@ msgstr ""
 msgid "Manage your subscriptions and billing information"
 msgstr ""
 
-#: includes/frontend/Customer_Portal.php:307
+#: includes/frontend/Customer_Portal.php:312
 msgid "Manual"
 msgstr ""
 
@@ -1000,13 +1067,13 @@ msgstr ""
 msgid "Method"
 msgstr ""
 
-#: includes/Assets.php:320
+#: includes/Assets.php:270
 msgid "Metrics"
 msgstr ""
 
-#: includes/integrations/class-woocommerce.php:1746
-#: includes/integrations/class-woocommerce.php:2238
-#: includes/integrations/class-variable-subscriptions.php:480
+#: includes/integrations/class-woocommerce.php:1745
+#: includes/integrations/class-woocommerce.php:2237
+#: includes/integrations/class-variable-subscriptions.php:482
 msgid "month"
 msgid_plural "months"
 msgstr[0] ""
@@ -1023,12 +1090,12 @@ msgstr ""
 msgid "Monthly"
 msgstr ""
 
-#: includes/Assets.php:299 includes/admin/Dashboard_Widget.php:46
+#: includes/Assets.php:249 includes/admin/Dashboard_Widget.php:46
 msgid "Monthly Recurring Revenue"
 msgstr ""
 
-#: includes/integrations/class-woocommerce.php:2239
-#: includes/integrations/class-variable-subscriptions.php:481
+#: includes/integrations/class-woocommerce.php:2238
+#: includes/integrations/class-variable-subscriptions.php:483
 msgid "months"
 msgstr ""
 
@@ -1036,7 +1103,7 @@ msgstr ""
 msgid "My Subscriptions"
 msgstr ""
 
-#: includes/Assets.php:310 includes/api/ImportExport.php:246
+#: includes/Assets.php:260 includes/api/ImportExport.php:251
 msgid "Name"
 msgstr ""
 
@@ -1044,7 +1111,7 @@ msgstr ""
 msgid "New Plan Price:"
 msgstr ""
 
-#: includes/Assets.php:276
+#: includes/Assets.php:226
 msgid "New Subscription"
 msgstr ""
 
@@ -1052,11 +1119,11 @@ msgstr ""
 msgid "New Subscription Created"
 msgstr ""
 
-#: includes/Assets.php:286 templates/customer-portal/dashboard.php:134
+#: includes/Assets.php:236 templates/customer-portal/dashboard.php:134
 msgid "Next Payment"
 msgstr ""
 
-#: includes/api/ImportExport.php:192
+#: includes/api/ImportExport.php:193
 msgid "Next Payment Date"
 msgstr ""
 
@@ -1071,15 +1138,15 @@ msgid ""
 "suspended"
 msgstr ""
 
-#: includes/Assets.php:267
+#: includes/Assets.php:217
 msgid "No data available"
 msgstr ""
 
-#: includes/frontend/Customer_Portal.php:495
+#: includes/frontend/Customer_Portal.php:500
 msgid "No data to update"
 msgstr ""
 
-#: includes/api/ImportExport.php:470
+#: includes/api/ImportExport.php:476
 msgid "No import has been started"
 msgstr ""
 
@@ -1087,7 +1154,7 @@ msgstr ""
 msgid "No limit"
 msgstr ""
 
-#: includes/core/class-subscription-engine.php:734
+#: includes/core/class-subscription-engine.php:788
 msgid "No next payment date to extend"
 msgstr ""
 
@@ -1102,7 +1169,7 @@ msgid ""
 "the store administrator."
 msgstr ""
 
-#: includes/integrations/class-woocommerce.php:836
+#: includes/integrations/class-woocommerce.php:835
 msgid "No subscriptions found to activate"
 msgstr ""
 
@@ -1110,14 +1177,18 @@ msgstr ""
 msgid "No subscriptions found."
 msgstr ""
 
-#: includes/frontend/Customer_Portal.php:475
-#: includes/frontend/Customer_Portal.php:525
-#: includes/frontend/Customer_Portal.php:570
-#: includes/frontend/Customer_Portal.php:600
-#: includes/frontend/Customer_Portal.php:646
-#: includes/frontend/Customer_Portal.php:676
-#: includes/frontend/Customer_Portal.php:720
-#: includes/frontend/Customer_Portal.php:781
+#: includes/core/class-subscription-engine.php:347
+msgid "No valid fields supplied for subscription update."
+msgstr ""
+
+#: includes/frontend/Customer_Portal.php:480
+#: includes/frontend/Customer_Portal.php:530
+#: includes/frontend/Customer_Portal.php:575
+#: includes/frontend/Customer_Portal.php:605
+#: includes/frontend/Customer_Portal.php:651
+#: includes/frontend/Customer_Portal.php:681
+#: includes/frontend/Customer_Portal.php:725
+#: includes/frontend/Customer_Portal.php:786
 msgid "Not logged in"
 msgstr ""
 
@@ -1133,6 +1204,10 @@ msgstr ""
 msgid "Not specified"
 msgstr ""
 
+#: includes/api/RecommendedPlugins.php:61
+msgid "Notification Bar for WordPress"
+msgstr ""
+
 #: includes/integrations/class-woocommerce-product.php:330
 msgid "Number of billing periods (0 for unlimited)"
 msgstr ""
@@ -1145,7 +1220,7 @@ msgstr ""
 msgid "Number of Payments"
 msgstr ""
 
-#: includes/api/ChangeLog.php:190
+#: includes/core/class-changelog-manager.php:101 includes/api/ChangeLog.php:216
 msgid "Offer text showing issue in product page."
 msgstr ""
 
@@ -1159,27 +1234,27 @@ msgid "One-time fee charged when subscription starts"
 msgstr ""
 
 #: includes/integrations/class-woocommerce.php:576
-#: includes/integrations/class-woocommerce.php:2156
+#: includes/integrations/class-woocommerce.php:2155
 msgid "One-time purchase"
 msgstr ""
 
-#: includes/core/class-subscription-engine.php:573
+#: includes/core/class-subscription-engine.php:627
 msgid "Only active or trial subscriptions can skip a billing cycle"
 msgstr ""
 
-#: includes/core/class-subscription-engine.php:426
+#: includes/core/class-subscription-engine.php:480
 msgid "Only active subscriptions can be paused"
 msgstr ""
 
-#: includes/core/class-subscription-engine.php:725
+#: includes/core/class-subscription-engine.php:779
 msgid "Only active subscriptions can be renewed early"
 msgstr ""
 
-#: includes/core/class-subscription-engine.php:470
+#: includes/core/class-subscription-engine.php:524
 msgid "Only paused subscriptions can be resumed"
 msgstr ""
 
-#: includes/integrations/class-woocommerce.php:1922
+#: includes/integrations/class-woocommerce.php:1921
 msgid "Order moved to trash"
 msgstr ""
 
@@ -1187,7 +1262,7 @@ msgstr ""
 msgid "Override parent subscription settings"
 msgstr ""
 
-#: includes/Assets.php:297
+#: includes/Assets.php:247
 msgid "Overview"
 msgstr ""
 
@@ -1195,7 +1270,7 @@ msgstr ""
 msgid "Paid"
 msgstr ""
 
-#: includes/Assets.php:290 templates/customer-portal/dashboard.php:213
+#: includes/Assets.php:240 templates/customer-portal/dashboard.php:213
 #: templates/customer-portal/subscription-list.php:94
 msgid "Pause"
 msgstr ""
@@ -1208,7 +1283,7 @@ msgstr ""
 msgid "Pause Subscription"
 msgstr ""
 
-#: includes/Assets.php:280 includes/core/class-subscription-engine.php:1792
+#: includes/Assets.php:230 includes/core/class-subscription-engine.php:1859
 msgid "Paused"
 msgstr ""
 
@@ -1247,11 +1322,11 @@ msgstr ""
 msgid "Payment failed for your subscription"
 msgstr ""
 
-#: includes/api/ImportExport.php:316
+#: includes/api/ImportExport.php:322
 msgid "Payment Gateway"
 msgstr ""
 
-#: includes/api/ChangeLog.php:176
+#: includes/api/ChangeLog.php:202
 msgid ""
 "Payment gateway allowlist logic was duplicated across two code paths; "
 "consolidated into a single static helper."
@@ -1276,13 +1351,13 @@ msgstr ""
 msgid "Payment method declined"
 msgstr ""
 
-#: includes/api/ChangeLog.php:175
+#: includes/api/ChangeLog.php:201
 msgid ""
 "Payment method filter caused persistent checkout error notices that "
 "prevented orders from completing."
 msgstr ""
 
-#: includes/frontend/Customer_Portal.php:828
+#: includes/frontend/Customer_Portal.php:833
 msgid "Payment method updated successfully"
 msgstr ""
 
@@ -1327,11 +1402,11 @@ msgstr ""
 msgid "PayPal payment failed"
 msgstr ""
 
-#: includes/Assets.php:282 includes/core/class-subscription-engine.php:1795
+#: includes/Assets.php:232 includes/core/class-subscription-engine.php:1862
 msgid "Pending"
 msgstr ""
 
-#: includes/core/class-subscription-engine.php:1796
+#: includes/core/class-subscription-engine.php:1863
 msgid "Pending Cancellation"
 msgstr ""
 
@@ -1345,30 +1420,46 @@ msgstr ""
 msgid "Percentage (%)"
 msgstr ""
 
-#: includes/api/ImportExport.php:319
+#: includes/api/ImportExport.php:325
 msgid "Period End"
 msgstr ""
 
-#: includes/api/ImportExport.php:318
+#: includes/api/ImportExport.php:324
 msgid "Period Start"
 msgstr ""
 
-#: includes/api/ImportExport.php:317
+#: includes/api/ImportExport.php:323
 msgid "Period Type"
 msgstr ""
 
-#: includes/api/Plans.php:420
+#: includes/api/ChangeLog.php:180
+msgid ""
+"PHP deprecation notice shown on the My Account Subscriptions table for "
+"active installment subscriptions with no remaining payment due."
+msgstr ""
+
+#: includes/api/ChangeLog.php:181
+msgid ""
+"PHP warning on the \"Subscription Overview\" dashboard widget's \"View Full "
+"Dashboard\" link."
+msgstr ""
+
+#: includes/api/RecommendedPlugins.php:138
+msgid "Pixelavo – Server Side Tracking & Pixel + AI Ads Tools"
+msgstr ""
+
+#: includes/api/Plans.php:418
 msgid "Plan has no category or tag scope configured."
 msgstr ""
 
-#: includes/api/Plans.php:1043
+#: includes/api/Plans.php:1046
 msgid "Plan name is required."
 msgstr ""
 
-#: includes/api/Plans.php:253 includes/api/Plans.php:284
-#: includes/api/Plans.php:350 includes/api/Plans.php:376
-#: includes/api/Plans.php:411 includes/api/Plans.php:483
-#: includes/api/Plans.php:561 includes/api/Plans.php:621
+#: includes/api/Plans.php:251 includes/api/Plans.php:282
+#: includes/api/Plans.php:348 includes/api/Plans.php:374
+#: includes/api/Plans.php:409 includes/api/Plans.php:481
+#: includes/api/Plans.php:559 includes/api/Plans.php:623
 msgid "Plan not found."
 msgstr ""
 
@@ -1380,8 +1471,26 @@ msgstr ""
 msgid "Please enter your license key to unlock all Pro features."
 msgstr ""
 
-#: includes/frontend/Customer_Portal.php:117
+#: includes/frontend/Customer_Portal.php:122
 msgid "Please log in to view your subscriptions."
+msgstr ""
+
+#: includes/api/RecommendedPlugins.php:397
+msgid "Plugin is not installed."
+msgstr ""
+
+#: includes/api/RecommendedPlugins.php:337
+msgid "Plugin not found on WordPress.org."
+msgstr ""
+
+#: includes/api/RecommendedPlugins.php:103
+msgid "Popular"
+msgstr ""
+
+#: includes/api/ChangeLog.php:178
+msgid ""
+"Portal Location setting (Standalone Page / WooCommerce My Account) reverted "
+"to My Account after every save due to a stale value in the backend allowlist."
 msgstr ""
 
 #: templates/customer-portal/dashboard.php:133
@@ -1401,13 +1510,13 @@ msgstr ""
 msgid "Primary Colour"
 msgstr ""
 
-#: includes/frontend/Customer_Portal.php:100
-#: includes/frontend/Customer_Portal.php:1042
+#: includes/frontend/Customer_Portal.php:105
+#: includes/frontend/Customer_Portal.php:1047
 msgid "Processing..."
 msgstr ""
 
-#: includes/Assets.php:285 includes/api/ImportExport.php:186
-#: includes/api/ImportExport.php:313
+#: includes/Assets.php:235 includes/api/ImportExport.php:187
+#: includes/api/ImportExport.php:319
 #: templates/customer-portal/dashboard.php:131
 msgid "Product"
 msgstr ""
@@ -1427,11 +1536,11 @@ msgstr ""
 msgid "Product access will be granted after all payments are complete."
 msgstr ""
 
-#: includes/api/Plans.php:549
+#: includes/api/Plans.php:547
 msgid "product_id is required."
 msgstr ""
 
-#: includes/api/Plans.php:381
+#: includes/api/Plans.php:379
 msgid "product_ids must be a non-empty array."
 msgstr ""
 
@@ -1452,8 +1561,22 @@ msgstr ""
 msgid "Reactivate Subscription"
 msgstr ""
 
-#: includes/Assets.php:303
+#: includes/Assets.php:253
 msgid "Recent Activity"
+msgstr ""
+
+#: includes/api/RecommendedPlugins.php:46
+msgid "Recommended"
+msgstr ""
+
+#: includes/admin/Menu.php:53
+msgid "Recommended Plugins"
+msgstr ""
+
+#: includes/api/ChangeLog.php:175
+msgid ""
+"Recommended Plugins page in the dashboard — browse, install, and activate "
+"companion plugins without leaving Recurio."
 msgstr ""
 
 #: includes/admin/Menu.php:38
@@ -1480,7 +1603,7 @@ msgstr ""
 msgid "Recurio – Ultimate Subscription for WooCommerce"
 msgstr ""
 
-#: includes/Admin.php:119
+#: includes/Admin.php:124
 msgid ""
 "Recurio: No payment gateways are currently available for subscription "
 "products. Please enable at least one compatible gateway in WooCommerce → "
@@ -1495,7 +1618,7 @@ msgstr ""
 msgid "Recurring total"
 msgstr ""
 
-#: includes/integrations/class-woocommerce.php:1419
+#: includes/integrations/class-woocommerce.php:1418
 msgid "Recurring:"
 msgstr ""
 
@@ -1518,7 +1641,7 @@ msgstr ""
 msgid "Renewal Amount:"
 msgstr ""
 
-#: includes/frontend/Customer_Portal.php:703
+#: includes/frontend/Customer_Portal.php:708
 msgid "Renewal order created successfully. Please complete the payment."
 msgstr ""
 
@@ -1532,11 +1655,11 @@ msgstr ""
 msgid "renewals"
 msgstr ""
 
-#: includes/Assets.php:321 includes/admin/Menu.php:52
+#: includes/Assets.php:271 includes/admin/Menu.php:52
 msgid "Reports"
 msgstr ""
 
-#: includes/Assets.php:291 templates/customer-portal/dashboard.php:217
+#: includes/Assets.php:241 templates/customer-portal/dashboard.php:217
 #: templates/customer-portal/subscription-list.php:98
 msgid "Resume"
 msgstr ""
@@ -1549,7 +1672,7 @@ msgstr ""
 msgid "Resume Subscription"
 msgstr ""
 
-#: includes/Assets.php:323
+#: includes/Assets.php:273
 msgid "Retention Rate"
 msgstr ""
 
@@ -1561,16 +1684,16 @@ msgstr ""
 msgid "Revenue Goals"
 msgstr ""
 
-#: includes/Assets.php:304
+#: includes/Assets.php:254
 msgid "Revenue Trend"
 msgstr ""
 
-#: includes/Assets.php:257 includes/integrations/class-woocommerce.php:2327
+#: includes/Assets.php:207 includes/integrations/class-woocommerce.php:2326
 msgid "Save"
 msgstr ""
 
 #. %s: savings percentage number
-#: includes/integrations/class-woocommerce.php:2172
+#: includes/integrations/class-woocommerce.php:2171
 #, php-format
 msgid "Save %s%%"
 msgstr ""
@@ -1579,11 +1702,17 @@ msgstr ""
 msgid "Save Address"
 msgstr ""
 
-#: includes/Assets.php:334
+#: includes/Assets.php:284
 msgid "Save Settings"
 msgstr ""
 
-#: includes/Assets.php:262
+#: includes/api/ChangeLog.php:182
+msgid ""
+"Save/success notifications and confirmation dialogs could appear hidden "
+"behind the WordPress admin toolbar."
+msgstr ""
+
+#: includes/Assets.php:212
 msgid "Search"
 msgstr ""
 
@@ -1591,7 +1720,7 @@ msgstr ""
 msgid "Secure payment method storage for recurring billing"
 msgstr ""
 
-#: includes/Assets.php:316
+#: includes/Assets.php:266
 msgid "Segment"
 msgstr ""
 
@@ -1622,11 +1751,11 @@ msgstr ""
 msgid "Set custom intervals like \"every 2 weeks\" or \"every 3 months\""
 msgstr ""
 
-#: includes/Assets.php:328 includes/admin/Menu.php:51
+#: includes/Assets.php:278 includes/admin/Menu.php:51
 msgid "Settings"
 msgstr ""
 
-#: includes/Assets.php:335 includes/api/Settings.php:420
+#: includes/Assets.php:285 includes/api/Settings.php:420
 msgid "Settings saved successfully"
 msgstr ""
 
@@ -1646,6 +1775,11 @@ msgstr ""
 
 #: templates/customer-portal/subscription-detail.php:600
 msgid "Shipping:"
+msgstr ""
+
+#: includes/api/RecommendedPlugins.php:51
+#: includes/api/RecommendedPlugins.php:87
+msgid "ShopLentor – All-in-One WooCommerce Growth & Store Enhancement Plugin"
 msgstr ""
 
 #: includes/integrations/class-woocommerce-product.php:480
@@ -1681,7 +1815,7 @@ msgstr ""
 msgid "Sign-up Fee (%s)"
 msgstr ""
 
-#: includes/integrations/class-woocommerce.php:1440
+#: includes/integrations/class-woocommerce.php:1439
 msgid "Sign-up fee:"
 msgstr ""
 
@@ -1700,8 +1834,24 @@ msgstr ""
 msgid "Skip next payment (%s)"
 msgstr ""
 
-#: includes/frontend/Customer_Portal.php:607
+#: includes/frontend/Customer_Portal.php:612
 msgid "Skipping a billing cycle is not enabled for your store."
+msgstr ""
+
+#: includes/api/ChangeLog.php:188
+msgid "Sort icon alignment on the Customer Management table."
+msgstr ""
+
+#: includes/api/ChangeLog.php:186
+msgid ""
+"Spacing between toggle switches and their description text on the Settings "
+"page."
+msgstr ""
+
+#: includes/api/ChangeLog.php:187
+msgid ""
+"Spacing in the \"Frequently Asked Questions\" section on the Upgrade to Pro "
+"page."
 msgstr ""
 
 #: templates/customer-portal/dashboard.php:169
@@ -1724,7 +1874,7 @@ msgstr ""
 msgid "Started:"
 msgstr ""
 
-#: includes/Assets.php:278 includes/api/ImportExport.php:187
+#: includes/Assets.php:228 includes/api/ImportExport.php:188
 #: templates/customer-portal/dashboard.php:132
 #: templates/customer-portal/subscription-detail.php:432
 msgid "Status"
@@ -1753,7 +1903,7 @@ msgstr ""
 msgid "Stripe payment failed"
 msgstr ""
 
-#: includes/integrations/class-woocommerce.php:2165
+#: includes/integrations/class-woocommerce.php:2164
 msgid "Subscribe"
 msgstr ""
 
@@ -1765,12 +1915,12 @@ msgstr ""
 msgid "Subscribe &amp; Save"
 msgstr ""
 
-#: includes/integrations/class-woocommerce.php:1152
-#: includes/integrations/class-woocommerce.php:2325
+#: includes/integrations/class-woocommerce.php:1151
+#: includes/integrations/class-woocommerce.php:2324
 msgid "Subscribe Now"
 msgstr ""
 
-#: includes/api/ChangeLog.php:192
+#: includes/core/class-changelog-manager.php:103 includes/api/ChangeLog.php:218
 msgid "Subscribe status showing issue with non subscription product."
 msgstr ""
 
@@ -1786,10 +1936,10 @@ msgstr ""
 #: includes/core/class-email-notifications.php:470
 #: includes/core/class-email-notifications.php:503
 #: includes/integrations/class-woocommerce.php:113
-#: includes/integrations/class-woocommerce.php:2021
+#: includes/integrations/class-woocommerce.php:2020
 #: includes/integrations/class-woocommerce-product.php:117
-#: includes/integrations/class-woocommerce-product.php:705
-#: includes/integrations/class-woocommerce-product.php:730
+#: includes/integrations/class-woocommerce-product.php:706
+#: includes/integrations/class-woocommerce-product.php:731
 msgid "Subscription"
 msgstr ""
 
@@ -1801,7 +1951,7 @@ msgid ""
 msgstr ""
 
 #. %d: subscription ID
-#: includes/integrations/class-woocommerce.php:1818
+#: includes/integrations/class-woocommerce.php:1817
 msgid "Subscription #%d cancelled"
 msgstr ""
 
@@ -1809,8 +1959,8 @@ msgstr ""
 msgid "Subscription Cancelled"
 msgstr ""
 
-#: includes/core/class-subscription-engine.php:1778
-#: includes/frontend/Customer_Portal.php:554
+#: includes/core/class-subscription-engine.php:1845
+#: includes/frontend/Customer_Portal.php:559
 msgid "Subscription cancelled successfully"
 msgstr ""
 
@@ -1818,7 +1968,7 @@ msgstr ""
 msgid "Subscription Details"
 msgstr ""
 
-#: includes/integrations/class-woocommerce-product.php:718
+#: includes/integrations/class-woocommerce-product.php:719
 msgid "Subscription disabled"
 msgstr ""
 
@@ -1826,11 +1976,11 @@ msgstr ""
 msgid "Subscription Discount"
 msgstr ""
 
-#: includes/integrations/class-woocommerce-product.php:716
+#: includes/integrations/class-woocommerce-product.php:717
 msgid "Subscription enabled"
 msgstr ""
 
-#: includes/Assets.php:305
+#: includes/Assets.php:255
 msgid "Subscription Growth"
 msgstr ""
 
@@ -1839,7 +1989,7 @@ msgstr ""
 msgid "Subscription ID:"
 msgstr ""
 
-#: includes/core/class-subscription-engine.php:651
+#: includes/core/class-subscription-engine.php:705
 msgid "Subscription is already cancelled or pending cancellation"
 msgstr ""
 
@@ -1847,12 +1997,12 @@ msgstr ""
 msgid "Subscription Length"
 msgstr ""
 
-#: includes/core/class-subscription-engine.php:422
-#: includes/core/class-subscription-engine.php:466
-#: includes/core/class-subscription-engine.php:569
-#: includes/core/class-subscription-engine.php:647
-#: includes/core/class-subscription-engine.php:720
-#: includes/core/class-subscription-engine.php:984
+#: includes/core/class-subscription-engine.php:476
+#: includes/core/class-subscription-engine.php:520
+#: includes/core/class-subscription-engine.php:623
+#: includes/core/class-subscription-engine.php:701
+#: includes/core/class-subscription-engine.php:774
+#: includes/core/class-subscription-engine.php:1039
 msgid "Subscription not found"
 msgstr ""
 
@@ -1864,8 +2014,8 @@ msgstr ""
 msgid "Subscription Overview"
 msgstr ""
 
-#: includes/core/class-subscription-engine.php:1735
-#: includes/frontend/Customer_Portal.php:584
+#: includes/core/class-subscription-engine.php:1802
+#: includes/frontend/Customer_Portal.php:589
 msgid "Subscription paused successfully"
 msgstr ""
 
@@ -1879,7 +2029,7 @@ msgstr ""
 msgid "Subscription product"
 msgstr ""
 
-#: includes/integrations/class-woocommerce.php:1836
+#: includes/integrations/class-woocommerce.php:1835
 msgid "Subscription refund processed"
 msgstr ""
 
@@ -1887,8 +2037,8 @@ msgstr ""
 msgid "Subscription Renewal"
 msgstr ""
 
-#: includes/core/class-subscription-engine.php:1756
-#: includes/frontend/Customer_Portal.php:660
+#: includes/core/class-subscription-engine.php:1823
+#: includes/frontend/Customer_Portal.php:665
 msgid "Subscription resumed successfully"
 msgstr ""
 
@@ -1908,8 +2058,8 @@ msgid ""
 "Change the Plan scope or directly link a different Plan to override."
 msgstr ""
 
-#: includes/core/class-subscription-engine.php:1102
-#: includes/frontend/Customer_Portal.php:510
+#: includes/core/class-subscription-engine.php:1169
+#: includes/frontend/Customer_Portal.php:515
 msgid "Subscription updated successfully"
 msgstr ""
 
@@ -1917,19 +2067,33 @@ msgstr ""
 msgid "Subscription Upgrades"
 msgstr ""
 
-#: includes/api/ChangeLog.php:181
+#: includes/api/ChangeLog.php:207
 msgid ""
 "Subscription-product existence check behind the gateway warning is now "
 "cached with a 12-hour transient."
 msgstr ""
 
-#: includes/Assets.php:275 includes/Assets.php:312
-#: includes/frontend/Customer_Portal.php:957 includes/admin/Menu.php:48
+#: includes/Assets.php:225 includes/Assets.php:262
+#: includes/frontend/Customer_Portal.php:962 includes/admin/Menu.php:48
 msgid "Subscriptions"
 msgstr ""
 
-#: includes/Assets.php:269
+#: includes/Assets.php:219
 msgid "Success!"
+msgstr ""
+
+#: includes/admin/HasThemes_Stories_Widget.php:164
+msgid "Support"
+msgstr ""
+
+#: includes/api/RecommendedPlugins.php:56
+msgid ""
+"Support Genix – Helpdesk, AI Chatbot, Knowledge Base & Customer Support "
+"Ticketing System"
+msgstr ""
+
+#: includes/api/RecommendedPlugins.php:97
+msgid "Swatchly – Product Variation Swatches for WooCommerce"
 msgstr ""
 
 #: templates/customer-portal/subscription-detail.php:341
@@ -1942,7 +2106,7 @@ msgid "Switch Your Plan"
 msgstr ""
 
 #. %s: Template name
-#: includes/frontend/Customer_Portal.php:897
+#: includes/frontend/Customer_Portal.php:902
 #, php-format
 msgid "Template %s not found."
 msgstr ""
@@ -1965,20 +2129,31 @@ msgstr ""
 msgid "This action cannot be undone"
 msgstr ""
 
-#: includes/frontend/Customer_Portal.php:733
+#: includes/frontend/Customer_Portal.php:738
 msgid "This is not a split payment subscription"
 msgstr ""
 
-#: includes/core/class-subscription-engine.php:577
+#: includes/api/RecommendedPlugins.php:323
+#: includes/api/RecommendedPlugins.php:391
+msgid "This plugin is not in the recommended list."
+msgstr ""
+
+#: includes/core/class-subscription-engine.php:631
 msgid "This subscription has no scheduled next payment to skip"
 msgstr ""
 
-#: includes/core/class-subscription-engine.php:730
+#: includes/core/class-subscription-engine.php:784
 msgid "This subscription has reached its maximum number of renewals"
 msgstr ""
 
-#. %s: total price
-#: includes/integrations/class-woocommerce.php:685
+#: includes/api/ChangeLog.php:189
+msgid ""
+"Top navigation menu now collapses overflowing items into a \"more\" menu on "
+"narrower screens instead of wrapping or hiding the license status and "
+"notifications."
+msgstr ""
+
+#: includes/integrations/class-woocommerce.php:684
 msgid "Total"
 msgstr ""
 
@@ -1986,15 +2161,15 @@ msgstr ""
 msgid "Total number of installment payments (minimum 2)"
 msgstr ""
 
-#: includes/api/ImportExport.php:251
+#: includes/api/ImportExport.php:256
 msgid "Total Revenue"
 msgstr ""
 
-#: includes/Assets.php:313 templates/customer-portal/dashboard.php:108
+#: includes/Assets.php:263 templates/customer-portal/dashboard.php:108
 msgid "Total Spent"
 msgstr ""
 
-#: includes/admin/Dashboard_Widget.php:50 includes/api/ImportExport.php:249
+#: includes/admin/Dashboard_Widget.php:50 includes/api/ImportExport.php:254
 #: templates/customer-portal/dashboard.php:112
 msgid "Total Subscriptions"
 msgstr ""
@@ -2007,13 +2182,13 @@ msgstr ""
 msgid "Track retention, revenue, and subscriptions by customer cohorts"
 msgstr ""
 
-#: includes/api/ImportExport.php:282
+#: includes/api/ImportExport.php:287
 msgid ""
 "Transaction export is a Pro feature. Please upgrade to Recurio Pro to unlock "
 "this functionality."
 msgstr ""
 
-#: includes/api/ImportExport.php:310
+#: includes/api/ImportExport.php:316
 #: templates/customer-portal/subscription-detail.php:431
 msgid "Transaction ID"
 msgstr ""
@@ -2022,7 +2197,7 @@ msgstr ""
 msgid "Trial"
 msgstr ""
 
-#: includes/api/ImportExport.php:193
+#: includes/api/ImportExport.php:194
 msgid "Trial End Date"
 msgstr ""
 
@@ -2043,11 +2218,11 @@ msgstr ""
 msgid "Ultimate Subscription Plugin for WooCommerce"
 msgstr ""
 
-#: includes/core/class-subscription-engine.php:744
+#: includes/core/class-subscription-engine.php:798
 msgid "Unable to calculate next billing date."
 msgstr ""
 
-#: includes/core/class-subscription-engine.php:588
+#: includes/core/class-subscription-engine.php:642
 msgid "Unable to calculate the next billing date for this subscription."
 msgstr ""
 
@@ -2064,7 +2239,7 @@ msgid "Update Payment Method"
 msgstr ""
 
 #: includes/core/class-pro-manager.php:272
-#: includes/core/class-pro-manager.php:332 includes/admin/Menu.php:54
+#: includes/core/class-pro-manager.php:332 includes/admin/Menu.php:55
 #: includes/integrations/class-woocommerce-product.php:310
 msgid "Upgrade to Pro"
 msgstr ""
@@ -2091,7 +2266,7 @@ msgstr ""
 msgid "via Tag"
 msgstr ""
 
-#: includes/Assets.php:261 templates/customer-portal/dashboard.php:208
+#: includes/Assets.php:211 templates/customer-portal/dashboard.php:208
 msgid "View"
 msgstr ""
 
@@ -2107,7 +2282,7 @@ msgstr ""
 msgid "Visual email editor with dynamic content"
 msgstr ""
 
-#: includes/Assets.php:271
+#: includes/Assets.php:221
 msgid "Warning!"
 msgstr ""
 
@@ -2115,9 +2290,9 @@ msgstr ""
 msgid "Webhooks"
 msgstr ""
 
-#: includes/integrations/class-woocommerce.php:1745
-#: includes/integrations/class-woocommerce.php:2234
-#: includes/integrations/class-variable-subscriptions.php:476
+#: includes/integrations/class-woocommerce.php:1744
+#: includes/integrations/class-woocommerce.php:2233
+#: includes/integrations/class-variable-subscriptions.php:478
 msgid "week"
 msgid_plural "weeks"
 msgstr[0] ""
@@ -2134,8 +2309,8 @@ msgstr ""
 msgid "Weekly"
 msgstr ""
 
-#: includes/integrations/class-woocommerce.php:2235
-#: includes/integrations/class-variable-subscriptions.php:477
+#: includes/integrations/class-woocommerce.php:2234
+#: includes/integrations/class-variable-subscriptions.php:479
 msgid "weeks"
 msgstr ""
 
@@ -2167,15 +2342,23 @@ msgstr ""
 msgid "When would you like to cancel this subscription?"
 msgstr ""
 
+#: includes/api/RecommendedPlugins.php:92
+msgid "Whols – Wholesale Prices and B2B Store Solution for WooCommerce"
+msgstr ""
+
 #: includes/integrations/class-woocommerce-product.php:462
 msgid "Widget Style"
 msgstr ""
 
-#: includes/api/ImportExport.php:672
+#: includes/api/RecommendedPlugins.php:82
+msgid "WooCommerce"
+msgstr ""
+
+#: includes/api/ImportExport.php:678
 msgid "WooCommerce Subscription not found"
 msgstr ""
 
-#: includes/api/ImportExport.php:376 includes/api/ImportExport.php:395
+#: includes/api/ImportExport.php:382 includes/api/ImportExport.php:401
 msgid "WooCommerce Subscriptions is not active"
 msgstr ""
 
@@ -2183,9 +2366,14 @@ msgstr ""
 msgid "Would you like to renew this subscription now?"
 msgstr ""
 
-#: includes/integrations/class-woocommerce.php:1747
-#: includes/integrations/class-woocommerce.php:2242
-#: includes/integrations/class-variable-subscriptions.php:484
+#: includes/api/RecommendedPlugins.php:66
+#: includes/api/RecommendedPlugins.php:118
+msgid "WP Plugin Manager"
+msgstr ""
+
+#: includes/integrations/class-woocommerce.php:1746
+#: includes/integrations/class-woocommerce.php:2241
+#: includes/integrations/class-variable-subscriptions.php:486
 msgid "year"
 msgid_plural "years"
 msgstr[0] ""
@@ -2202,13 +2390,13 @@ msgstr ""
 msgid "Yearly"
 msgstr ""
 
-#: includes/integrations/class-woocommerce.php:2243
-#: includes/integrations/class-variable-subscriptions.php:485
+#: includes/integrations/class-woocommerce.php:2242
+#: includes/integrations/class-variable-subscriptions.php:487
 msgid "years"
 msgstr ""
 
 #. 1: remaining subscriptions allowed, 2: product name, 3: number of active subscriptions
-#: includes/integrations/class-woocommerce.php:1228
+#: includes/integrations/class-woocommerce.php:1227
 #, php-format
 msgid ""
 "You can only add %1$d more subscription for \"%2$s\". You currently have "
@@ -2219,8 +2407,8 @@ msgid_plural ""
 msgstr[0] ""
 msgstr[1] ""
 
-#: includes/frontend/Customer_Portal.php:140
-#: includes/frontend/Customer_Portal.php:991
+#: includes/frontend/Customer_Portal.php:145
+#: includes/frontend/Customer_Portal.php:996
 msgid "You do not have permission to view this subscription."
 msgstr ""
 
@@ -2229,7 +2417,7 @@ msgid "You don't have any subscriptions yet."
 msgstr ""
 
 #. 1: subscription limit number, 2: product name
-#: includes/integrations/class-woocommerce.php:1218
+#: includes/integrations/class-woocommerce.php:1217
 #, php-format
 msgid ""
 "You have already reached the maximum limit of %1$d subscription for \"%2$s\"."
@@ -2240,7 +2428,7 @@ msgstr[0] ""
 msgstr[1] ""
 
 #. %s: savings amount
-#: includes/integrations/class-woocommerce.php:2188
+#: includes/integrations/class-woocommerce.php:2187
 #, php-format
 msgid "You save %s"
 msgstr ""
@@ -2288,7 +2476,7 @@ msgid ""
 msgstr ""
 
 #. %s: localized new next payment date
-#: includes/frontend/Customer_Portal.php:628
+#: includes/frontend/Customer_Portal.php:633
 #, php-format
 msgid "Your next billing date is now %s."
 msgstr ""
@@ -2324,7 +2512,7 @@ msgstr ""
 msgid "— Inherit from parent —"
 msgstr ""
 
-#: includes/integrations/class-woocommerce-product.php:733
+#: includes/integrations/class-woocommerce-product.php:734
 msgid "— No change —"
 msgstr ""
 

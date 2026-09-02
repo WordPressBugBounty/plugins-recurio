@@ -31,6 +31,9 @@ class Admin {
         if ( !class_exists( __NAMESPACE__ . '\admin\Dashboard_Widget'  ) ) {
             require_once __DIR__ . '/admin/Dashboard_Widget.php';
         }
+        if ( !class_exists( __NAMESPACE__ . '\admin\HasThemes_Stories_Widget'  ) ) {
+            require_once __DIR__ . '/admin/HasThemes_Stories_Widget.php';
+        }
         if ( !class_exists( __NAMESPACE__ . '\admin\Pro_Upsell'  ) ) {
             require_once __DIR__ . '/admin/Pro_Upsell.php';
         }
@@ -50,6 +53,7 @@ class Admin {
     public function init() {
         (new Admin\Menu())->init();
         (new Admin\Dashboard_Widget())->init();
+        (new Admin\HasThemes_Stories_Widget())->init();
         (new Admin\Pro_Upsell())->init();
         (new Api\Plans())->register_hooks();
         (new Api\ChangeLog())->register_hooks();

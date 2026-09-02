@@ -38,8 +38,13 @@ class Customer_Portal {
 	 */
 	public function __construct() {
 		// Get portal location setting.
-		$settings        = get_option( 'recurio_settings', array() );
-		$portal_location = isset( $settings['general']['portalLocation'] ) ? $settings['general']['portalLocation'] : 'standalone';
+		$settings                = get_option( 'recurio_settings', array() );
+		$portal_location         = isset( $settings['general']['portalLocation'] ) ? $settings['general']['portalLocation'] : 'standalone';
+		$enable_customer_portal  = isset( $settings['general']['enableCustomerPortal'] ) ? (bool) $settings['general']['enableCustomerPortal'] : true;
+
+		if ( ! $enable_customer_portal ) {
+			return;
+		}
 
 		// Always register AJAX handlers.
 		add_action( 'wp_ajax_recurio_update_subscription', array( $this, 'ajax_update_subscription' ) );

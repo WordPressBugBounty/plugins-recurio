@@ -43,6 +43,9 @@ class Api extends WP_REST_Controller {
         if ( !class_exists( __NAMESPACE__ . '\Api\Settings'  ) ) {
             require_once __DIR__ . '/api/Settings.php';
         }
+        if ( !class_exists( __NAMESPACE__ . '\Api\RecommendedPlugins'  ) ) {
+            require_once __DIR__ . '/api/RecommendedPlugins.php';
+        }
     }
 
     /**
@@ -56,6 +59,7 @@ class Api extends WP_REST_Controller {
         (new Api\ChangeLog())->register_routes();
         (new Api\ImportExport())->register_routes();
         (new Api\Settings())->register_routes();
+        (new Api\RecommendedPlugins())->register_routes();
     }
 
 }

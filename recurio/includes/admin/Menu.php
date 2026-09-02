@@ -50,6 +50,7 @@ class Menu {
             $submenu[ $slug ][] = array( esc_html__('Plans', 'recurio'), $capability, 'admin.php?page=' . $slug . '#/plans' );
             $submenu[ $slug ][] = array( esc_html__('Settings', 'recurio'), $capability, 'admin.php?page=' . $slug . '#/settings' );
             $submenu[ $slug ][] = array( esc_html__('Reports', 'recurio'), $capability, 'admin.php?page=' . $slug . '#/reports' );
+            $submenu[ $slug ][] = array( esc_html__('Recommended Plugins', 'recurio'), $capability, 'admin.php?page=' . $slug . '#/recommended-plugins' );
             if ( !recurio_is_pro_active() ) {
                 $submenu[ $slug ][] = array( '<span style="color: #00a32a;">⭐ ' . esc_html__( 'Upgrade to Pro', 'recurio' ) . '</span>', $capability, 'admin.php?page=' . $slug . '#/upgrade-to-pro' );
             }

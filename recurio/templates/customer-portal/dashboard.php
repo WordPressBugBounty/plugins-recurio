@@ -195,7 +195,7 @@ $user = wp_get_current_user();
 								</td>
 								<td>
 									<?php
-									if ( in_array( $subscription->status, array( 'active', 'trial' ), true ) ) {
+									if ( in_array( $subscription->status, array( 'active', 'trial' ), true ) && ! empty( $subscription->next_payment_date ) ) {
 										echo esc_html( date_i18n( get_option( 'date_format' ), strtotime( $subscription->next_payment_date ) ) );
 									} else {
 										echo '—';

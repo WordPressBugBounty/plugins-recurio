@@ -2,9 +2,9 @@
 Contributors: devitemsllc, zenaulislam, aslamhasib
 Tags: subscriptions, recurring payments, woocommerce subscriptions, recurring billing, subscription management, subscription box, reorder, revenue, Analytics, Report
 Requires at least: 5.8
-Tested up to: 7.0
+Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 1.1.4
+Stable tag: 1.1.5
 License: GPL v2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -166,6 +166,17 @@ Recurio is designed to work seamlessly with most WooCommerce extensions. If you 
 10. Reduce churn with a smart cancellation retention flow
 
 == Changelog ==
+
+= 1.1.5 - 2026-09-02 =
+* Added: Recommended Plugins page — discover, install, and activate useful companion plugins right from your Recurio dashboard.
+* Solved: The "Portal Location" setting wouldn't save properly — choosing "Standalone Page" would revert back to "WooCommerce My Account" after saving.
+* Solved: The "Enable Customer Portal" toggle in Settings now works correctly — turning it off fully hides the customer portal.
+* Solved: A technical warning no longer appears on customers' subscription list when an installment plan is fully paid off.
+* Solved: A PHP warning and a broken "View Full Dashboard" link in the Recurio widget on your WordPress Dashboard.
+* Solved: Save confirmations and pop-up messages no longer appear hidden behind the WordPress toolbar.
+* Improved: Cleaner spacing and alignment across the Settings, Upgrade to Pro, and Customers pages.
+* Improved: The top menu now adapts better on smaller screens, keeping your license status and notifications always visible.
+* Compatible: Latest version of WordPress and WooCommerce.
 
 = 1.1.4 - 2026-07-02 =
 * Solved: Fixed an escaping issue in the admin subscription update handler.
