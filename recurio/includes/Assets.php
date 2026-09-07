@@ -33,6 +33,26 @@ class Assets {
         }
         
         add_filter( 'script_loader_tag', [ $this, 'add_type_module' ], 10, 3 );
+
+        add_action( 'wp_ajax_recurio_refresh_nonce', [ $this, 'ajax_refresh_nonce' ] );
+    }
+
+    /**
+     * Issue a fresh REST/license nonce for the SPA when its cached one has gone stale
+     * (e.g. dashboard tab left open past the nonce's validity window).
+     *
+     * Deliberately does not call check_ajax_referer() — the whole point of this action
+     * is to hand out a new nonce once the old one is already dead.
+     */
+    public function ajax_refresh_nonce() {
+        if ( ! is_user_logged_in() || ! current_user_can( 'manage_woocommerce' ) ) {
+            wp_send_json_error( null, 403 );
+        }
+
+        wp_send_json_success( array(
+            'nonce'        => wp_create_nonce( 'wp_rest' ),
+            'licenseNonce' => wp_create_nonce( 'recuriopro_license_r' ),
+        ) );
     }
 
     /**
@@ -133,6 +153,7 @@ class Assets {
             'rest_url'    => rest_url( 'recurio/v1' ),
             'nonce'       => wp_create_nonce( 'wp_rest' ),
             'licenseNonce'=> wp_create_nonce( 'recuriopro_license_r' ),
+            'ajaxUrl'     => admin_url( 'admin-ajax.php' ),
             'adminUrl'    => admin_url(),
             'pluginUrl'   => RECURIO_PLUGIN_URL,
             'currentUser' => array(

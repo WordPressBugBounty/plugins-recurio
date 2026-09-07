@@ -168,6 +168,24 @@ class ChangeLog
         return [
 
             [
+                'version' => '1.1.6',
+                'date'    => '2026-09-06',
+                'changes' => [
+                    'New Features' => [
+                        __('Optional setting to tie downloadable-product access to subscription status — suspended on pause, revoked on cancel/expiry, restored on resume. Off by default.', 'recurio'),
+                    ],
+                    'Fixes' => [
+                        __('Welcome banner image missing on the dashboard and a related console error on fresh installs.', 'recurio'),
+                        __('"Cookie check failed" and "Failed to load settings" errors appearing when returning to the dashboard after it had been left open for a while.', 'recurio'),
+                        __('Plan discount not applying to the price or checkout when Multiple Billing Frequencies was enabled.', 'recurio'),
+                        __('Search/dropdown selection issues on Create New Subscription and Plans (dropdowns hidden inside dialogs, Customer field losing selection or dropped keystrokes).', 'recurio'),
+                        __('The Billing Period tooltip on the product edit screen still mentioned requiring Recurio Pro even after activating a Pro license.', 'recurio'),
+                        __('Custom Subscribe Now button text set in Settings wasn\'t reflected on the product page — the button was always reset to the default text on load.', 'recurio'),
+                        __('Split Payments products showed the full price instead of the per-installment amount, labeled just Subscribe. Now shown clearly as Pay in Installments.', 'recurio'),
+                    ],
+                ],
+            ],
+            [
                 'version' => '1.1.5',
                 'date'    => '2026-09-02',
                 'changes' => [

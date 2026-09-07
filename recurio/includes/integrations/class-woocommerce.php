@@ -1473,6 +1473,37 @@ class Recurio_WooCommerce_Integration {
 
 		$subscription_data = $this->get_subscription_data_from_product( $product );
 
+		// Split payments (installments): the customer is only ever charged the
+		// installment amount per cycle, not the full price — show that, not "X / period",
+		// or this price string misrepresents what checkout actually charges.
+		// get_subscription_data_from_product() doesn't carry payment_type/max_payments,
+		// so read the product meta directly here (same source display_subscribe_save_options() uses).
+		$payment_type = get_post_meta( $product_id, '_recurio_payment_type', true ) ?: 'recurring';
+		$max_payments = intval( get_post_meta( $product_id, '_recurio_max_payments', true ) );
+
+		if ( 'split' === $payment_type && $max_payments > 0 ) {
+			// Apply the same subscription discount the Subscribe & Save widget uses,
+			// so this price string and the widget below it never disagree.
+			$discounted_price = floatval( $subscription_data['price'] );
+			$discount_value   = floatval( get_post_meta( $product_id, '_recurio_subscription_discount_value', true ) );
+
+			if ( $discount_value > 0 ) {
+				$discount_type = get_post_meta( $product_id, '_recurio_subscription_discount_type', true ) ?: 'percentage';
+				$discounted_price = 'percentage' === $discount_type
+					? $discounted_price * ( 1 - $discount_value / 100 )
+					: max( 0, $discounted_price - $discount_value );
+			}
+
+			$installment = $discounted_price / $max_payments;
+
+			return sprintf(
+				/* translators: %1$s: installment price, %2$d: number of payments */
+				esc_html__( '%1$s &times; %2$d payments', 'recurio' ),
+				wc_price( $installment ),
+				$max_payments
+			);
+		}
+
 		// Build subscription price string
 		$subscription_price    = wc_price( $subscription_data['price'] );
 		$billing_period_string = $this->get_period_string( $subscription_data['period'], $subscription_data['interval'] );
@@ -1549,7 +1580,14 @@ class Recurio_WooCommerce_Integration {
 
 		$discount_type  = sanitize_key( $default['discount_type'] ?? '' );
 		$discount_value = max( 0.0, floatval( $default['discount_value'] ?? 0 ) );
-		$final_price    = $base_price;
+
+		// Fall back to the plan's overall discount when this frequency option doesn't set its own.
+		if ( ! $discount_type || $discount_value <= 0 ) {
+			$discount_type  = get_post_meta( $product_id, '_recurio_subscription_discount_type', true ) ?: '';
+			$discount_value = max( 0.0, floatval( get_post_meta( $product_id, '_recurio_subscription_discount_value', true ) ) );
+		}
+
+		$final_price = $base_price;
 
 		if ( $discount_type && $discount_value > 0 ) {
 			if ( 'percentage' === $discount_type ) {
@@ -2137,6 +2175,14 @@ class Recurio_WooCommerce_Integration {
 		// Get billing period display
 		$billing_period_text = $this->get_billing_period_text( $product_id, $subscription_data );
 
+		// Split payments (installments) — the widget must show what the customer is
+		// actually charged per payment, not the full price, or the product page
+		// misrepresents the purchase (checkout charges the installment amount only).
+		$payment_type      = get_post_meta( $product_id, '_recurio_payment_type', true ) ?: 'recurring';
+		$max_payments      = intval( get_post_meta( $product_id, '_recurio_max_payments', true ) );
+		$is_split_payment  = ( 'split' === $payment_type && $max_payments > 0 );
+		$installment_price = $is_split_payment ? ( $subscription_price / $max_payments ) : 0;
+
 		// Widget display settings
 		$widget_style = get_post_meta( $product_id, '_recurio_widget_style', true ) ?: 'simple';
 		$widget_color = get_post_meta( $product_id, '_recurio_widget_color', true ) ?: '#1E40AF';
@@ -2161,11 +2207,11 @@ class Recurio_WooCommerce_Integration {
 				<input type="radio" name="recurio_purchase_type" value="subscription" checked="checked" />
 				<span class="recurio-option-content">
 					<span class="recurio-option-label">
-						<?php echo esc_html__( 'Subscribe', 'recurio' ); ?>
+						<?php echo $is_split_payment ? esc_html__( 'Pay in Installments', 'recurio' ) : esc_html__( 'Subscribe', 'recurio' ); ?>
 						<?php if ( $show_badge ) : ?>
 							<span class="recurio-value-badge"><?php echo esc_html( $badge_text ); ?></span>
 						<?php endif; ?>
-						<?php if ( $savings_amount > 0 && $show_savings ) : ?>
+						<?php if ( ! $is_multiple_freq && $savings_amount > 0 && $show_savings ) : ?>
 							<span class="recurio-save-badge"><?php
 							/* translators: %s: savings percentage number */
 							echo esc_html( sprintf( __( 'Save %s%%', 'recurio' ), round( $savings_percent ) ) ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
@@ -2174,13 +2220,39 @@ class Recurio_WooCommerce_Integration {
 					</span>
 					<?php if( !$is_multiple_freq ): ?>
 						<span class="recurio-option-price">
-							<?php if ( $savings_amount > 0 ) : ?>
-								<del><?php echo wp_kses_post( wc_price( $regular_price ) ); ?></del>
+							<?php if ( $is_split_payment ) : ?>
+								<?php
+									echo wp_kses_post(
+										sprintf(
+											/* translators: %1$s: installment price, %2$d: number of payments */
+											__( '%1$s &times; %2$d payments', 'recurio' ),
+											wc_price( $installment_price ),
+											$max_payments
+										)
+									);
+								?>
+							<?php else : ?>
+								<?php if ( $savings_amount > 0 ) : ?>
+									<del><?php echo wp_kses_post( wc_price( $regular_price ) ); ?></del>
+								<?php endif; ?>
+								<?php echo wp_kses_post( wc_price( $subscription_price ) ); ?>
+								<span class="recurio-billing-period"><?php echo esc_html( $billing_period_text ); ?></span>
 							<?php endif; ?>
-							<?php echo wp_kses_post( wc_price( $subscription_price ) ); ?>
-							<span class="recurio-billing-period"><?php echo esc_html( $billing_period_text ); ?></span>
 						</span>
-						<?php if ( $savings_amount > 0 && $show_savings ) : ?>
+						<?php if ( $is_split_payment ) : ?>
+							<span class="recurio-savings">
+								<?php
+									/* translators: %1$s: total price, %2$d: number of payments */
+									echo wp_kses_post(
+										sprintf(
+											__( '%1$s total &mdash; paid off after %2$d payments, no further charges', 'recurio' ),
+											wc_price( $subscription_price ),
+											$max_payments
+										)
+									);
+								?>
+							</span>
+						<?php elseif ( $savings_amount > 0 && $show_savings ) : ?>
 							<span class="recurio-savings">
 								<?php
 									/* translators: %s: savings amount */
@@ -2308,6 +2380,11 @@ class Recurio_WooCommerce_Integration {
 		$discount_type  = get_post_meta( $product->get_id(), '_recurio_subscription_discount_type', true ) ?: 'percentage';
 		$discount_value = floatval( get_post_meta( $product->get_id(), '_recurio_subscription_discount_value', true ) );
 
+		// Same source as the server-rendered button text (get_add_to_cart_text filter above),
+		// so the JS can't stomp a merchant's custom text back to the hardcoded default.
+		$settings    = get_option( 'recurio_settings', array() );
+		$button_text = isset( $settings['general']['subscriptionButtonText'] ) ? $settings['general']['subscriptionButtonText'] : __( 'Subscribe Now', 'recurio' );
+
 		wp_localize_script(
 			'recurio-subscribe-save',
 			'recurioSubscribeSave',
@@ -2321,7 +2398,7 @@ class Recurio_WooCommerce_Integration {
 				'widgetColor'   => get_post_meta( $product->get_id(), '_recurio_widget_color', true ) ?: '#1E40AF',
 				'badgeText'     => get_post_meta( $product->get_id(), '_recurio_badge_text', true ) ?: __( 'Best Value', 'recurio' ),
 				'i18n'          => array(
-					'subscribe'  => __( 'Subscribe Now', 'recurio' ),
+					'subscribe'  => ! empty( $button_text ) ? $button_text : __( 'Subscribe Now', 'recurio' ),
 					'addToCart'  => __( 'Add to cart', 'recurio' ),
 					'savePrefix' => __( 'Save', 'recurio' ),
 				),

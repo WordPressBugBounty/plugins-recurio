@@ -275,7 +275,12 @@ class Recurio_WooCommerce_Product {
 								}
 								?>
 							</span>
-							<?php echo wp_kses_post( wc_help_tip( __( 'Select the billing period for this subscription product. Pro periods (Daily, Weekly, Quarterly) require Recurio Pro.', 'recurio' ) ) ); ?>
+							<?php
+							$period_help_text = $is_pro_licensed
+								? __( 'Select the billing period for this subscription product.', 'recurio' )
+								: __( 'Select the billing period for this subscription product. Pro periods (Daily, Weekly, Quarterly) require Recurio Pro.', 'recurio' );
+							echo wp_kses_post( wc_help_tip( $period_help_text ) );
+							?>
 						</p>
 					</div>
 

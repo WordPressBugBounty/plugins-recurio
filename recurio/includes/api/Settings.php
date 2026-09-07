@@ -86,6 +86,7 @@ class Settings {
 				'subscriptionButtonText'     => 'Subscribe Now',
 				'enableEarlyRenewal'         => true,
 				'enable_skip_billing_cycle'  => false,
+				'suspendDownloadAccessOnPauseCancel' => false,
 				'enableSwitching'            => true,
 				'allowDowngrades'            => true,
 				'switchProration'            => 'prorate',

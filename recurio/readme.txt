@@ -4,7 +4,7 @@ Tags: subscriptions, recurring payments, woocommerce subscriptions, recurring bi
 Requires at least: 5.8
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 1.1.5
+Stable tag: 1.1.6
 License: GPL v2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -166,6 +166,17 @@ Recurio is designed to work seamlessly with most WooCommerce extensions. If you 
 10. Reduce churn with a smart cancellation retention flow
 
 == Changelog ==
+
+= 1.1.6 - 2026-09-06 =
+* Added: Optional setting to tie downloadable-product access to subscription status — suspended on pause, revoked on cancel/expiry, restored on resume. Off by default.
+* Solved: Welcome banner image missing on the dashboard and a related console error on fresh installs — build process now bundles the banner asset correctly.
+* Solved: "Cookie check failed" and "Failed to load settings" errors appearing when returning to the dashboard after it had been left open for a while — the security token now refreshes automatically in the background.
+* Solved: Plan discount not applying to the price or checkout when "Multiple Billing Frequencies" was enabled — subscription price and cart total now correctly reflect the plan's discount.
+* Solved: Search/dropdown selection issues on "Create New Subscription" and Plans (dropdowns hidden inside dialogs, Customer field losing selection or dropped keystrokes).
+* Solved: The Billing Period tooltip on the product edit screen still mentioned "requires Recurio Pro" for Daily/Weekly/Quarterly even after activating a Pro license.
+* Solved: Custom "Subscribe Now" button text set in Settings wasn't reflected on the product page — the button was always reset to the default text on load.
+* Solved: Split Payments products showed the full price instead of the per-installment amount, labeled just "Subscribe". Now shown clearly as "Pay in Installments".
+* Compatible: Latest version of WordPress and WooCommerce.
 
 = 1.1.5 - 2026-09-02 =
 * Added: Recommended Plugins page — discover, install, and activate useful companion plugins right from your Recurio dashboard.

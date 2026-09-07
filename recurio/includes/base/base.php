@@ -99,6 +99,7 @@ class Recurio {
 		require_once RECURIO_PLUGIN_DIR . 'includes/core/class-email-notifications.php';
 		require_once RECURIO_PLUGIN_DIR . 'includes/core/class-billing-manager.php';
 		require_once RECURIO_PLUGIN_DIR . 'includes/core/class-payment-methods.php';
+		require_once RECURIO_PLUGIN_DIR . 'includes/core/class-download-access-manager.php';
 		// Subscription Switching is a PRO feature - loaded by recurio-pro plugin
 
 		// Admin classes
@@ -134,6 +135,7 @@ class Recurio {
 		Recurio_Email_Notifications::get_instance();
 		Recurio_Billing_Manager::get_instance();
 		Recurio_Payment_Methods::get_instance();
+		Recurio_Download_Access_Manager::get_instance();
 
 		// Initialize admin components
 		if ( $this->is_request( 'admin' ) ) {
