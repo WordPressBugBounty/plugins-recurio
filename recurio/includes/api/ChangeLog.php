@@ -168,6 +168,22 @@ class ChangeLog
         return [
 
             [
+                'version' => '1.1.7',
+                'date'    => '2026-10-05',
+                'changes' => [
+                    'Fixes'        => [
+                        __('Subscription counts (Total, Active, Paused, Cancelled) on the Subscriptions page changed when moving between pages. They now always show accurate totals for the whole list.', 'recurio'),
+                        __('The Total count didn\'t match Active + Paused + Cancelled when some subscriptions had another status (such as Expired or Pending). The Total card now notes how many are in other statuses.', 'recurio'),
+                        __('Changing a filter while on a later page could show an empty or wrong list. Every filter change now starts from page 1.', 'recurio'),
+                        __('Exporting subscriptions or customers always downloaded everything, even with filters applied. Exports now match the search, status, product, date and segment filters you have set.', 'recurio'),
+                        __('Fixed a few minor issues.', 'recurio'),
+                    ],
+                    'Improvements' => [
+                        __('Subscription search now runs automatically as you type (Enter still searches instantly), and clearing the search box brings back the full list.', 'recurio'),
+                    ],
+                ],
+            ],
+            [
                 'version' => '1.1.6',
                 'date'    => '2026-09-06',
                 'changes' => [

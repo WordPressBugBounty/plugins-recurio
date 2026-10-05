@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Recurio – Ultimate Subscription for WooCommerce
  * Description: Ultimate Subscription Plugin for WooCommerce
- * Version: 1.1.6
+ * Version: 1.1.7
  * Author: DevItems
  * Author URI: https://devitems.com
  * Plugin URI: https://wprecurio.com
@@ -21,7 +21,7 @@ if (!defined('ABSPATH')) {
 }
 
 // Define plugin constants
-define('RECURIO_VERSION', '1.1.6');
+define('RECURIO_VERSION', '1.1.7');
 define('RECURIO_PLUGIN_FILE', __FILE__);
 define('RECURIO_PLUGIN_DIR', plugin_dir_path(__FILE__));
 define('RECURIO_PLUGIN_URL', plugin_dir_url(__FILE__));

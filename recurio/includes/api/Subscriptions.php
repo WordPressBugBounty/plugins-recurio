@@ -505,12 +505,6 @@ class Subscriptions {
 		$where_sql  = array( '1=1' );
 		$where_args = array();
 
-		// Filter by status.
-		if ( ! empty( $params['status'] ) ) {
-			$where_sql[]  = 's.status = %s';
-			$where_args[] = sanitize_text_field( $params['status'] );
-		}
-
 		// Filter by customer.
 		if ( ! empty( $params['customer_id'] ) ) {
 			$where_sql[]  = 's.customer_id = %d';
@@ -541,8 +535,20 @@ class Subscriptions {
 			$where_args[] = $search;
 		}
 
+		// Base filters (everything except status) drive the per-status stat counts.
+		$base_where_sql  = $where_sql;
+		$base_where_args = $where_args;
+
+		// Filter by status (applies to the list and total only, not the stat counts).
+		if ( ! empty( $params['status'] ) ) {
+			$where_sql[]  = 's.status = %s';
+			$where_args[] = sanitize_text_field( $params['status'] );
+		}
+
 		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- All placeholders collected above; single prepare() call below.
 		$where_clause = implode( ' AND ', $where_sql );
+		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- All placeholders collected above; single prepare() call below.
+		$base_where_clause = implode( ' AND ', $base_where_sql );
 
 		// Get total count and subscriptions.
 		// $where_clause is a raw placeholder template (built above from hardcoded %s/%d
@@ -568,7 +574,30 @@ class Subscriptions {
 				...array_merge( $where_args, array( $per_page, $offset ) )
 			)
 		);
+
+		// Per-status counts for the stat cards: independent of pagination and the status filter.
+		$status_sql  = "SELECT s.status AS status, COUNT(*) AS cnt FROM {$wpdb->prefix}recurio_subscriptions s LEFT JOIN {$wpdb->users} u ON s.customer_id = u.ID WHERE {$base_where_clause} GROUP BY s.status";
+		$status_rows = $wpdb->get_results(
+			empty( $base_where_args ) ? $status_sql : $wpdb->prepare( $status_sql, ...$base_where_args )
+		);
 		// phpcs:enable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare, WordPress.DB.PreparedSQLPlaceholders.ReplacementsWrongNumber
+
+		$status_counts = array(
+			'total'     => 0,
+			'active'    => 0,
+			'paused'    => 0,
+			'cancelled' => 0,
+			'other'     => 0,
+		);
+		foreach ( (array) $status_rows as $row ) {
+			$count                  = intval( $row->cnt );
+			$status_counts['total'] += $count;
+			if ( in_array( $row->status, array( 'active', 'paused', 'cancelled' ), true ) ) {
+				$status_counts[ $row->status ] = $count;
+			} else {
+				$status_counts['other'] += $count;
+			}
+		}
 
 		// Format subscriptions.
 		foreach ( $subscriptions as &$subscription ) {
@@ -579,6 +608,7 @@ class Subscriptions {
 			array(
 				'subscriptions' => $subscriptions,
 				'total'         => intval( $total ),
+				'status_counts' => $status_counts,
 				'page'          => $page,
 				'per_page'      => $per_page,
 				'total_pages'   => ceil( $total / $per_page ),

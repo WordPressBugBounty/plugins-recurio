@@ -1,10 +1,10 @@
 === Recurio – Ultimate Subscription for WooCommerce ===
-Contributors: devitemsllc, zenaulislam, aslamhasib
+Contributors: devitemsllc, zenaulislam, aslamhasib, madhusudandev
 Tags: subscriptions, recurring payments, woocommerce subscriptions, recurring billing, subscription management, subscription box, reorder, revenue, Analytics, Report
 Requires at least: 5.8
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 1.1.6
+Stable tag: 1.1.7
 License: GPL v2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -166,6 +166,14 @@ Recurio is designed to work seamlessly with most WooCommerce extensions. If you 
 10. Reduce churn with a smart cancellation retention flow
 
 == Changelog ==
+
+= 1.1.7 - 2026-10-05 =
+* Solved: Subscription counts (Total, Active, Paused, Cancelled) at the top of the Subscriptions page changed when moving between pages — they now always show accurate totals for the whole list.
+* Solved: The Total count didn't match Active + Paused + Cancelled when some subscriptions had another status (such as Expired or Pending) — the Total card now notes how many are in other statuses.
+* Solved: Changing a filter while on a later page could show an empty or wrong list — every filter change now starts from page 1.
+* Solved: Exporting subscriptions or customers always downloaded everything, even with filters applied — exports now match the search, status, product, date and segment filters you have set.
+* Solved: Fixed a few minor issues.
+* Improved: Subscription search now runs automatically as you type (Enter still searches instantly), and clearing the search box brings back the full list.
 
 = 1.1.6 - 2026-09-06 =
 * Added: Optional setting to tie downloadable-product access to subscription status — suspended on pause, revoked on cancel/expiry, restored on resume. Off by default.

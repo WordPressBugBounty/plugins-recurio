@@ -160,15 +160,53 @@ class ImportExport {
 
 	/**
 	 * GET /export/subscriptions
-	 * Streams a CSV of all subscriptions.
+	 * Streams a CSV of subscriptions. Honors the same filters as the
+	 * subscriptions list (search, status, product_id, date_from, date_to);
+	 * with no filters it exports everything.
 	 */
 	public function export_subscriptions( $request ) {
 		global $wpdb;
 
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
-		$subscriptions = $wpdb->get_results(
-			// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table names are safe, no user input
-			"SELECT
+		$where_sql  = array( '1=1' );
+		$where_args = array();
+
+		$status = $request->get_param( 'status' );
+		if ( ! empty( $status ) ) {
+			$where_sql[]  = 's.status = %s';
+			$where_args[] = sanitize_text_field( $status );
+		}
+
+		$product_id = $request->get_param( 'product_id' );
+		if ( ! empty( $product_id ) ) {
+			$where_sql[]  = 's.product_id = %d';
+			$where_args[] = absint( $product_id );
+		}
+
+		$date_from = $request->get_param( 'date_from' );
+		if ( ! empty( $date_from ) ) {
+			$where_sql[]  = 'DATE(s.created_at) >= %s';
+			$where_args[] = sanitize_text_field( $date_from );
+		}
+
+		$date_to = $request->get_param( 'date_to' );
+		if ( ! empty( $date_to ) ) {
+			$where_sql[]  = 'DATE(s.created_at) <= %s';
+			$where_args[] = sanitize_text_field( $date_to );
+		}
+
+		$search = $request->get_param( 'search' );
+		if ( ! empty( $search ) ) {
+			$like         = '%' . $wpdb->esc_like( sanitize_text_field( $search ) ) . '%';
+			$where_sql[]  = '(u.display_name LIKE %s OR u.user_email LIKE %s)';
+			$where_args[] = $like;
+			$where_args[] = $like;
+		}
+
+		$where_clause = implode( ' AND ', $where_sql );
+
+		// $where_clause is built from hardcoded %s/%d fragments; args match placeholders.
+		// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare, WordPress.DB.PreparedSQLPlaceholders.ReplacementsWrongNumber
+		$export_sql = "SELECT
 					s.*,
 					u.display_name AS customer_name,
 					u.user_email   AS customer_email,
@@ -176,8 +214,13 @@ class ImportExport {
 				FROM {$wpdb->prefix}recurio_subscriptions s
 				LEFT JOIN {$wpdb->users} u ON s.customer_id = u.ID
 				LEFT JOIN {$wpdb->posts} p ON s.product_id  = p.ID
-				ORDER BY s.created_at DESC"
+				WHERE {$where_clause}
+				ORDER BY s.created_at DESC";
+
+		$subscriptions = $wpdb->get_results(
+			empty( $where_args ) ? $export_sql : $wpdb->prepare( $export_sql, ...$where_args )
 		);
+		// phpcs:enable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare, WordPress.DB.PreparedSQLPlaceholders.ReplacementsWrongNumber
 
 		$csv_lines   = array();
 		$csv_lines[] = implode( ',', array(
@@ -220,30 +263,76 @@ class ImportExport {
 
 	/**
 	 * GET /export/customers
-	 * Streams a CSV of all customers with subscription totals.
+	 * Streams a CSV of customers with subscription totals. Honors the same
+	 * filters as the customers list (search, segment, subscription_status).
 	 */
 	public function export_customers( $request ) {
 		global $wpdb;
 
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
-		$customers = $wpdb->get_results(
-			// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table names are safe, no user input
-			$wpdb->prepare(
-				"SELECT
+		$search              = sanitize_text_field( (string) $request->get_param( 'search' ) );
+		$segment             = sanitize_text_field( (string) $request->get_param( 'segment' ) );
+		$subscription_status = sanitize_text_field( (string) $request->get_param( 'subscription_status' ) );
+
+		// Same filter rules as GET /customers so the export matches what the table shows.
+		$where      = 'WHERE 1=1';
+		$where_args = array();
+		if ( $search ) {
+			$where       .= ' AND (u.display_name LIKE %s OR u.user_email LIKE %s)';
+			$like         = '%' . $wpdb->esc_like( $search ) . '%';
+			$where_args[] = $like;
+			$where_args[] = $like;
+		}
+
+		// Hardcoded per enum branch, no dynamic values.
+		$having = '';
+		if ( 'active' === $subscription_status ) {
+			$having = ' HAVING active_subscriptions > 0';
+		} elseif ( 'inactive' === $subscription_status ) {
+			$having = ' HAVING active_subscriptions = 0 AND total_subscriptions > 0';
+		} elseif ( 'never' === $subscription_status ) {
+			$having = ' HAVING total_subscriptions = 0';
+		}
+
+		// WHERE/HAVING are raw placeholder templates built above; args match placeholders.
+		// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare, WordPress.DB.PreparedSQLPlaceholders.ReplacementsWrongNumber
+		$customers_sql = "SELECT
 					u.ID,
 					u.display_name  AS name,
 					u.user_email    AS email,
 					u.user_registered AS join_date,
 					COUNT(DISTINCT s.id)                                          AS total_subscriptions,
-					COUNT(DISTINCT CASE WHEN s.status = %s THEN s.id END)  AS active_subscriptions,
-					COALESCE(SUM(s.billing_amount), 0)                            AS total_revenue
+					COUNT(DISTINCT CASE WHEN s.status = 'active' THEN s.id END)   AS active_subscriptions,
+					COALESCE(SUM(s.billing_amount), 0)                            AS total_revenue,
+					CASE
+						WHEN COALESCE(SUM(s.billing_amount), 0) > 1000 THEN 'VIP'
+						WHEN COUNT(DISTINCT CASE WHEN s.status = 'active' THEN s.id END) = 0 AND COUNT(DISTINCT s.id) > 0 THEN 'At Risk'
+						WHEN COUNT(DISTINCT s.id) = 0 THEN 'Prospect'
+						ELSE 'Regular'
+					END AS segment
 				FROM {$wpdb->users} u
 				LEFT JOIN {$wpdb->prefix}recurio_subscriptions s ON u.ID = s.customer_id
+				{$where}
 				GROUP BY u.ID
-				ORDER BY total_revenue DESC",
-				'active'
-			)
+				{$having}
+				ORDER BY total_revenue DESC";
+
+		$customers = $wpdb->get_results(
+			empty( $where_args ) ? $customers_sql : $wpdb->prepare( $customers_sql, ...$where_args )
 		);
+		// phpcs:enable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare, WordPress.DB.PreparedSQLPlaceholders.ReplacementsWrongNumber
+
+		// Segment is derived in SQL; filter after the query, same normalisation as the list ("At Risk" == "at_risk").
+		if ( $segment ) {
+			$filter_segment = str_replace( ' ', '_', strtolower( $segment ) );
+			$customers      = array_values(
+				array_filter(
+					(array) $customers,
+					function ( $customer ) use ( $filter_segment ) {
+						return str_replace( ' ', '_', strtolower( $customer->segment ) ) === $filter_segment;
+					}
+				)
+			);
+		}
 
 		$csv_lines   = array();
 		$csv_lines[] = implode( ',', array(
