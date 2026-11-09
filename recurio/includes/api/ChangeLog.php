@@ -168,6 +168,23 @@ class ChangeLog
         return [
 
             [
+                'version' => '1.1.9',
+                'date'    => '2026-11-09',
+                'changes' => [
+                    'Fixes' => [
+                        __('Revenue export (CSV) could show a PHP deprecation notice on PHP 8.4 and later. The export file itself is unchanged.', 'recurio'),
+                        __('A product page could fail to load when Subscribe & Save was set to a fixed discount on a product priced at 0.', 'recurio'),
+                        __('PHP notices on PHP 8.1 and later when a subscription had no next payment date, in the Early Renewal window of the customer portal, when resuming a paused subscription, and when processing a renewal payment.', 'recurio'),
+                        __('PHP notices on PHP 8 when a payment-successful email was sent without a payment date or transaction ID, or when saving a product\'s split payment settings.', 'recurio'),
+                        __('The Subscriptions table showed the raw text pending_renewal in a grey badge. It now shows Pending Renewal in an orange badge, and Completed subscriptions show a proper label too.', 'recurio'),
+                    ],
+                    'Improvements' => [
+                        __('Improved Recurio Pro license activation and the License page.', 'recurio'),
+                        __('Compatible with PHP 8.5 and the latest version of WordPress.', 'recurio'),
+                    ],
+                ],
+            ],
+            [
                 'version' => '1.1.7',
                 'date'    => '2026-10-05',
                 'changes' => [

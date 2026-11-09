@@ -583,7 +583,7 @@ if (
 			<div class="recurio-detail-row">
 				<span class="recurio-detail-label"><?php echo esc_html__( 'Current Next Payment:', 'recurio' ); ?></span>
 				<span class="recurio-detail-value">
-					<?php echo esc_html( date_i18n( get_option( 'date_format' ), strtotime( $subscription->next_payment_date ) ) ); ?>
+					<?php echo esc_html( ! empty( $subscription->next_payment_date ) ? date_i18n( get_option( 'date_format' ), strtotime( $subscription->next_payment_date ) ) : '—' ); ?>
 				</span>
 			</div>
 			<div class="recurio-detail-row">

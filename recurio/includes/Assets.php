@@ -50,8 +50,7 @@ class Assets {
         }
 
         wp_send_json_success( array(
-            'nonce'        => wp_create_nonce( 'wp_rest' ),
-            'licenseNonce' => wp_create_nonce( 'recuriopro_license_r' ),
+            'nonce' => wp_create_nonce( 'wp_rest' ),
         ) );
     }
 
@@ -152,7 +151,6 @@ class Assets {
             'apiUrl'      => rest_url( 'recurio/v1' ),
             'rest_url'    => rest_url( 'recurio/v1' ),
             'nonce'       => wp_create_nonce( 'wp_rest' ),
-            'licenseNonce'=> wp_create_nonce( 'recuriopro_license_r' ),
             'ajaxUrl'     => admin_url( 'admin-ajax.php' ),
             'adminUrl'    => admin_url(),
             'pluginUrl'   => RECURIO_PLUGIN_URL,

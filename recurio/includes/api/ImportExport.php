@@ -412,7 +412,7 @@ class ImportExport {
 			__( 'Period Type', 'recurio' ),
 			__( 'Period Start', 'recurio' ),
 			__( 'Period End', 'recurio' ),
-		) );
+		), ',', '"', '\\' );
 
 		foreach ( $revenue_data as $revenue ) {
 			fputcsv(
@@ -428,7 +428,10 @@ class ImportExport {
 					$revenue->period_type ?: 'N/A',
 					$revenue->period_start ? gmdate( 'Y-m-d', strtotime( $revenue->period_start ) ) : '',
 					$revenue->period_end   ? gmdate( 'Y-m-d', strtotime( $revenue->period_end ) )   : '',
-				)
+				),
+				',',
+				'"',
+				'\\'
 			);
 		}
 

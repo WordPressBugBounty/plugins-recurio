@@ -535,7 +535,7 @@ class Recurio_Subscription_Engine {
 			$pause_duration = $pause_start->diff( $now )->days;
 		}
 
-		$next_payment = new DateTime( $subscription->next_payment_date );
+		$next_payment = new DateTime( (string) $subscription->next_payment_date );
 		$next_payment->add( new DateInterval( 'P' . $pause_duration . 'D' ) );
 
 		$resume_data = array(

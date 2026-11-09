@@ -387,10 +387,10 @@ class Recurio_Email_Notifications {
 			'customer_name'     => $customer->display_name,
 			'product_name'      => $product_name,
 			'payment_amount'    => wc_price( $payment_data['amount'] ),
-			'payment_date'      => date_i18n( get_option( 'date_format' ), strtotime( $payment_data['date'] ) ),
+			'payment_date'      => date_i18n( get_option( 'date_format' ), strtotime( $payment_data['date'] ?? current_time( 'mysql' ) ) ),
 			'next_payment_date' => $next_payment_fmt !== '' ? $next_payment_fmt : __( 'Not scheduled', 'recurio' ),
 			'subscription_id'   => $subscription_id,
-			'invoice_url'       => $this->get_invoice_url( $payment_data['transaction_id'] ),
+			'invoice_url'       => $this->get_invoice_url( $payment_data['transaction_id'] ?? '' ),
 		);
 		$email     = $this->finalize_email( 'payment_successful', $subject, $variables );
 

@@ -4,7 +4,7 @@ Tags: subscriptions, recurring payments, woocommerce subscriptions, recurring bi
 Requires at least: 5.8
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 1.1.7
+Stable tag: 1.1.9
 License: GPL v2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -166,6 +166,15 @@ Recurio is designed to work seamlessly with most WooCommerce extensions. If you 
 10. Reduce churn with a smart cancellation retention flow
 
 == Changelog ==
+
+= 1.1.9 - 2026-11-09 =
+* Solved: Revenue export (CSV) could show a PHP deprecation notice on PHP 8.4 and later — the export file itself is unchanged.
+* Solved: A product page could fail to load when Subscribe & Save was set to a fixed discount on a product priced at 0.
+* Solved: PHP notices on PHP 8.1 and later when a subscription had no next payment date — in the "Early Renewal" window of the customer portal, when resuming a paused subscription, and when processing a renewal payment.
+* Solved: PHP notices on PHP 8 when a payment-successful email was sent without a payment date or transaction ID, or when saving a product's split payment settings.
+* Solved: The Subscriptions table showed the raw text "pending_renewal" in a grey badge — it now shows "Pending Renewal" in an orange badge, and "Completed" subscriptions show a proper label too.
+* Improved: Recurio Pro license activation and the License page.
+* Compatible: PHP 8.5 and the latest version of WordPress.
 
 = 1.1.7 - 2026-10-05 =
 * Solved: Subscription counts (Total, Active, Paused, Cancelled) at the top of the Subscriptions page changed when moving between pages — they now always show accurate totals for the whole list.

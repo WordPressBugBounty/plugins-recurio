@@ -653,6 +653,7 @@ class Recurio_WooCommerce_Product {
 			update_post_meta( $post_id, '_recurio_subscription_auto_renewal', $auto_renewal );
 
 			// ===== Split Payments / Installments Options =====
+			$payment_type = '';
 			// phpcs:ignore WordPress.Security.NonceVerification.Missing -- This is a WooCommerce product save hook callback
 			if ( isset( $_POST['_recurio_payment_type'] ) ) {
 				$payment_type = sanitize_text_field( wp_unslash( $_POST['_recurio_payment_type'] ) );

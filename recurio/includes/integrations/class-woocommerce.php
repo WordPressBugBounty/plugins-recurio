@@ -2167,7 +2167,7 @@ class Recurio_WooCommerce_Integration {
 			} else {
 				$savings_amount     = $discount_value;
 				$subscription_price = $regular_price - $discount_value;
-				$savings_percent    = ( $savings_amount / $regular_price ) * 100;
+				$savings_percent    = $regular_price > 0 ? ( $savings_amount / $regular_price ) * 100 : 0;
 			}
 			$subscription_price = max( 0, $subscription_price );
 		}

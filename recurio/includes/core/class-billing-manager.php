@@ -647,7 +647,7 @@ class Recurio_Billing_Manager {
 		);
 
 		// Check subscription metadata first
-		$metadata = json_decode( $subscription->subscription_metadata, true );
+		$metadata = json_decode( (string) $subscription->subscription_metadata, true );
 		if ( isset( $metadata['payment_method'] ) && is_array( $metadata['payment_method'] ) ) {
 			$payment_info = array_merge( $payment_info, $metadata['payment_method'] );
 		}
